@@ -1,0 +1,142 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: kube-apiserver
+  labels:
+    app: kube-apiserver
+spec:
+  replicas: {{ .Replicas }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 3
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: kube-apiserver
+  template:
+    metadata:
+      labels:
+        app: kube-apiserver
+{{ if .RestartDate }}
+      annotations:
+        openshift.io/restartedAt: "{{ .RestartDate }}"
+{{ end }}
+    spec:
+      tolerations:
+        - key: "multi-az-worker"
+          operator: "Equal"
+          value: "true"
+          effect: NoSchedule
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: ["kube-apiserver"]
+              topologyKey: "kubernetes.io/hostname"
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: ["kube-apiserver"]
+              topologyKey: "failure-domain.beta.kubernetes.io/zone"
+      automountServiceAccountToken: false
+      containers:
+      - name: kube-apiserver
+        image: {{ imageFor "hyperkube" }}
+        command:
+        - hyperkube
+        - kube-apiserver
+        args:
+        - "--openshift-config=/etc/kubernetes/apiserver-config/config.yaml"
+        workingDir: /var/log/kube-apiserver
+        livenessProbe:
+          httpGet:
+            scheme: HTTPS
+            port: {{ .InternalAPIPort }}
+{{ if .ApiserverLivenessPath }}
+            path: "{{ .ApiserverLivenessPath }}"
+{{ else }}
+            path: livez
+{{ end }}
+          initialDelaySeconds: 45
+          timeoutSeconds: 10
+        readinessProbe:
+          httpGet:
+            scheme: HTTPS
+            port: {{ .InternalAPIPort }}
+            path: readyz
+          initialDelaySeconds: 10
+          timeoutSeconds: 10
+{{ if .KubeAPIServerResources }}
+        resources:{{ range .KubeAPIServerResources }}{{ range .ResourceRequest }}
+          requests: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ range .ResourceLimit }}
+          limits: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
+{{ end }}
+        volumeMounts:
+        - mountPath: /etc/kubernetes/secret/
+          name: secret
+        - mountPath: /etc/kubernetes/apiserver-config/
+          name: apiserver-config
+        - mountPath: /etc/kubernetes/config/
+          name: config
+        - mountPath: /etc/kubernetes/oauth/
+          name: oauth
+        - mountPath: /var/log/kube-apiserver/
+          name: logs
+{{ if .APIServerAuditEnabled }}
+        - name: apiserver-cm
+          mountPath: /etc/kubernetes/audit/
+{{ end }}
+{{ if includeVPN }}
+      - name: openvpn-client
+        image: quay.io/sjenning/poc:openvpn
+        imagePullPolicy: Always
+        command:
+        - /usr/sbin/openvpn
+        - --config
+        - /etc/openvpn/config/client.conf
+        workingDir: /etc/openvpn/
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - mountPath: /etc/openvpn/secret
+          name: vpnsecret
+        - mountPath: /etc/openvpn/config
+          name: vpnconfig
+{{ end }}
+      volumes:
+      - secret:
+          secretName: kube-apiserver
+        name: secret
+      - emptyDir: {}
+        name: logs
+      - configMap:
+          name: kube-apiserver
+        name: config
+      - configMap:
+          name: kube-apiserver-config
+        name: apiserver-config
+      - configMap:
+          name: kube-apiserver-oauth-metadata
+        name: oauth
+{{ if .APIServerAuditEnabled }}
+      - name: apiserver-cm
+        configMap:
+          name: apiserver-audit-cm
+{{ end }}
+{{ if includeVPN }}
+      - configMap:
+          name: kube-apiserver-vpnclient-config
+        name: vpnconfig
+      - secret:
+          secretName: kube-apiserver-vpnclient-secret
+        name: vpnsecret
+{{ end }}
