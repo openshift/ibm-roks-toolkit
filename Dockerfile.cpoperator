@@ -1,0 +1,11 @@
+# Image build must be run from repository root directory
+FROM openshift/origin-release:golang-1.13 as builder
+RUN mkdir -p /go/src/github.com/openshift/hypershift-toolkit
+WORKDIR /go/src/github.com/openshift/hypershift-toolkit
+COPY . .
+RUN go build -mod=vendor -o ./bin/control-plane-operator ./cmd/control-plane-operator/main.go
+
+FROM registry.access.redhat.com/ubi7/ubi
+RUN yum -y update && yum clean all
+COPY --from=builder /go/src/github.com/openshift/hypershift-toolkit/bin/control-plane-operator /usr/bin/control-plane-operator
+ENTRYPOINT /usr/bin/control-plane-operator
