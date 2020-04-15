@@ -2,6 +2,7 @@ package clusteroperator
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/go-logr/logr"
 
@@ -19,6 +20,7 @@ import (
 type ClusterOperatorInfo struct {
 	Name           string
 	VersionMapping map[string]string
+	RelatedObjects []configv1.ObjectReference
 }
 
 var clusterOperators = []ClusterOperatorInfo{
@@ -28,12 +30,113 @@ var clusterOperators = []ClusterOperatorInfo{
 			"operator":            "release",
 			"openshift-apiserver": "release",
 		},
+		RelatedObjects: []configv1.ObjectReference{
+			{
+				Group:    "operator.openshift.io",
+				Resource: "openshiftapiservers",
+				Name:     "cluster",
+			},
+			{
+				Resource: "namespaces",
+				Name:     "openshift-config",
+			},
+			{
+				Resource: "namespaces",
+				Name:     "openshift-config-managed",
+			},
+			{
+				Resource: "namespaces",
+				Name:     "openshift-apiserver-operator",
+			},
+			{
+				Resource: "namespaces",
+				Name:     "openshift-apiserver",
+			},
+			{
+				Group:    "apiregistration.k8s.io",
+				Name:     "v1.apps.openshift.io",
+				Resource: "apiservices",
+			},
+			{
+				Group:    "apiregistration.k8s.io",
+				Name:     "v1.authorization.openshift.io",
+				Resource: "apiservices",
+			},
+			{
+				Group:    "apiregistration.k8s.io",
+				Name:     "v1.build.openshift.io",
+				Resource: "apiservices",
+			},
+			{
+				Group:    "apiregistration.k8s.io",
+				Name:     "v1.image.openshift.io",
+				Resource: "apiservices",
+			},
+			{
+				Group:    "apiregistration.k8s.io",
+				Name:     "v1.oauth.openshift.io",
+				Resource: "apiservices",
+			},
+			{
+				Group:    "apiregistration.k8s.io",
+				Name:     "v1.project.openshift.io",
+				Resource: "apiservices",
+			},
+			{
+				Group:    "apiregistration.k8s.io",
+				Name:     "v1.quota.openshift.io",
+				Resource: "apiservices",
+			},
+			{
+				Group:    "apiregistration.k8s.io",
+				Name:     "v1.route.openshift.io",
+				Resource: "apiservices",
+			},
+			{
+				Group:    "apiregistration.k8s.io",
+				Name:     "v1.security.openshift.io",
+				Resource: "apiservices",
+			},
+			{
+				Group:    "apiregistration.k8s.io",
+				Name:     "v1.template.openshift.io",
+				Resource: "apiservices",
+			},
+			{
+				Group:    "apiregistration.k8s.io",
+				Name:     "v1.user.openshift.io",
+				Resource: "apiservices",
+			},
+		},
 	},
 	{
 		Name: "openshift-controller-manager",
 		VersionMapping: map[string]string{
 			"openshift-controller-manager": "release",
 			"operator":                     "release",
+		},
+		RelatedObjects: []configv1.ObjectReference{
+			{
+				Group:    "operator.openshift.io",
+				Resource: "openshiftcontrollermanagers",
+				Name:     "cluster",
+			},
+			{
+				Resource: "namespaces",
+				Name:     "openshift-config",
+			},
+			{
+				Resource: "namespaces",
+				Name:     "openshift-config-managed",
+			},
+			{
+				Resource: "namespaces",
+				Name:     "openshift-controller-manager-operator",
+			},
+			{
+				Resource: "namespaces",
+				Name:     "openshift-controller-manager",
+			},
 		},
 	},
 	{
@@ -43,6 +146,33 @@ var clusterOperators = []ClusterOperatorInfo{
 			"kube-apiserver": "kubernetes",
 			"operator":       "release",
 		},
+		RelatedObjects: []configv1.ObjectReference{
+			{
+				Group:    "operator.openshift.io",
+				Resource: "kubeapiservers",
+				Name:     "cluster",
+			},
+			{
+				Group:    "apiextensions.k8s.io",
+				Resource: "customresourcedefinitions",
+			},
+			{
+				Resource: "namespaces",
+				Name:     "openshift-config",
+			},
+			{
+				Resource: "namespaces",
+				Name:     "openshift-config-managed",
+			},
+			{
+				Resource: "namespaces",
+				Name:     "openshift-kube-apiserver-operator",
+			},
+			{
+				Resource: "namespaces",
+				Name:     "openshift-kube-apiserver",
+			},
+		},
 	},
 	{
 		Name: "kube-controller-manager",
@@ -51,6 +181,29 @@ var clusterOperators = []ClusterOperatorInfo{
 			"kube-controller-manager": "kubernetes",
 			"operator":                "release",
 		},
+		RelatedObjects: []configv1.ObjectReference{
+			{
+				Resource: "namespaces",
+				Name:     "openshift-config",
+			},
+			{
+				Resource: "namespaces",
+				Name:     "openshift-config-managed",
+			},
+			{
+				Resource: "namespaces",
+				Name:     "openshift-kube-controller-manager",
+			},
+			{
+				Resource: "namespaces",
+				Name:     "openshift-kube-controller-manager-operator",
+			},
+			{
+				Group:    "operator.openshift.io",
+				Resource: "kubecontrollermanagers",
+				Name:     "cluster",
+			},
+		},
 	},
 	{
 		Name: "kube-scheduler",
@@ -58,6 +211,25 @@ var clusterOperators = []ClusterOperatorInfo{
 			"raw-internal":   "release",
 			"kube-scheduler": "kubernetes",
 			"operator":       "release",
+		},
+		RelatedObjects: []configv1.ObjectReference{
+			{
+				Group:    "operator.openshift.io",
+				Resource: "kubeschedulers",
+				Name:     "cluster",
+			},
+			{
+				Resource: "namespaces",
+				Name:     "openshift-config",
+			},
+			{
+				Resource: "namespaces",
+				Name:     "openshift-kube-scheduler",
+			},
+			{
+				Resource: "namespaces",
+				Name:     "openshift-kube-scheduler-operator",
+			},
 		},
 	},
 }
@@ -171,6 +343,12 @@ func (r *ControlPlaneClusterOperatorSyncer) ensureClusterOperatorIsUpToDate(co *
 		}
 	}
 
+	// Check related objects
+	if !reflect.DeepEqual(expectedStatus.RelatedObjects, co.Status.RelatedObjects) {
+		needsUpdate = true
+		co.Status.RelatedObjects = expectedStatus.RelatedObjects
+	}
+
 	if !needsUpdate {
 		return nil
 	}
@@ -233,6 +411,7 @@ func (r *ControlPlaneClusterOperatorSyncer) clusterOperatorStatus(coInfo Cluster
 			Reason:             "AsExpected",
 		},
 	}
+	status.RelatedObjects = coInfo.RelatedObjects
 	return status
 }
 
