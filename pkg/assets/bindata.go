@@ -15,7 +15,6 @@
 // assets/common/service-network-admin-kubeconfig-secret.yaml
 // assets/control-plane-operator/cp-operator-configmap.yaml
 // assets/control-plane-operator/cp-operator-deployment.yaml
-// assets/kube-apiserver/client.conf
 // assets/kube-apiserver/config.yaml
 // assets/kube-apiserver/kube-apiserver-config-configmap.yaml
 // assets/kube-apiserver/kube-apiserver-configmap.yaml
@@ -23,8 +22,6 @@
 // assets/kube-apiserver/kube-apiserver-oauth-metadata-configmap.yaml
 // assets/kube-apiserver/kube-apiserver-secret.yaml
 // assets/kube-apiserver/kube-apiserver-service.yaml
-// assets/kube-apiserver/kube-apiserver-vpnclient-config.yaml
-// assets/kube-apiserver/kube-apiserver-vpnclient-secret.yaml
 // assets/kube-apiserver/oauthMetadata.json
 // assets/kube-controller-manager/config.yaml
 // assets/kube-controller-manager/kube-controller-manager-config-configmap.yaml
@@ -717,32 +714,6 @@ func controlPlaneOperatorCpOperatorDeploymentYaml() (*asset, error) {
 	return a, nil
 }
 
-var _kubeApiserverClientConf = []byte(`client
-verb 3
-nobind
-dev tun
-remote-cert-tls server
-remote openvpn-server 1194 udp
-ca secret/ca.crt
-cert secret/tls.crt
-key secret/tls.key
-`)
-
-func kubeApiserverClientConfBytes() ([]byte, error) {
-	return _kubeApiserverClientConf, nil
-}
-
-func kubeApiserverClientConf() (*asset, error) {
-	bytes, err := kubeApiserverClientConfBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "kube-apiserver/client.conf", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
 var _kubeApiserverConfigYaml = []byte(`---
 apiVersion: kubecontrolplane.config.openshift.io/v1
 kind: KubeAPIServerConfig
@@ -1057,23 +1028,6 @@ spec:
         - name: apiserver-cm
           mountPath: /etc/kubernetes/audit/
 {{ end }}
-{{ if includeVPN }}
-      - name: openvpn-client
-        image: quay.io/sjenning/poc:openvpn
-        imagePullPolicy: Always
-        command:
-        - /usr/sbin/openvpn
-        - --config
-        - /etc/openvpn/config/client.conf
-        workingDir: /etc/openvpn/
-        securityContext:
-          privileged: true
-        volumeMounts:
-        - mountPath: /etc/openvpn/secret
-          name: vpnsecret
-        - mountPath: /etc/openvpn/config
-          name: vpnconfig
-{{ end }}
       volumes:
       - secret:
           secretName: kube-apiserver
@@ -1093,14 +1047,6 @@ spec:
       - name: apiserver-cm
         configMap:
           name: apiserver-audit-cm
-{{ end }}
-{{ if includeVPN }}
-      - configMap:
-          name: kube-apiserver-vpnclient-config
-        name: vpnconfig
-      - secret:
-          secretName: kube-apiserver-vpnclient-secret
-        name: vpnsecret
 {{ end }}
 `)
 
@@ -1199,55 +1145,6 @@ func kubeApiserverKubeApiserverServiceYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "kube-apiserver/kube-apiserver-service.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _kubeApiserverKubeApiserverVpnclientConfigYaml = []byte(`kind: ConfigMap
-apiVersion: v1
-metadata:
-  name: kube-apiserver-vpnclient-config
-data:
-  client.conf: |-
-{{ include "kube-apiserver/client.conf" 4 }}
-`)
-
-func kubeApiserverKubeApiserverVpnclientConfigYamlBytes() ([]byte, error) {
-	return _kubeApiserverKubeApiserverVpnclientConfigYaml, nil
-}
-
-func kubeApiserverKubeApiserverVpnclientConfigYaml() (*asset, error) {
-	bytes, err := kubeApiserverKubeApiserverVpnclientConfigYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "kube-apiserver/kube-apiserver-vpnclient-config.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _kubeApiserverKubeApiserverVpnclientSecretYaml = []byte(`kind: Secret
-apiVersion: v1
-metadata:
-  name: kube-apiserver-vpnclient-secret
-data:
-  tls.crt: {{ pki "openvpn-kube-apiserver-client.crt" }}
-  tls.key: {{ pki "openvpn-kube-apiserver-client.key" }}
-  ca.crt: {{ pki "openvpn-ca.crt" }}
-`)
-
-func kubeApiserverKubeApiserverVpnclientSecretYamlBytes() ([]byte, error) {
-	return _kubeApiserverKubeApiserverVpnclientSecretYaml, nil
-}
-
-func kubeApiserverKubeApiserverVpnclientSecretYaml() (*asset, error) {
-	bytes, err := kubeApiserverKubeApiserverVpnclientSecretYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "kube-apiserver/kube-apiserver-vpnclient-secret.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -3177,7 +3074,6 @@ var _bindata = map[string]func() (*asset, error){
 	"common/service-network-admin-kubeconfig-secret.yaml":                             commonServiceNetworkAdminKubeconfigSecretYaml,
 	"control-plane-operator/cp-operator-configmap.yaml":                               controlPlaneOperatorCpOperatorConfigmapYaml,
 	"control-plane-operator/cp-operator-deployment.yaml":                              controlPlaneOperatorCpOperatorDeploymentYaml,
-	"kube-apiserver/client.conf":                                                      kubeApiserverClientConf,
 	"kube-apiserver/config.yaml":                                                      kubeApiserverConfigYaml,
 	"kube-apiserver/kube-apiserver-config-configmap.yaml":                             kubeApiserverKubeApiserverConfigConfigmapYaml,
 	"kube-apiserver/kube-apiserver-configmap.yaml":                                    kubeApiserverKubeApiserverConfigmapYaml,
@@ -3185,8 +3081,6 @@ var _bindata = map[string]func() (*asset, error){
 	"kube-apiserver/kube-apiserver-oauth-metadata-configmap.yaml":                     kubeApiserverKubeApiserverOauthMetadataConfigmapYaml,
 	"kube-apiserver/kube-apiserver-secret.yaml":                                       kubeApiserverKubeApiserverSecretYaml,
 	"kube-apiserver/kube-apiserver-service.yaml":                                      kubeApiserverKubeApiserverServiceYaml,
-	"kube-apiserver/kube-apiserver-vpnclient-config.yaml":                             kubeApiserverKubeApiserverVpnclientConfigYaml,
-	"kube-apiserver/kube-apiserver-vpnclient-secret.yaml":                             kubeApiserverKubeApiserverVpnclientSecretYaml,
 	"kube-apiserver/oauthMetadata.json":                                               kubeApiserverOauthmetadataJson,
 	"kube-controller-manager/config.yaml":                                             kubeControllerManagerConfigYaml,
 	"kube-controller-manager/kube-controller-manager-config-configmap.yaml":           kubeControllerManagerKubeControllerManagerConfigConfigmapYaml,
@@ -3295,7 +3189,6 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"cp-operator-deployment.yaml": {controlPlaneOperatorCpOperatorDeploymentYaml, map[string]*bintree{}},
 	}},
 	"kube-apiserver": {nil, map[string]*bintree{
-		"client.conf":                                  {kubeApiserverClientConf, map[string]*bintree{}},
 		"config.yaml":                                  {kubeApiserverConfigYaml, map[string]*bintree{}},
 		"kube-apiserver-config-configmap.yaml":         {kubeApiserverKubeApiserverConfigConfigmapYaml, map[string]*bintree{}},
 		"kube-apiserver-configmap.yaml":                {kubeApiserverKubeApiserverConfigmapYaml, map[string]*bintree{}},
@@ -3303,8 +3196,6 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"kube-apiserver-oauth-metadata-configmap.yaml": {kubeApiserverKubeApiserverOauthMetadataConfigmapYaml, map[string]*bintree{}},
 		"kube-apiserver-secret.yaml":                   {kubeApiserverKubeApiserverSecretYaml, map[string]*bintree{}},
 		"kube-apiserver-service.yaml":                  {kubeApiserverKubeApiserverServiceYaml, map[string]*bintree{}},
-		"kube-apiserver-vpnclient-config.yaml":         {kubeApiserverKubeApiserverVpnclientConfigYaml, map[string]*bintree{}},
-		"kube-apiserver-vpnclient-secret.yaml":         {kubeApiserverKubeApiserverVpnclientSecretYaml, map[string]*bintree{}},
 		"oauthMetadata.json":                           {kubeApiserverOauthmetadataJson, map[string]*bintree{}},
 	}},
 	"kube-controller-manager": {nil, map[string]*bintree{
