@@ -17,7 +17,6 @@ type ClusterParams struct {
 	ImageRegistryHTTPSecret             string                 `json:"imageRegistryHTTPSecret"`
 	RouterNodePortHTTP                  string                 `json:"routerNodePortHTTP"`
 	RouterNodePortHTTPS                 string                 `json:"routerNodePortHTTPS"`
-	OpenVPNNodePort                     string                 `json:"openVPNNodePort"`
 	BaseDomain                          string                 `json:"baseDomain"`
 	NetworkType                         string                 `json:"networkType"`
 	Replicas                            string                 `json:"replicas"`
