@@ -16,8 +16,8 @@ import (
 	"github.com/openshift/library-go/pkg/operator/configobserver"
 	"github.com/openshift/library-go/pkg/operator/events"
 
-	"github.com/openshift/hypershift-toolkit/pkg/cmd/cpoperator"
-	"github.com/openshift/hypershift-toolkit/pkg/controllers"
+	"github.com/openshift/ibm-roks-toolkit/pkg/cmd/cpoperator"
+	"github.com/openshift/ibm-roks-toolkit/pkg/controllers"
 )
 
 func Setup(cfg *cpoperator.ControlPlaneOperatorConfig) error {

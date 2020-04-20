@@ -19,4 +19,4 @@
 *.out
 
 /cluster.yaml
-/hypershift
+/ibm-roks

@@ -12,15 +12,15 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	"github.com/openshift/hypershift-toolkit/pkg/cmd/cpoperator"
-	"github.com/openshift/hypershift-toolkit/pkg/controllers/autoapprover"
-	"github.com/openshift/hypershift-toolkit/pkg/controllers/clusteroperator"
-	"github.com/openshift/hypershift-toolkit/pkg/controllers/clusterversion"
-	"github.com/openshift/hypershift-toolkit/pkg/controllers/cmca"
-	"github.com/openshift/hypershift-toolkit/pkg/controllers/kubeadminpwd"
-	"github.com/openshift/hypershift-toolkit/pkg/controllers/kubelet_serving_ca"
-	"github.com/openshift/hypershift-toolkit/pkg/controllers/openshift_apiserver"
-	"github.com/openshift/hypershift-toolkit/pkg/controllers/openshift_controller_manager"
+	"github.com/openshift/ibm-roks-toolkit/pkg/cmd/cpoperator"
+	"github.com/openshift/ibm-roks-toolkit/pkg/controllers/autoapprover"
+	"github.com/openshift/ibm-roks-toolkit/pkg/controllers/clusteroperator"
+	"github.com/openshift/ibm-roks-toolkit/pkg/controllers/clusterversion"
+	"github.com/openshift/ibm-roks-toolkit/pkg/controllers/cmca"
+	"github.com/openshift/ibm-roks-toolkit/pkg/controllers/kubeadminpwd"
+	"github.com/openshift/ibm-roks-toolkit/pkg/controllers/kubelet_serving_ca"
+	"github.com/openshift/ibm-roks-toolkit/pkg/controllers/openshift_apiserver"
+	"github.com/openshift/ibm-roks-toolkit/pkg/controllers/openshift_controller_manager"
 )
 
 const (
