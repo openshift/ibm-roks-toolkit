@@ -9,8 +9,8 @@ import (
 	configclient "github.com/openshift/client-go/config/clientset/versioned"
 	configinformers "github.com/openshift/client-go/config/informers/externalversions"
 
-	"github.com/openshift/hypershift-toolkit/pkg/cmd/cpoperator"
-	"github.com/openshift/hypershift-toolkit/pkg/controllers"
+	"github.com/openshift/ibm-roks-toolkit/pkg/cmd/cpoperator"
+	"github.com/openshift/ibm-roks-toolkit/pkg/controllers"
 )
 
 func Setup(cfg *cpoperator.ControlPlaneOperatorConfig) error {

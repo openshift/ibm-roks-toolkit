@@ -6,19 +6,19 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/openshift/hypershift-toolkit/pkg/api"
-	assets "github.com/openshift/hypershift-toolkit/pkg/assets"
-	"github.com/openshift/hypershift-toolkit/pkg/release"
+	"github.com/openshift/ibm-roks-toolkit/pkg/api"
+	assets "github.com/openshift/ibm-roks-toolkit/pkg/assets"
+	"github.com/openshift/ibm-roks-toolkit/pkg/release"
 )
 
 // RenderClusterManifests renders manifests for a hosted control plane cluster
-func RenderClusterManifests(params *api.ClusterParams, pullSecretFile, outputDir string, etcd bool, vpn bool, externalOauth bool, includeRegistry bool) error {
+func RenderClusterManifests(params *api.ClusterParams, pullSecretFile, outputDir string, externalOauth, includeRegistry bool) error {
 	releaseInfo, err := release.GetReleaseInfo(params.ReleaseImage, params.OriginReleasePrefix, pullSecretFile)
 	if err != nil {
 		return err
 	}
-	ctx := newClusterManifestContext(releaseInfo.Images, releaseInfo.Versions, params, outputDir, vpn)
-	ctx.setupManifests(etcd, vpn, externalOauth, includeRegistry)
+	ctx := newClusterManifestContext(releaseInfo.Images, releaseInfo.Versions, params, outputDir)
+	ctx.setupManifests(externalOauth, includeRegistry)
 	return ctx.renderManifests()
 }
 
@@ -28,7 +28,7 @@ type clusterManifestContext struct {
 	userManifests     map[string]string
 }
 
-func newClusterManifestContext(images, versions map[string]string, params interface{}, outputDir string, includeVPN bool) *clusterManifestContext {
+func newClusterManifestContext(images, versions map[string]string, params interface{}, outputDir string) *clusterManifestContext {
 	ctx := &clusterManifestContext{
 		renderContext: newRenderContext(params, outputDir),
 		userManifests: make(map[string]string),
@@ -41,7 +41,6 @@ func newClusterManifestContext(images, versions map[string]string, params interf
 		"address":           cidrAddress,
 		"mask":              cidrMask,
 		"include":           includeFileFunc(params, ctx.renderContext),
-		"includeVPN":        includeVPNFunc(includeVPN),
 		"randomString":      randomString,
 		"includeData":       includeDataFunc(),
 		"trimTrailingSpace": trimTrailingSpace,
@@ -49,11 +48,8 @@ func newClusterManifestContext(images, versions map[string]string, params interf
 	return ctx
 }
 
-func (c *clusterManifestContext) setupManifests(etcd bool, vpn bool, externalOauth bool, includeRegistry bool) {
-	if etcd {
-		c.etcd()
-	}
-	c.kubeAPIServer(vpn)
+func (c *clusterManifestContext) setupManifests(externalOauth, includeRegistry bool) {
+	c.kubeAPIServer()
 	c.kubeControllerManager()
 	c.kubeScheduler()
 	c.clusterBootstrap()
@@ -62,26 +58,12 @@ func (c *clusterManifestContext) setupManifests(etcd bool, vpn bool, externalOau
 	if externalOauth {
 		c.oauthOpenshiftServer()
 	}
-	if vpn {
-		c.openVPN()
-	}
 	c.clusterVersionOperator()
 	if includeRegistry {
 		c.registry()
 	}
 	c.userManifestsBootstrapper()
 	c.controlPlaneOperator()
-}
-
-func (c *clusterManifestContext) etcd() {
-	c.addManifestFiles(
-		"etcd/etcd-cluster-crd.yaml",
-		"etcd/etcd-cluster.yaml",
-		"etcd/etcd-operator-cluster-role-binding.yaml",
-		"etcd/etcd-operator-cluster-role.yaml",
-		"etcd/etcd-operator.yaml",
-	)
-
 }
 
 func (c *clusterManifestContext) oauthOpenshiftServer() {
@@ -96,18 +78,13 @@ func (c *clusterManifestContext) oauthOpenshiftServer() {
 	)
 }
 
-func (c *clusterManifestContext) kubeAPIServer(includeVPN bool) {
+func (c *clusterManifestContext) kubeAPIServer() {
 	c.addManifestFiles(
 		"kube-apiserver/kube-apiserver-deployment.yaml",
 		"kube-apiserver/kube-apiserver-service.yaml",
 		"kube-apiserver/kube-apiserver-config-configmap.yaml",
 		"kube-apiserver/kube-apiserver-oauth-metadata-configmap.yaml",
 	)
-	if includeVPN {
-		c.addManifestFiles(
-			"kube-apiserver/kube-apiserver-vpnclient-config.yaml",
-		)
-	}
 }
 
 func (c *clusterManifestContext) kubeControllerManager() {
@@ -191,19 +168,6 @@ func (c *clusterManifestContext) openshiftControllerManager() {
 func (c *clusterManifestContext) controlPlaneOperator() {
 	c.addManifestFiles(
 		"control-plane-operator/cp-operator-deployment.yaml",
-	)
-}
-
-func (c *clusterManifestContext) openVPN() {
-	c.addManifestFiles(
-		"openvpn/openvpn-server-deployment.yaml",
-		"openvpn/openvpn-server-service.yaml",
-		"openvpn/openvpn-ccd-configmap.yaml",
-		"openvpn/openvpn-server-configmap.yaml",
-	)
-	c.addUserManifestFiles(
-		"openvpn/openvpn-client-deployment.yaml",
-		"openvpn/openvpn-client-configmap.yaml",
 	)
 }
 

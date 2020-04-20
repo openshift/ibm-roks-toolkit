@@ -7,8 +7,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
-	"github.com/openshift/hypershift-toolkit/pkg/cmd/cpoperator"
-	"github.com/openshift/hypershift-toolkit/pkg/controllers"
+	"github.com/openshift/ibm-roks-toolkit/pkg/cmd/cpoperator"
+	"github.com/openshift/ibm-roks-toolkit/pkg/controllers"
 )
 
 func Setup(cfg *cpoperator.ControlPlaneOperatorConfig) error {

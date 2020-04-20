@@ -146,5 +146,5 @@ apiServerAuditEnabled: true
 restartDate: "2017-07-27T16:39:00Z"
 extraFeatureGates: [ExpandInUsePersistentVolumes=true]
 apiserverLivenessPath: livez?exclude=etcd
-controlPlaneOperatorImage: registry.svc.ci.openshift.org/hypershift-toolkit/hypershift-4.4:control-plane-operator
+controlPlaneOperatorImage: registry.svc.ci.openshift.org/ibm-roks/ibm-roks-4.4:control-plane-operator
 controlPlaneOperatorSecurity: 1001

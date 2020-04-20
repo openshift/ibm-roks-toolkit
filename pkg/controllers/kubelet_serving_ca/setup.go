@@ -5,7 +5,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
-	"github.com/openshift/hypershift-toolkit/pkg/cmd/cpoperator"
+	"github.com/openshift/ibm-roks-toolkit/pkg/cmd/cpoperator"
 )
 
 const (
