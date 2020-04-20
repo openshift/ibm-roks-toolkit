@@ -6,7 +6,7 @@ default: build
 
 .PHONY: build
 build:  bindata control-plane-operator
-	go build -mod=vendor -o bin/hypershift github.com/openshift/hypershift-toolkit/cmd/hypershift
+	go build -mod=vendor -o bin/ibm-roks github.com/openshift/ibm-roks-toolkit/cmd/ibm-roks
 
 .PHONY: bindata
 bindata:

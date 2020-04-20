@@ -5,7 +5,7 @@ import (
 
 	"github.com/ghodss/yaml"
 
-	"github.com/openshift/hypershift-toolkit/pkg/api"
+	"github.com/openshift/ibm-roks-toolkit/pkg/api"
 )
 
 func ReadFrom(fileName string) (*api.ClusterParams, error) {

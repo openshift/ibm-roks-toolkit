@@ -18,7 +18,7 @@ import (
 	configclient "github.com/openshift/client-go/config/clientset/versioned"
 	configinformers "github.com/openshift/client-go/config/informers/externalversions"
 
-	common "github.com/openshift/hypershift-toolkit/pkg/controllers"
+	common "github.com/openshift/ibm-roks-toolkit/pkg/controllers"
 )
 
 type ControllerSetupFunc func(*ControlPlaneOperatorConfig) error
