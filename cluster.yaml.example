@@ -2,8 +2,6 @@ namespace: hosted
 externalAPIDNSName: api.hosted.example.com
 externalAPIPort: 6443
 externalAPIAddress: 10.0.0.1
-externalVPNDNSName: vpn.hosted.example.com
-externalVPNPort: 3118
 externalOauthPort: 4000
 serviceCIDR: 172.31.0.0/16
 namedCerts:
@@ -15,7 +13,6 @@ podCIDR: 10.32.0.0/14
 releaseImage: quay.io/openshift-release-dev/ocp-release:4.2.0
 originReleasePrefix: quay.io/openshift-release-dev
 apiNodePort: 32323
-openVPNNodePort: 32324
 ingressSubdomain: apps.hosted.example.com
 openshiftAPIClusterIP: 172.30.0.20
 baseDomain: example.com
@@ -128,23 +125,9 @@ autoApproverResources:
     - resourceLimit:
         - cpu: 200m
           memory: 200Mi
-openVPNClientResources:
-    - resourceRequest:
-        - cpu: 100m
-          memory: 100Mi
-    - resourceLimit:
-        - cpu: 200m
-          memory: 200Mi
-openVPNServerResources:
-    - resourceRequest:
-        - cpu: 100m
-          memory: 100Mi
-    - resourceLimit:
-        - cpu: 200m
-          memory: 200Mi
 apiServerAuditEnabled: true
 restartDate: "2017-07-27T16:39:00Z"
 extraFeatureGates: [ExpandInUsePersistentVolumes=true]
 apiserverLivenessPath: livez?exclude=etcd
-controlPlaneOperatorImage: registry.svc.ci.openshift.org/hypershift-toolkit/hypershift-4.3:control-plane-operator
+controlPlaneOperatorImage: registry.svc.ci.openshift.org/hypershift-toolkit/ibm-roks-4.3:control-plane-operator
 controlPlaneOperatorSecurity: 1001

@@ -1,13 +1,8 @@
-module github.com/openshift/hypershift-toolkit
+module github.com/openshift/ibm-roks-toolkit
 
 go 1.12
 
 require (
-	github.com/Luzifer/go-dhparam v1.0.0
-	github.com/ajeddeloh/go-json v0.0.0-20170920214419-6a2fe990e083 // indirect
-	github.com/apparentlymart/go-cidr v1.0.1
-	github.com/aws/aws-sdk-go v1.16.26
-	github.com/coreos/ignition v0.34.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-logr/logr v0.1.0
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
@@ -28,9 +23,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/cobra v0.0.5
-	github.com/vincent-petithory/dataurl v0.0.0-20191104211930-d1553a71de50
-	go4.org v0.0.0-20191010144846-132d2879e1e9 // indirect
-	golang.org/x/crypto v0.0.0-20200302210943-78000ba7a073
+	golang.org/x/crypto v0.0.0-20200302210943-78000ba7a073 // indirect
 	golang.org/x/net v0.0.0-20200301022130-244492dfa37a // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d // indirect
 	golang.org/x/sys v0.0.0-20200302150141-5c8b2ff67527 // indirect
@@ -44,7 +37,6 @@ require (
 	k8s.io/client-go v11.0.0+incompatible
 	k8s.io/kube-aggregator v0.17.3 // indirect
 	k8s.io/kube-openapi v0.0.0-20200204173128-addea2498afe // indirect
-	k8s.io/kubectl v0.0.0
 	k8s.io/utils v0.0.0-20200229041039-0a110f9eb7ab // indirect
 	sigs.k8s.io/controller-runtime v0.4.0
 	sigs.k8s.io/yaml v1.2.0

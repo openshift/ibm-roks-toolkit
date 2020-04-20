@@ -95,23 +95,6 @@ spec:
         - name: apiserver-cm
           mountPath: /etc/kubernetes/audit/
 {{ end }}
-{{ if includeVPN }}
-      - name: openvpn-client
-        image: quay.io/sjenning/poc:openvpn
-        imagePullPolicy: Always
-        command:
-        - /usr/sbin/openvpn
-        - --config
-        - /etc/openvpn/config/client.conf
-        workingDir: /etc/openvpn/
-        securityContext:
-          privileged: true
-        volumeMounts:
-        - mountPath: /etc/openvpn/secret
-          name: vpnsecret
-        - mountPath: /etc/openvpn/config
-          name: vpnconfig
-{{ end }}
       volumes:
       - secret:
           secretName: kube-apiserver
@@ -131,12 +114,4 @@ spec:
       - name: apiserver-cm
         configMap:
           name: apiserver-audit-cm
-{{ end }}
-{{ if includeVPN }}
-      - configMap:
-          name: kube-apiserver-vpnclient-config
-        name: vpnconfig
-      - secret:
-          secretName: kube-apiserver-vpnclient-secret
-        name: vpnsecret
 {{ end }}

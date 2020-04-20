@@ -9,9 +9,9 @@ This tool was jointly developed by RedHat and IBM.
 ### Install on standalone environment
 
 * Run `make build` to build the binary
-* Construct a "cluster.yaml" to define custom parameters for the cluster. Example found here: [cluster.yaml.example](https://github.com/openshift/hypershift-toolkit/blob/master/cluster.yaml.example)
-* Construct a "pull-secret.txt" to provide authentication to pull from desired docker registries. Example found here: [pull-secret.txt.example](https://github.com/openshift/hypershift-toolkit/blob/master/pull-secret.txt.example)
-* Construct and run the render command, with optional fields below: `./bin/hypershift render`
+* Construct a "cluster.yaml" to define custom parameters for the cluster. Example found here: [cluster.yaml.example](https://github.com/openshift/ibm-roks-toolkit/blob/master/cluster.yaml.example)
+* Construct a "pull-secret.txt" to provide authentication to pull from desired docker registries. Example found here: [pull-secret.txt.example](https://github.com/openshift/ibm-roks-toolkit/blob/master/pull-secret.txt.example)
+* Construct and run the render command, with optional fields below: `./bin/ibm-roks render`
     - `output-dir`: Specify the directory where manifest files should be output (default ./manifests)
     - `config`: Specify the config file for this cluster (default ./cluster.yaml)
     - `pull-secret`: Specify the pull secret used to pull from desired docker registries (default ./pull-secret.txt)
