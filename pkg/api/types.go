@@ -5,8 +5,6 @@ type ClusterParams struct {
 	ExternalAPIDNSName                  string                 `json:"externalAPIDNSName"`
 	ExternalAPIPort                     uint                   `json:"externalAPIPort"`
 	ExternalAPIIPAddress                string                 `json:"externalAPIAddress"`
-	ExternalOpenVPNDNSName              string                 `json:"externalVPNDNSName"`
-	ExternalOpenVPNPort                 uint                   `json:"externalVPNPort"`
 	ExternalOauthPort                   uint                   `json:"externalOauthPort"`
 	IdentityProviders                   string                 `json:"identityProviders"`
 	ServiceCIDR                         string                 `json:"serviceCIDR"`
@@ -19,7 +17,6 @@ type ClusterParams struct {
 	ImageRegistryHTTPSecret             string                 `json:"imageRegistryHTTPSecret"`
 	RouterNodePortHTTP                  string                 `json:"routerNodePortHTTP"`
 	RouterNodePortHTTPS                 string                 `json:"routerNodePortHTTPS"`
-	OpenVPNNodePort                     string                 `json:"openVPNNodePort"`
 	BaseDomain                          string                 `json:"baseDomain"`
 	NetworkType                         string                 `json:"networkType"`
 	Replicas                            string                 `json:"replicas"`
@@ -40,8 +37,6 @@ type ClusterParams struct {
 	OAuthServerResources                []ResourceRequirements `json:"oAuthServerResources"`
 	ClusterPolicyControllerResources    []ResourceRequirements `json:"clusterPolicyControllerResources"`
 	AutoApproverResources               []ResourceRequirements `json:"autoApproverResources"`
-	OpenVPNClientResources              []ResourceRequirements `json:"openVPNClientResources"`
-	OpenVPNServerResources              []ResourceRequirements `json:"openVPNServerResources"`
 	APIServerAuditEnabled               bool                   `json:"apiServerAuditEnabled"`
 	RestartDate                         string                 `json:"restartDate"`
 	ControlPlaneOperatorImage           string                 `json:"controlPlaneOperatorImage"`
