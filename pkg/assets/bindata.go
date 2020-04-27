@@ -281,6 +281,12 @@ metadata:
   name: default
   namespace: openshift-ingress-operator
 spec:
+{{ if .EndpointPublishingStrategyScope }}
+  endpointPublishingStrategy:
+    loadBalancer:
+      scope: {{ .EndpointPublishingStrategyScope }}
+    type: LoadBalancerService
+{{ end }}
   nodePlacement:
     tolerations:
     - key: dedicated

@@ -16,6 +16,7 @@ releaseImage: quay.io/openshift-release-dev/ocp-release:4.2.0
 originReleasePrefix: quay.io/openshift-release-dev
 apiNodePort: 32323
 openVPNNodePort: 32324
+endpointPublishingStrategyScope: External
 ingressSubdomain: apps.hosted.example.com
 openshiftAPIClusterIP: 172.30.0.20
 baseDomain: example.com
