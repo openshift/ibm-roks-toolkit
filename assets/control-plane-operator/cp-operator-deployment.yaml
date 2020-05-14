@@ -66,6 +66,9 @@ spec:
           operator: "Equal"
           value: "true"
           effect: NoSchedule
+{{ if .MasterPriorityClass }}
+      priorityClassName: {{ .MasterPriorityClass }}
+{{ end }}
       containers:
       - image: {{ .ControlPlaneOperatorImage }}
         imagePullPolicy: IfNotPresent
