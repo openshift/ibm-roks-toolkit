@@ -149,3 +149,4 @@ extraFeatureGates: [ExpandInUsePersistentVolumes=true]
 apiserverLivenessPath: livez?exclude=etcd
 controlPlaneOperatorImage: registry.svc.ci.openshift.org/ibm-roks/ibm-roks-4.4:control-plane-operator
 controlPlaneOperatorSecurity: 1001
+masterPriorityClass: ''

@@ -23,6 +23,9 @@ spec:
           value: "true"
           effect: NoSchedule
       automountServiceAccountToken: false
+{{ if .MasterPriorityClass }}
+      priorityClassName: {{ .MasterPriorityClass }}
+{{ end }}
       containers:
         - name: cluster-version-operator
           image: {{ .ReleaseImage }}
