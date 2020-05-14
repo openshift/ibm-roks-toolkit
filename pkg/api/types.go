@@ -42,6 +42,7 @@ type ClusterParams struct {
 	ControlPlaneOperatorControllers     []string               `json:"controlPlaneOperatorControllers"`
 	ExtraFeatureGates                   []string               `json:"extraFeatureGates"`
 	ControlPlaneOperatorSecurity        string                 `json:"controlPlaneOperatorSecurity"`
+	MasterPriorityClass                 string                 `json:"masterPriorityClass"`
 	ApiserverLivenessPath               string                 `json:"apiserverLivenessPath"`
 	DefaultFeatureGates                 []string
 	PlatformType                        string `json:"platformType"`
