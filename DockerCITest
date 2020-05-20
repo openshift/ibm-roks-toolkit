@@ -1,2 +1,2 @@
 FROM registry.svc.ci.openshift.org/ibm-gate-secrets/base:master
-ENV BOM_FILE openshift-target-bom-4.3.yml
+ENV BOM_FILE openshift-target-bom-4.4.yml
