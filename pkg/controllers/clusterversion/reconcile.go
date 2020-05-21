@@ -11,11 +11,6 @@ import (
 	configlister "github.com/openshift/client-go/config/listers/config/v1"
 )
 
-const (
-	// NOTE: This needs to be set appropriately for the release associated with this code
-	DefaultChannel = "stable-4.4"
-)
-
 type ClusterVersionReconciler struct {
 	Client configclient.Interface
 	Lister configlister.ClusterVersionLister
@@ -28,9 +23,14 @@ func (r *ClusterVersionReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 		return ctrl.Result{}, fmt.Errorf("cannot fetch cluster version %s: %v", req.Name, err)
 	}
 	updateNeeded := false
-	// Always default to default channel
-	if clusterVersion.Spec.Channel != DefaultChannel {
-		clusterVersion.Spec.Channel = DefaultChannel
+	// Always default to empty upstream
+	if len(clusterVersion.Spec.Upstream) > 0 {
+		clusterVersion.Spec.Upstream = ""
+		updateNeeded = true
+	}
+	// Always default to empty channel
+	if len(clusterVersion.Spec.Channel) > 0 {
+		clusterVersion.Spec.Channel = ""
 		updateNeeded = true
 	}
 	// Remove any attempt at changing the clusterVersion
