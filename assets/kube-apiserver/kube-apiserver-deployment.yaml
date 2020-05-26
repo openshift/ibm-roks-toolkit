@@ -44,6 +44,9 @@ spec:
                     values: ["kube-apiserver"]
               topologyKey: "failure-domain.beta.kubernetes.io/zone"
       automountServiceAccountToken: false
+{{ if .MasterPriorityClass }}
+      priorityClassName: {{ .MasterPriorityClass }}
+{{ end }}
       containers:
       - name: kube-apiserver
         image: {{ imageFor "hyperkube" }}
