@@ -479,6 +479,9 @@ spec:
           value: "true"
           effect: NoSchedule
       automountServiceAccountToken: false
+{{ if .MasterPriorityClass }}
+      priorityClassName: {{ .MasterPriorityClass }}
+{{ end }}
       containers:
         - name: cluster-version-operator
           image: {{ .ReleaseImage }}
@@ -656,6 +659,9 @@ spec:
           operator: "Equal"
           value: "true"
           effect: NoSchedule
+{{ if .MasterPriorityClass }}
+      priorityClassName: {{ .MasterPriorityClass }}
+{{ end }}
       containers:
       - image: {{ .ControlPlaneOperatorImage }}
         imagePullPolicy: IfNotPresent
@@ -983,6 +989,9 @@ spec:
                     values: ["kube-apiserver"]
               topologyKey: "failure-domain.beta.kubernetes.io/zone"
       automountServiceAccountToken: false
+{{ if .MasterPriorityClass }}
+      priorityClassName: {{ .MasterPriorityClass }}
+{{ end }}
       containers:
       - name: kube-apiserver
         image: {{ imageFor "hyperkube" }}
@@ -1373,6 +1382,9 @@ spec:
                     values: ["kube-controller-manager"]
               topologyKey: "failure-domain.beta.kubernetes.io/zone"
       automountServiceAccountToken: false
+{{ if .MasterPriorityClass }}
+      priorityClassName: {{ .MasterPriorityClass }}
+{{ end }}
       containers:
       - name: kube-controller-manager
         image: {{ imageFor "hyperkube" }}
@@ -1551,6 +1563,9 @@ spec:
                     values: ["kube-scheduler"]
               topologyKey: "failure-domain.beta.kubernetes.io/zone"
       automountServiceAccountToken: false
+{{ if .MasterPriorityClass }}
+      priorityClassName: {{ .MasterPriorityClass }}
+{{ end }}
       containers:
       - name: kube-scheduler
         image: {{ imageFor "hyperkube" }}
@@ -1880,6 +1895,9 @@ spec:
                   values: ["oauth-openshift"]
               topologyKey: "failure-domain.beta.kubernetes.io/zone"
       automountServiceAccountToken: false
+{{ if .MasterPriorityClass }}
+      priorityClassName: {{ .MasterPriorityClass }}
+{{ end }}
       containers:
         - name: openshift-oauthserver
           image: {{ imageFor "oauth-server" }}
@@ -2277,6 +2295,9 @@ spec:
                     values: ["openshift-apiserver"]
               topologyKey: "failure-domain.beta.kubernetes.io/zone"
       automountServiceAccountToken: false
+{{ if .MasterPriorityClass }}
+      priorityClassName: {{ .MasterPriorityClass }}
+{{ end }}
       containers:
       - name: openshift-apiserver
         image: {{ imageFor "openshift-apiserver" }}
@@ -2548,6 +2569,9 @@ spec:
                     values: ["cluster-policy-controller"]
               topologyKey: "failure-domain.beta.kubernetes.io/zone"
       automountServiceAccountToken: false
+{{ if .MasterPriorityClass }}
+      priorityClassName: {{ .MasterPriorityClass }}
+{{ end }}
       containers:
       - name: cluster-policy-controller
         image: {{ imageFor "cluster-policy-controller" }}
@@ -2729,6 +2753,9 @@ spec:
                     values: ["openshift-controller-manager"]
               topologyKey: "failure-domain.beta.kubernetes.io/zone"
       automountServiceAccountToken: false
+{{ if .MasterPriorityClass }}
+      priorityClassName: {{ .MasterPriorityClass }}
+{{ end }}
       containers:
       - name: openshift-controller-manager
         image: {{ imageFor "openshift-controller-manager" }}

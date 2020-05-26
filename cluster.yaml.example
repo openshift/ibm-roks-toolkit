@@ -133,3 +133,4 @@ extraFeatureGates: [ExpandInUsePersistentVolumes=true]
 apiserverLivenessPath: livez?exclude=etcd
 controlPlaneOperatorImage: registry.svc.ci.openshift.org/hypershift-toolkit/ibm-roks-4.3:control-plane-operator
 controlPlaneOperatorSecurity: 1001
+masterPriorityClass: ''
