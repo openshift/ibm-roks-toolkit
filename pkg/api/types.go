@@ -37,6 +37,11 @@ type ClusterParams struct {
 	OAuthServerResources                []ResourceRequirements `json:"oAuthServerResources"`
 	ClusterPolicyControllerResources    []ResourceRequirements `json:"clusterPolicyControllerResources"`
 	AutoApproverResources               []ResourceRequirements `json:"autoApproverResources"`
+	KMSServerResources                  []ResourceRequirements `json:"kmsServerResources"`
+	KMSImage                            string                 `json:"kmsImage"`
+	KPInfo                              string                 `json:"kpInfo"`
+	KPRegion                            string                 `json:"kpRegion"`
+	KPAPIKey                            string                 `json:"kpAPIKey"`
 	APIServerAuditEnabled               bool                   `json:"apiServerAuditEnabled"`
 	RestartDate                         string                 `json:"restartDate"`
 	ControlPlaneOperatorImage           string                 `json:"controlPlaneOperatorImage"`

@@ -129,20 +129,17 @@ autoApproverResources:
     - resourceLimit:
         - cpu: 200m
           memory: 200Mi
-openVPNClientResources:
+kmsServerResources:
     - resourceRequest:
         - cpu: 100m
           memory: 100Mi
     - resourceLimit:
         - cpu: 200m
           memory: 200Mi
-openVPNServerResources:
-    - resourceRequest:
-        - cpu: 100m
-          memory: 100Mi
-    - resourceLimit:
-        - cpu: 200m
-          memory: 200Mi
+kmsImage: example.image:v1.0.0
+kmsAPIKey: abcdefghijklmnopqrstuvwxyz
+kpInfo: '{"example":"foobar"}'
+kpRegion: us-south
 apiServerAuditEnabled: true
 restartDate: "2017-07-27T16:39:00Z"
 extraFeatureGates: [ExpandInUsePersistentVolumes=true]
