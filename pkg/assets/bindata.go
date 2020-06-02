@@ -141,6 +141,8 @@ metadata:
 apiVersion: v1
 kind: Namespace
 metadata:
+  labels:
+    openshift.io/cluster-monitoring: "true"
   name: openshift-ingress
 `)
 
