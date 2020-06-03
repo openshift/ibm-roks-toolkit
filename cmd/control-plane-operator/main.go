@@ -18,6 +18,7 @@ import (
 	"github.com/openshift/ibm-roks-toolkit/pkg/controllers/cmca"
 	"github.com/openshift/ibm-roks-toolkit/pkg/controllers/kubelet_serving_ca"
 	"github.com/openshift/ibm-roks-toolkit/pkg/controllers/openshift_apiserver"
+	"github.com/openshift/ibm-roks-toolkit/pkg/controllers/openshift_apiserver_monitor"
 	"github.com/openshift/ibm-roks-toolkit/pkg/controllers/openshift_controller_manager"
 )
 
@@ -41,6 +42,7 @@ var controllerFuncs = map[string]cpoperator.ControllerSetupFunc{
 	"kubelet-serving-ca":           kubelet_serving_ca.Setup,
 	"openshift-apiserver":          openshift_apiserver.Setup,
 	"openshift-controller-manager": openshift_controller_manager.Setup,
+	"openshift-apiserver-monitor":  openshift_apiserver_monitor.Setup,
 }
 
 type ControlPlaneOperator struct {
