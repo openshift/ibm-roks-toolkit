@@ -9,7 +9,6 @@ require (
 	github.com/golang/protobuf v1.3.4 // indirect
 	github.com/google/go-cmp v0.4.0 // indirect
 	github.com/google/uuid v1.1.1
-	github.com/googleapis/gnostic v0.4.1 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/imdario/mergo v0.3.8 // indirect
 	github.com/json-iterator/go v1.1.9 // indirect
@@ -30,7 +29,7 @@ require (
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0 // indirect
 	google.golang.org/appengine v1.6.5 // indirect
 	k8s.io/api v0.17.3
-	k8s.io/apiextensions-apiserver v0.17.3 // indirect
+	k8s.io/apiextensions-apiserver v0.17.3
 	k8s.io/apimachinery v0.17.3
 	k8s.io/apiserver v0.17.3 // indirect
 	k8s.io/cli-runtime v0.0.0

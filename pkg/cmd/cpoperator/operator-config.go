@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-logr/logr"
 
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/informers"
 	kubeclient "k8s.io/client-go/kubernetes"
@@ -56,6 +57,7 @@ func (c *ControlPlaneOperatorConfig) Scheme() *runtime.Scheme {
 	if c.scheme == nil {
 		c.scheme = runtime.NewScheme()
 		kubescheme.AddToScheme(c.scheme)
+		apiextensionsv1.AddToScheme(c.scheme)
 	}
 	return c.scheme
 }
