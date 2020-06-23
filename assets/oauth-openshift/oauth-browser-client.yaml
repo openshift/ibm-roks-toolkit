@@ -10,5 +10,5 @@ data:
     metadata:
       name: openshift-browser-client
     redirectURIs:
-    - https://{{ .ExternalAPIDNSName }}:{{ .ExternalOauthPort }}/oauth/token/display
+    - https://{{ .ExternalOauthDNSName }}:{{ .ExternalOauthPort }}/oauth/token/display
     secret: "{{ randomString 32  }}"
