@@ -1235,9 +1235,9 @@ func kubeApiserverKubeApiserverServiceYaml() (*asset, error) {
 
 var _kubeApiserverOauthmetadataJson = []byte(`{
 {{ if ne .ExternalOauthPort 0 }}
-"issuer": "https://{{ .ExternalAPIDNSName }}:{{ .ExternalOauthPort }}",
-"authorization_endpoint": "https://{{ .ExternalAPIDNSName }}:{{ .ExternalOauthPort }}/oauth/authorize",
-"token_endpoint": "https://{{ .ExternalAPIDNSName }}:{{ .ExternalOauthPort }}/oauth/token",
+"issuer": "https://{{ .ExternalOauthDNSName }}:{{ .ExternalOauthPort }}",
+"authorization_endpoint": "https://{{ .ExternalOauthDNSName }}:{{ .ExternalOauthPort }}/oauth/authorize",
+"token_endpoint": "https://{{ .ExternalOauthDNSName }}:{{ .ExternalOauthPort }}/oauth/token",
 {{ else }}
 "issuer": "https://oauth-openshift.{{ .IngressSubdomain }}",
 "authorization_endpoint": "https://oauth-openshift.{{ .IngressSubdomain }}/oauth/authorize",
@@ -1729,7 +1729,7 @@ data:
     metadata:
       name: openshift-browser-client
     redirectURIs:
-    - https://{{ .ExternalAPIDNSName }}:{{ .ExternalOauthPort }}/oauth/token/display
+    - https://{{ .ExternalOauthDNSName }}:{{ .ExternalOauthPort }}/oauth/token/display
     secret: "{{ randomString 32  }}"
 `)
 
@@ -1760,7 +1760,7 @@ data:
     metadata:
       name: openshift-challenging-client
     redirectURIs:
-    - https://{{ .ExternalAPIDNSName }}:{{ .ExternalOauthPort }}/oauth/token/implicit
+    - https://{{ .ExternalOauthDNSName }}:{{ .ExternalOauthPort }}/oauth/token/implicit
     respondWithChallenges: true
 `)
 
@@ -1836,8 +1836,8 @@ oauthConfig:
 {{ if .NamedCerts }}  masterCA: ""
 {{- else }}  masterCA: "/etc/oauth-openshift-config/ca.crt"
 {{- end }}
-  masterPublicURL: https://{{ .ExternalAPIDNSName }}:{{ .ExternalOauthPort }}
-  masterURL: https://{{ .ExternalAPIDNSName }}:{{ .ExternalOauthPort }}
+  masterPublicURL: https://{{ .ExternalOauthDNSName }}:{{ .ExternalOauthPort }}
+  masterURL: https://{{ .ExternalOauthDNSName }}:{{ .ExternalOauthPort }}
   sessionConfig:
     sessionMaxAgeSeconds: 300
     sessionName: ssn
