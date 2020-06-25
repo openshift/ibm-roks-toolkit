@@ -42,6 +42,9 @@ func (o *RenderManifestsOptions) Run() error {
 		log.WithError(err).Fatalf("Error occurred reading configuration")
 	}
 	externalOauth := params.ExternalOauthPort != 0
+	if len(params.ExternalOauthDNSName) == 0 {
+		params.ExternalOauthDNSName = params.ExternalAPIDNSName
+	}
 	err = render.RenderClusterManifests(params, o.PullSecretFile, o.OutputDir, externalOauth, o.IncludeRegistry)
 	if err != nil {
 		return err
