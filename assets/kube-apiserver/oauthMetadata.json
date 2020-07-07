@@ -1,8 +1,8 @@
 {
 {{ if ne .ExternalOauthPort 0 }}
-"issuer": "https://{{ .ExternalAPIDNSName }}:{{ .ExternalOauthPort }}",
-"authorization_endpoint": "https://{{ .ExternalAPIDNSName }}:{{ .ExternalOauthPort }}/oauth/authorize",
-"token_endpoint": "https://{{ .ExternalAPIDNSName }}:{{ .ExternalOauthPort }}/oauth/token",
+"issuer": "https://{{ .ExternalOauthDNSName }}:{{ .ExternalOauthPort }}",
+"authorization_endpoint": "https://{{ .ExternalOauthDNSName }}:{{ .ExternalOauthPort }}/oauth/authorize",
+"token_endpoint": "https://{{ .ExternalOauthDNSName }}:{{ .ExternalOauthPort }}/oauth/token",
 {{ else }}
 "issuer": "https://oauth-openshift.{{ .IngressSubdomain }}",
 "authorization_endpoint": "https://oauth-openshift.{{ .IngressSubdomain }}/oauth/authorize",
