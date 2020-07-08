@@ -5,6 +5,7 @@ type ClusterParams struct {
 	ExternalAPIDNSName                  string                 `json:"externalAPIDNSName"`
 	ExternalAPIPort                     uint                   `json:"externalAPIPort"`
 	ExternalAPIIPAddress                string                 `json:"externalAPIAddress"`
+	ExternalOauthDNSName                string                 `json:"externalOauthDNSName"`
 	ExternalOauthPort                   uint                   `json:"externalOauthPort"`
 	IdentityProviders                   string                 `json:"identityProviders"`
 	ServiceCIDR                         string                 `json:"serviceCIDR"`

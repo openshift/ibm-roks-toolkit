@@ -31,8 +31,8 @@ oauthConfig:
 {{ if .NamedCerts }}  masterCA: ""
 {{- else }}  masterCA: "/etc/oauth-openshift-config/ca.crt"
 {{- end }}
-  masterPublicURL: https://{{ .ExternalAPIDNSName }}:{{ .ExternalOauthPort }}
-  masterURL: https://{{ .ExternalAPIDNSName }}:{{ .ExternalOauthPort }}
+  masterPublicURL: https://{{ .ExternalOauthDNSName }}:{{ .ExternalOauthPort }}
+  masterURL: https://{{ .ExternalOauthDNSName }}:{{ .ExternalOauthPort }}
   sessionConfig:
     sessionMaxAgeSeconds: 300
     sessionName: ssn
