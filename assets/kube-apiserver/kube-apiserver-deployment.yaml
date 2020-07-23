@@ -147,6 +147,8 @@ spec:
           value: "10"
         - name: KP_DATA_JSON
           value: '{{ .KPInfo }}'
+        - name: KP_WDEK_PATH
+          value: "/tmp/kp/wdek"  
         - name: API_KEY
           value: {{ .KPAPIKey }}
         - name: HEALTHZ_PATH
@@ -156,6 +158,9 @@ spec:
         volumeMounts:
         - name: kms-socket
           mountPath: /tmp
+        - name: kms-kp
+          mountPath: /tmp/kp
+          readOnly: true
 {{ end }}
       volumes:
       - secret:
@@ -183,4 +188,8 @@ spec:
           name: kms-config
       - name: kms-socket
         emptyDir: {}
+      - name: kms-kp
+        secret:
+          secretName: kp-wdek-secret
+          optional: true
 {{ end }}
