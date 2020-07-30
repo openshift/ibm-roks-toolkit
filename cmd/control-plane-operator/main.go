@@ -13,11 +13,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	"github.com/openshift/ibm-roks-toolkit/pkg/cmd/cpoperator"
-	"github.com/openshift/ibm-roks-toolkit/pkg/controllers/autoapprover"
 	"github.com/openshift/ibm-roks-toolkit/pkg/controllers/clusteroperator"
 	"github.com/openshift/ibm-roks-toolkit/pkg/controllers/clusterversion"
 	"github.com/openshift/ibm-roks-toolkit/pkg/controllers/cmca"
-	"github.com/openshift/ibm-roks-toolkit/pkg/controllers/kubeadminpwd"
+	"github.com/openshift/ibm-roks-toolkit/pkg/controllers/infrastatus"
 	"github.com/openshift/ibm-roks-toolkit/pkg/controllers/kubelet_serving_ca"
 	"github.com/openshift/ibm-roks-toolkit/pkg/controllers/openshift_apiserver"
 	"github.com/openshift/ibm-roks-toolkit/pkg/controllers/openshift_apiserver_monitor"
@@ -40,13 +39,12 @@ func main() {
 var controllerFuncs = map[string]cpoperator.ControllerSetupFunc{
 	"controller-manager-ca":        cmca.Setup,
 	"cluster-operator":             clusteroperator.Setup,
-	"auto-approver":                autoapprover.Setup,
-	"kubeadmin-password":           kubeadminpwd.Setup,
 	"cluster-version":              clusterversion.Setup,
 	"kubelet-serving-ca":           kubelet_serving_ca.Setup,
 	"openshift-apiserver":          openshift_apiserver.Setup,
 	"openshift-controller-manager": openshift_controller_manager.Setup,
 	"openshift-apiserver-monitor":  openshift_apiserver_monitor.Setup,
+	"infrastatus":                  infrastatus.Setup,
 }
 
 type ControlPlaneOperator struct {
@@ -97,15 +95,16 @@ func newControlPlaneOperatorCommand() *cobra.Command {
 
 func newControlPlaneOperator() *ControlPlaneOperator {
 	return &ControlPlaneOperator{
-		Controllers: []string{
-			"controller-manager-ca",
-			"cluster-operator",
-			"cluster-version",
-			"kubelet-serving-ca",
-			"openshift-apiserver",
-			"openshift-controller-manager",
-		},
+		Controllers: allControllers(),
 	}
+}
+
+func allControllers() []string {
+	controllers := make([]string, 0, len(controllerFuncs))
+	for name := range controllerFuncs {
+		controllers = append(controllers, name)
+	}
+	return controllers
 }
 
 func (o *ControlPlaneOperator) Validate() error {
