@@ -1140,6 +1140,7 @@ spec:
         secret:
           secretName: kp-wdek-secret
           optional: true
+          defaultMode: 0400
 {{ end }}
 `)
 
