@@ -6,6 +6,7 @@
 // assets/cluster-bootstrap/cluster-infrastructure-02-config.yaml
 // assets/cluster-bootstrap/cluster-ingress-02-config.yaml
 // assets/cluster-bootstrap/cluster-ingresscontrollers-02-config.yaml
+// assets/cluster-bootstrap/cluster-kube-apiserver-servicemonitor.yaml
 // assets/cluster-bootstrap/cluster-network-01-crd.yaml
 // assets/cluster-bootstrap/cluster-network-02-config.yaml
 // assets/cluster-bootstrap/cluster-proxy-01-config.yaml
@@ -122,6 +123,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: openshift-kube-apiserver
+  labels:
+    openshift.io/cluster-monitoring: "true"
 ---
 apiVersion: v1
 kind: Namespace
@@ -308,6 +311,47 @@ func clusterBootstrapClusterIngresscontrollers02ConfigYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "cluster-bootstrap/cluster-ingresscontrollers-02-config.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _clusterBootstrapClusterKubeApiserverServicemonitorYaml = []byte(`apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: openshift-kube-apiserver
+  namespace: openshift-kube-apiserver
+spec:
+  namespaceSelector:
+    matchNames:
+    - default
+  selector:
+      component: apiserver
+  endpoints:
+  - bearerTokenFile: "/var/run/secrets/kubernetes.io/serviceaccount/token"
+    tlsConfig:
+      caFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    interval: 30s
+    scheme: https
+    port: https
+    path: /metrics
+    metricRelabelings:
+    - action: keep
+      regex: etcd_object_counts.*
+      sourceLabels:
+      - __name__
+`)
+
+func clusterBootstrapClusterKubeApiserverServicemonitorYamlBytes() ([]byte, error) {
+	return _clusterBootstrapClusterKubeApiserverServicemonitorYaml, nil
+}
+
+func clusterBootstrapClusterKubeApiserverServicemonitorYaml() (*asset, error) {
+	bytes, err := clusterBootstrapClusterKubeApiserverServicemonitorYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "cluster-bootstrap/cluster-kube-apiserver-servicemonitor.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -3177,6 +3221,7 @@ var _bindata = map[string]func() (*asset, error){
 	"cluster-bootstrap/cluster-infrastructure-02-config.yaml":                         clusterBootstrapClusterInfrastructure02ConfigYaml,
 	"cluster-bootstrap/cluster-ingress-02-config.yaml":                                clusterBootstrapClusterIngress02ConfigYaml,
 	"cluster-bootstrap/cluster-ingresscontrollers-02-config.yaml":                     clusterBootstrapClusterIngresscontrollers02ConfigYaml,
+	"cluster-bootstrap/cluster-kube-apiserver-servicemonitor.yaml":                    clusterBootstrapClusterKubeApiserverServicemonitorYaml,
 	"cluster-bootstrap/cluster-network-01-crd.yaml":                                   clusterBootstrapClusterNetwork01CrdYaml,
 	"cluster-bootstrap/cluster-network-02-config.yaml":                                clusterBootstrapClusterNetwork02ConfigYaml,
 	"cluster-bootstrap/cluster-proxy-01-config.yaml":                                  clusterBootstrapClusterProxy01ConfigYaml,
@@ -3284,6 +3329,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"cluster-infrastructure-02-config.yaml":       {clusterBootstrapClusterInfrastructure02ConfigYaml, map[string]*bintree{}},
 		"cluster-ingress-02-config.yaml":              {clusterBootstrapClusterIngress02ConfigYaml, map[string]*bintree{}},
 		"cluster-ingresscontrollers-02-config.yaml":   {clusterBootstrapClusterIngresscontrollers02ConfigYaml, map[string]*bintree{}},
+		"cluster-kube-apiserver-servicemonitor.yaml":  {clusterBootstrapClusterKubeApiserverServicemonitorYaml, map[string]*bintree{}},
 		"cluster-network-01-crd.yaml":                 {clusterBootstrapClusterNetwork01CrdYaml, map[string]*bintree{}},
 		"cluster-network-02-config.yaml":              {clusterBootstrapClusterNetwork02ConfigYaml, map[string]*bintree{}},
 		"cluster-proxy-01-config.yaml":                {clusterBootstrapClusterProxy01ConfigYaml, map[string]*bintree{}},
