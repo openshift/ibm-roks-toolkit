@@ -8,7 +8,6 @@ import (
 func NewClusterParams() *ClusterParams {
 	p := &ClusterParams{}
 	p.DefaultFeatureGates = []string{
-		"ExperimentalCriticalPodAnnotation=true",
 		"SupportPodPidsLimit=true",
 		"LocalStorageCapacityIsolation=false",
 		"RotateKubeletServerCertificate=true",
