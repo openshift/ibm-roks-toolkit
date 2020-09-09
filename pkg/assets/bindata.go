@@ -605,11 +605,23 @@ spec:
       name: cluster-version-operator
       labels:
         k8s-app: cluster-version-operator
+        clusterID: {{ .ClusterID }}
 {{ if .RestartDate }}
       annotations:
         openshift.io/restartedAt: "{{ .RestartDate }}"
 {{ end }}
     spec:
+      affinity:
+        podAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: clusterID
+                      operator: In
+                      values: ["{{ .ClusterID }}"]
+                topologyKey: "kubernetes.io/hostname"
       tolerations:
         - key: "multi-az-worker"
           operator: "Equal"
@@ -786,11 +798,23 @@ spec:
     metadata:
       labels:
         app: control-plane-operator
+        clusterID: {{ .ClusterID }}
 {{ if .RestartDate }}
       annotations:
         openshift.io/restartedAt: "{{ .RestartDate }}"
 {{ end }}
     spec:
+      affinity:
+        podAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: clusterID
+                      operator: In
+                      values: ["{{ .ClusterID }}"]
+                topologyKey: "kubernetes.io/hostname"
       tolerations:
         - key: "multi-az-worker"
           operator: "Equal"
@@ -1100,6 +1124,7 @@ spec:
     metadata:
       labels:
         app: kube-apiserver
+        clusterID: {{ .ClusterID }}
 {{ if .RestartDate }}
       annotations:
         openshift.io/restartedAt: "{{ .RestartDate }}"
@@ -1111,6 +1136,16 @@ spec:
           value: "true"
           effect: NoSchedule
       affinity:
+        podAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: clusterID
+                      operator: In
+                      values: ["{{ .ClusterID }}"]
+                topologyKey: "kubernetes.io/hostname"
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             - labelSelector:
@@ -1230,7 +1265,7 @@ spec:
         - name: KP_DATA_JSON
           value: '{{ .KPInfo }}'
         - name: KP_WDEK_PATH
-          value: "/tmp/kp/wdek"  
+          value: "/tmp/kp/wdek"
         - name: API_KEY
           value: {{ .KPAPIKey }}
         - name: HEALTHZ_PATH
@@ -1569,6 +1604,7 @@ spec:
     metadata:
       labels:
         app: kube-controller-manager
+        clusterID: {{ .ClusterID }}
 {{ if .RestartDate }}
       annotations:
         openshift.io/restartedAt: "{{ .RestartDate }}"
@@ -1580,6 +1616,16 @@ spec:
           value: "true"
           effect: NoSchedule
       affinity:
+        podAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: clusterID
+                      operator: In
+                      values: ["{{ .ClusterID }}"]
+                topologyKey: "kubernetes.io/hostname"
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             - labelSelector:
@@ -1750,6 +1796,7 @@ spec:
     metadata:
       labels:
         app: kube-scheduler
+        clusterID: {{ .ClusterID }}
 {{ if .RestartDate }}
       annotations:
         openshift.io/restartedAt: "{{ .RestartDate }}"
@@ -1761,6 +1808,16 @@ spec:
           value: "true"
           effect: NoSchedule
       affinity:
+        podAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: clusterID
+                      operator: In
+                      values: ["{{ .ClusterID }}"]
+                topologyKey: "kubernetes.io/hostname"
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             - labelSelector:
@@ -2082,6 +2139,7 @@ spec:
     metadata:
       labels:
         app: oauth-openshift
+        clusterID: {{ .ClusterID }}
 {{ if .RestartDate }}
       annotations:
         openshift.io/restartedAt: "{{ .RestartDate }}"
@@ -2093,6 +2151,16 @@ spec:
         value: "true"
         effect: NoSchedule
       affinity:
+        podAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: clusterID
+                      operator: In
+                      values: ["{{ .ClusterID }}"]
+                topologyKey: "kubernetes.io/hostname"
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             - labelSelector:
@@ -2482,6 +2550,7 @@ spec:
     metadata:
       labels:
         app: openshift-apiserver
+        clusterID: {{ .ClusterID }}
 {{ if .RestartDate }}
       annotations:
         openshift.io/restartedAt: "{{ .RestartDate }}"
@@ -2493,6 +2562,16 @@ spec:
           value: "true"
           effect: NoSchedule
       affinity:
+        podAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: clusterID
+                      operator: In
+                      values: ["{{ .ClusterID }}"]
+                topologyKey: "kubernetes.io/hostname"
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             - labelSelector:
@@ -2756,6 +2835,7 @@ spec:
     metadata:
       labels:
         app: cluster-policy-controller
+        clusterID: {{ .ClusterID }}
 {{ if .RestartDate }}
       annotations:
         openshift.io/restartedAt: "{{ .RestartDate }}"
@@ -2767,6 +2847,16 @@ spec:
           value: "true"
           effect: NoSchedule
       affinity:
+        podAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: clusterID
+                      operator: In
+                      values: ["{{ .ClusterID }}"]
+                topologyKey: "kubernetes.io/hostname"
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             - labelSelector:
@@ -2940,6 +3030,7 @@ spec:
     metadata:
       labels:
         app: openshift-controller-manager
+        clusterID: {{ .ClusterID }}
 {{ if .RestartDate }}
       annotations:
         openshift.io/restartedAt: "{{ .RestartDate }}"
@@ -2951,6 +3042,16 @@ spec:
           value: "true"
           effect: NoSchedule
       affinity:
+        podAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: clusterID
+                      operator: In
+                      values: ["{{ .ClusterID }}"]
+                topologyKey: "kubernetes.io/hostname"
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             - labelSelector:
