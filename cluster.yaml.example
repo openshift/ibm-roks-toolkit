@@ -1,4 +1,5 @@
 namespace: hosted
+clusterID: bxabcdefghijklmnopq0
 externalAPIDNSName: api.hosted.example.com
 externalAPIPort: 6443
 externalAPIAddress: 10.0.0.1

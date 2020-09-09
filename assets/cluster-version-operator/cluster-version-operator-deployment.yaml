@@ -12,11 +12,23 @@ spec:
       name: cluster-version-operator
       labels:
         k8s-app: cluster-version-operator
+        clusterID: {{ .ClusterID }}
 {{ if .RestartDate }}
       annotations:
         openshift.io/restartedAt: "{{ .RestartDate }}"
 {{ end }}
     spec:
+      affinity:
+        podAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: clusterID
+                      operator: In
+                      values: ["{{ .ClusterID }}"]
+                topologyKey: "kubernetes.io/hostname"
       tolerations:
         - key: "multi-az-worker"
           operator: "Equal"
