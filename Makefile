@@ -5,8 +5,8 @@ SRC_DIRS = cmd pkg
 default: build
 
 .PHONY: build
-build:  bindata control-plane-operator
-	go build -mod=vendor -o bin/ibm-roks github.com/openshift/ibm-roks-toolkit/cmd/ibm-roks
+build:  bindata control-plane-operator roks-metrics
+	go build -mod=vendor -o ./bin/ibm-roks github.com/openshift/ibm-roks-toolkit/cmd/ibm-roks
 
 .PHONY: bindata
 bindata:
@@ -32,3 +32,7 @@ verify: verify-gofmt verify-bindata
 .PHONY: control-plane-operator
 control-plane-operator:
 	go build -mod=vendor -o ./bin/control-plane-operator ./cmd/control-plane-operator/main.go
+
+.PHONY: roks-metrics
+roks-metrics:
+	go build -mod=vendor -o ./bin/roks-metrics ./cmd/roks-metrics/main.go
