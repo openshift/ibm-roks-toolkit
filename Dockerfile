@@ -2,7 +2,7 @@ FROM openshift/origin-release:golang-1.14 as builder
 RUN mkdir -p /go/src/github.com/openshift/ibm-roks-toolkit
 WORKDIR /go/src/github.com/openshift/ibm-roks-toolkit
 COPY . .
-RUN go build -o bin/ibm-roks github.com/openshift/ibm-roks-toolkit/cmd/ibm-roks
+RUN go build -mod=vendor -o bin/ibm-roks github.com/openshift/ibm-roks-toolkit/cmd/ibm-roks
 
 FROM registry.access.redhat.com/ubi7/ubi
 
