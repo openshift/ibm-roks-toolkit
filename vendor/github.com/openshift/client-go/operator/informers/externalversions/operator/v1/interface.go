@@ -10,6 +10,14 @@ import (
 type Interface interface {
 	// Authentications returns a AuthenticationInformer.
 	Authentications() AuthenticationInformer
+	// CSISnapshotControllers returns a CSISnapshotControllerInformer.
+	CSISnapshotControllers() CSISnapshotControllerInformer
+	// CloudCredentials returns a CloudCredentialInformer.
+	CloudCredentials() CloudCredentialInformer
+	// ClusterCSIDrivers returns a ClusterCSIDriverInformer.
+	ClusterCSIDrivers() ClusterCSIDriverInformer
+	// Configs returns a ConfigInformer.
+	Configs() ConfigInformer
 	// Consoles returns a ConsoleInformer.
 	Consoles() ConsoleInformer
 	// DNSes returns a DNSInformer.
@@ -24,6 +32,8 @@ type Interface interface {
 	KubeControllerManagers() KubeControllerManagerInformer
 	// KubeSchedulers returns a KubeSchedulerInformer.
 	KubeSchedulers() KubeSchedulerInformer
+	// KubeStorageVersionMigrators returns a KubeStorageVersionMigratorInformer.
+	KubeStorageVersionMigrators() KubeStorageVersionMigratorInformer
 	// Networks returns a NetworkInformer.
 	Networks() NetworkInformer
 	// OpenShiftAPIServers returns a OpenShiftAPIServerInformer.
@@ -36,6 +46,8 @@ type Interface interface {
 	ServiceCatalogAPIServers() ServiceCatalogAPIServerInformer
 	// ServiceCatalogControllerManagers returns a ServiceCatalogControllerManagerInformer.
 	ServiceCatalogControllerManagers() ServiceCatalogControllerManagerInformer
+	// Storages returns a StorageInformer.
+	Storages() StorageInformer
 }
 
 type version struct {
@@ -52,6 +64,26 @@ func New(f internalinterfaces.SharedInformerFactory, namespace string, tweakList
 // Authentications returns a AuthenticationInformer.
 func (v *version) Authentications() AuthenticationInformer {
 	return &authenticationInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+}
+
+// CSISnapshotControllers returns a CSISnapshotControllerInformer.
+func (v *version) CSISnapshotControllers() CSISnapshotControllerInformer {
+	return &cSISnapshotControllerInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+}
+
+// CloudCredentials returns a CloudCredentialInformer.
+func (v *version) CloudCredentials() CloudCredentialInformer {
+	return &cloudCredentialInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+}
+
+// ClusterCSIDrivers returns a ClusterCSIDriverInformer.
+func (v *version) ClusterCSIDrivers() ClusterCSIDriverInformer {
+	return &clusterCSIDriverInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+}
+
+// Configs returns a ConfigInformer.
+func (v *version) Configs() ConfigInformer {
+	return &configInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }
 
 // Consoles returns a ConsoleInformer.
@@ -89,6 +121,11 @@ func (v *version) KubeSchedulers() KubeSchedulerInformer {
 	return &kubeSchedulerInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }
 
+// KubeStorageVersionMigrators returns a KubeStorageVersionMigratorInformer.
+func (v *version) KubeStorageVersionMigrators() KubeStorageVersionMigratorInformer {
+	return &kubeStorageVersionMigratorInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+}
+
 // Networks returns a NetworkInformer.
 func (v *version) Networks() NetworkInformer {
 	return &networkInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
@@ -117,4 +154,9 @@ func (v *version) ServiceCatalogAPIServers() ServiceCatalogAPIServerInformer {
 // ServiceCatalogControllerManagers returns a ServiceCatalogControllerManagerInformer.
 func (v *version) ServiceCatalogControllerManagers() ServiceCatalogControllerManagerInformer {
 	return &serviceCatalogControllerManagerInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+}
+
+// Storages returns a StorageInformer.
+func (v *version) Storages() StorageInformer {
+	return &storageInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }

@@ -6,27 +6,27 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/imdario/mergo"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 
 	"k8s.io/apimachinery/pkg/api/equality"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/diff"
 	"k8s.io/apimachinery/pkg/util/rand"
-	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
-	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/tools/cache"
-	"k8s.io/client-go/util/workqueue"
 
 	operatorv1 "github.com/openshift/api/operator/v1"
+
+	"github.com/openshift/library-go/pkg/controller/factory"
 	"github.com/openshift/library-go/pkg/operator/condition"
 	"github.com/openshift/library-go/pkg/operator/events"
 	"github.com/openshift/library-go/pkg/operator/resourcesynccontroller"
 	"github.com/openshift/library-go/pkg/operator/v1helpers"
 )
-
-const configObserverWorkKey = "key"
 
 // Listers is an interface which will be passed to the config observer funcs.  It is expected to be hard-cast to the "correct" type
 type Listers interface {
@@ -42,39 +42,79 @@ type Listers interface {
 type ObserveConfigFunc func(listers Listers, recorder events.Recorder, existingConfig map[string]interface{}) (observedConfig map[string]interface{}, errs []error)
 
 type ConfigObserver struct {
-
 	// observers are called in an undefined order and their results are merged to
 	// determine the observed configuration.
 	observers []ObserveConfigFunc
 
 	operatorClient v1helpers.OperatorClient
+
 	// listers are used by config observers to retrieve necessary resources
 	listers Listers
 
-	queue         workqueue.RateLimitingInterface
-	eventRecorder events.Recorder
+	nestedConfigPath      []string
+	degradedConditionType string
 }
 
 func NewConfigObserver(
 	operatorClient v1helpers.OperatorClient,
 	eventRecorder events.Recorder,
 	listers Listers,
+	informers []factory.Informer,
 	observers ...ObserveConfigFunc,
-) *ConfigObserver {
-	return &ConfigObserver{
-		operatorClient: operatorClient,
-		eventRecorder:  eventRecorder.WithComponentSuffix("config-observer"),
+) factory.Controller {
+	return NewNestedConfigObserver(
+		operatorClient,
+		eventRecorder,
+		listers,
+		informers,
+		nil,
+		"",
+		observers...,
+	)
+}
 
-		queue: workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "ConfigObserver"),
-
-		observers: observers,
-		listers:   listers,
+// NewNestedConfigObserver creates a config observer that watches changes to a nested field (nestedConfigPath) in the config.
+// Useful when the config is shared across multiple controllers in the same process.
+//
+// Example:
+//
+// Given the following configuration, you could run two separate controllers and point each to its own section.
+// The first controller would be responsible for "oauthAPIServer" and the second for "oauthServer" section.
+//
+// "observedConfig": {
+//   "oauthAPIServer": {
+//     "apiServerArguments": {"tls-min-version": "VersionTLS12"}
+//   },
+//   "oauthServer": {
+//     "corsAllowedOrigins": [ "//127\\.0\\.0\\.1(:|$)","//localhost(:|$)"]
+//   }
+// }
+//
+// oauthAPIController    := NewNestedConfigObserver(..., []string{"oauthAPIServer"}
+// oauthServerController := NewNestedConfigObserver(..., []string{"oauthServer"}
+func NewNestedConfigObserver(
+	operatorClient v1helpers.OperatorClient,
+	eventRecorder events.Recorder,
+	listers Listers,
+	informers []factory.Informer,
+	nestedConfigPath []string,
+	degradedConditionPrefix string,
+	observers ...ObserveConfigFunc,
+) factory.Controller {
+	c := &ConfigObserver{
+		operatorClient:        operatorClient,
+		observers:             observers,
+		listers:               listers,
+		nestedConfigPath:      nestedConfigPath,
+		degradedConditionType: degradedConditionPrefix + condition.ConfigObservationDegradedConditionType,
 	}
+
+	return factory.New().ResyncEvery(time.Second).WithSync(c.sync).WithInformers(append(informers, listersToInformer(listers)...)...).ToController("ConfigObserver", eventRecorder.WithComponentSuffix("config-observer"))
 }
 
 // sync reacts to a change in prereqs by finding information that is required to match another value in the cluster. This
 // must be information that is logically "owned" by another component.
-func (c ConfigObserver) sync() error {
+func (c ConfigObserver) sync(ctx context.Context, syncCtx factory.SyncContext) error {
 	originalSpec, _, _, err := c.operatorClient.GetOperatorState()
 	if err != nil {
 		return err
@@ -91,7 +131,7 @@ func (c ConfigObserver) sync() error {
 	var observedConfigs []map[string]interface{}
 	for _, i := range rand.Perm(len(c.observers)) {
 		var currErrs []error
-		observedConfig, currErrs := c.observers[i](c.listers, c.eventRecorder, existingConfig)
+		observedConfig, currErrs := c.observers[i](c.listers, syncCtx.Recorder(), existingConfig)
 		observedConfigs = append(observedConfigs, observedConfig)
 		errs = append(errs, currErrs...)
 	}
@@ -114,20 +154,14 @@ func (c ConfigObserver) sync() error {
 		errs = append(errs, errors.New("non-deterministic config observation detected"))
 	}
 
-	if !equality.Semantic.DeepEqual(existingConfig, mergedObservedConfig) {
-		c.eventRecorder.Eventf("ObservedConfigChanged", "Writing updated observed config: %v", diff.ObjectDiff(existingConfig, mergedObservedConfig))
-		if _, _, err := v1helpers.UpdateSpec(c.operatorClient, v1helpers.UpdateObservedConfigFn(mergedObservedConfig)); err != nil {
-			// At this point we failed to write the updated config. If we are permanently broken, do not pile the errors from observers
-			// but instead reset the errors and only report single error condition.
-			errs = []error{fmt.Errorf("error writing updated observed config: %v", err)}
-			c.eventRecorder.Warningf("ObservedConfigWriteError", "Failed to write observed config: %v", err)
-		}
+	if err := c.updateObservedConfig(syncCtx, existingConfig, mergedObservedConfig); err != nil {
+		errs = []error{err}
 	}
 	configError := v1helpers.NewMultiLineAggregate(errs)
 
 	// update failing condition
 	cond := operatorv1.OperatorCondition{
-		Type:   condition.ConfigObservationDegradedConditionType,
+		Type:   c.degradedConditionType,
 		Status: operatorv1.ConditionFalse,
 	}
 	if configError != nil {
@@ -142,52 +176,104 @@ func (c ConfigObserver) sync() error {
 	return configError
 }
 
-func (c *ConfigObserver) Run(ctx context.Context, workers int) {
-	defer utilruntime.HandleCrash()
-	defer c.queue.ShutDown()
-
-	klog.Infof("Starting ConfigObserver")
-	defer klog.Infof("Shutting down ConfigObserver")
-	if !cache.WaitForCacheSync(ctx.Done(), c.listers.PreRunHasSynced()...) {
-		utilruntime.HandleError(fmt.Errorf("caches did not sync"))
-		return
+func (c ConfigObserver) updateObservedConfig(syncCtx factory.SyncContext, existingConfig map[string]interface{}, mergedObservedConfig map[string]interface{}) error {
+	if len(c.nestedConfigPath) == 0 {
+		if !equality.Semantic.DeepEqual(existingConfig, mergedObservedConfig) {
+			syncCtx.Recorder().Eventf("ObservedConfigChanged", "Writing updated observed config: %v", diff.ObjectDiff(existingConfig, mergedObservedConfig))
+			return c.updateConfig(syncCtx, mergedObservedConfig, v1helpers.UpdateObservedConfigFn)
+		}
+		return nil
 	}
 
-	// doesn't matter what workers say, only start one.
-	go wait.UntilWithContext(ctx, c.runWorker, time.Second)
-
-	<-ctx.Done()
+	existingConfigNested, _, err := unstructured.NestedMap(existingConfig, c.nestedConfigPath...)
+	if err != nil {
+		return fmt.Errorf("unable to extract the config under %v key, err %v", c.nestedConfigPath, err)
+	}
+	mergedObservedConfigNested, _, err := unstructured.NestedMap(mergedObservedConfig, c.nestedConfigPath...)
+	if err != nil {
+		return fmt.Errorf("unable to extract the merged config under %v, err %v", c.nestedConfigPath, err)
+	}
+	if !equality.Semantic.DeepEqual(existingConfigNested, mergedObservedConfigNested) {
+		syncCtx.Recorder().Eventf("ObservedConfigChanged", "Writing updated section (%q) of observed config: %q", strings.Join(c.nestedConfigPath, "/"), diff.ObjectDiff(existingConfigNested, mergedObservedConfigNested))
+		return c.updateConfig(syncCtx, mergedObservedConfigNested, c.updateNestedConfigHelper)
+	}
+	return nil
 }
 
-func (c *ConfigObserver) runWorker(_ context.Context) {
-	for c.processNextWorkItem() {
+type updateObservedConfigFn func(config map[string]interface{}) v1helpers.UpdateOperatorSpecFunc
+
+func (c ConfigObserver) updateConfig(syncCtx factory.SyncContext, updatedMaybeNestedConfig map[string]interface{}, updateConfigHelper updateObservedConfigFn) error {
+	if _, _, err := v1helpers.UpdateSpec(c.operatorClient, updateConfigHelper(updatedMaybeNestedConfig)); err != nil {
+		// At this point we failed to write the updated config. If we are permanently broken, do not pile the errors from observers
+		// but instead reset the errors and only report single error condition.
+		syncCtx.Recorder().Warningf("ObservedConfigWriteError", "Failed to write observed config: %v", err)
+		return fmt.Errorf("error writing updated observed config: %v", err)
+	}
+	return nil
+}
+
+// updateNestedConfigHelper returns a helper function for updating the nested config.
+func (c ConfigObserver) updateNestedConfigHelper(updatedNestedConfig map[string]interface{}) v1helpers.UpdateOperatorSpecFunc {
+	return func(currentSpec *operatorv1.OperatorSpec) error {
+		existingConfig := map[string]interface{}{}
+		if err := json.NewDecoder(bytes.NewBuffer(currentSpec.ObservedConfig.Raw)).Decode(&existingConfig); err != nil {
+			klog.V(4).Infof("decode of existing config failed with error: %v", err)
+		}
+		if err := unstructured.SetNestedField(existingConfig, updatedNestedConfig, c.nestedConfigPath...); err != nil {
+			return fmt.Errorf("unable to set the nested (%q) observed config: %v", strings.Join(c.nestedConfigPath, "/"), err)
+		}
+		currentSpec.ObservedConfig = runtime.RawExtension{Object: &unstructured.Unstructured{Object: existingConfig}}
+		return nil
 	}
 }
 
-func (c *ConfigObserver) processNextWorkItem() bool {
-	dsKey, quit := c.queue.Get()
-	if quit {
-		return false
+// listersToInformer converts the Listers interface to informer with empty AddEventHandler as we only care about synced caches in the Run.
+func listersToInformer(l Listers) []factory.Informer {
+	result := make([]factory.Informer, len(l.PreRunHasSynced()))
+	for i := range l.PreRunHasSynced() {
+		result[i] = &listerInformer{cacheSynced: l.PreRunHasSynced()[i]}
 	}
-	defer c.queue.Done(dsKey)
-
-	err := c.sync()
-	if err == nil {
-		c.queue.Forget(dsKey)
-		return true
-	}
-
-	utilruntime.HandleError(fmt.Errorf("%v failed with : %v", dsKey, err))
-	c.queue.AddRateLimited(dsKey)
-
-	return true
+	return result
 }
 
-// eventHandler queues the operator to check spec and status
-func (c *ConfigObserver) EventHandler() cache.ResourceEventHandler {
-	return cache.ResourceEventHandlerFuncs{
-		AddFunc:    func(obj interface{}) { c.queue.Add(configObserverWorkKey) },
-		UpdateFunc: func(old, new interface{}) { c.queue.Add(configObserverWorkKey) },
-		DeleteFunc: func(obj interface{}) { c.queue.Add(configObserverWorkKey) },
+type listerInformer struct {
+	cacheSynced cache.InformerSynced
+}
+
+func (l *listerInformer) AddEventHandler(cache.ResourceEventHandler) {
+	return
+}
+
+func (l *listerInformer) HasSynced() bool {
+	return l.cacheSynced()
+}
+
+// WithPrefix adds a prefix to the path the input observer would otherwise observe into
+func WithPrefix(observer ObserveConfigFunc, prefix ...string) ObserveConfigFunc {
+	if len(prefix) == 0 {
+		return observer
+	}
+
+	return func(listers Listers, recorder events.Recorder, existingConfig map[string]interface{}) (map[string]interface{}, []error) {
+		errs := []error{}
+
+		nestedExistingConfig, _, err := unstructured.NestedMap(existingConfig, prefix...)
+		if err != nil {
+			errs = append(errs, err)
+		}
+
+		orig, observerErrs := observer(listers, recorder, nestedExistingConfig)
+		errs = append(errs, observerErrs...)
+
+		if orig == nil {
+			return nil, errs
+		}
+
+		ret := map[string]interface{}{}
+		if err := unstructured.SetNestedField(ret, orig, prefix...); err != nil {
+			errs = append(errs, err)
+		}
+		return ret, errs
+
 	}
 }

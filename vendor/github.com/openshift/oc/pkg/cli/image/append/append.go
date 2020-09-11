@@ -14,7 +14,7 @@ import (
 
 	units "github.com/docker/go-units"
 	"github.com/spf13/cobra"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 
 	"github.com/docker/distribution"
 	"github.com/docker/distribution/manifest/schema2"
@@ -28,8 +28,8 @@ import (
 
 	"github.com/openshift/api/image/docker10"
 	"github.com/openshift/library-go/pkg/image/dockerv1client"
-	imagereference "github.com/openshift/library-go/pkg/image/reference"
 	"github.com/openshift/library-go/pkg/image/registryclient"
+	"github.com/openshift/oc/pkg/cli/image/imagesource"
 	imagemanifest "github.com/openshift/oc/pkg/cli/image/manifest"
 	"github.com/openshift/oc/pkg/cli/image/workqueue"
 	"github.com/openshift/oc/pkg/helpers/image/dockerlayer"
@@ -41,8 +41,8 @@ var (
 		Add layers to container images
 
 		Modifies an existing image by adding layers or changing configuration and then pushes that
-		image to a remote registry. Any inherited layers are streamed from registry to registry 
-		without being stored locally. The default docker credentials are used for authenticating 
+		image to a remote registry. Any inherited layers are streamed from registry to registry
+		without being stored locally. The default docker credentials are used for authenticating
 		to the registries.
 
 		Layers may be provided as arguments to the command and must each be a gzipped tar archive
@@ -54,21 +54,21 @@ var (
 		by passing a JSON string to the --image or --meta options. The --image flag changes what
 		the container runtime sees, while the --meta option allows you to change the attributes of
 		the image used by the runtime. Use --dry-run to see the result of your changes. You may
-		add the --drop-history flag to remove information from the image about the system that 
+		add the --drop-history flag to remove information from the image about the system that
 		built the base image.
 
 		Images in manifest list format will automatically select an image that matches the current
 		operating system and architecture unless you use --filter-by-os to select a different image.
 		This flag has no effect on regular images.
-		`)
+	`)
 
 	example = templates.Examples(`
-# Remove the entrypoint on the mysql:latest image
-%[1]s --from mysql:latest --to myregistry.com/myimage:latest --image {"Entrypoint":null}
+		# Remove the entrypoint on the mysql:latest image
+		oc image append --from mysql:latest --to myregistry.com/myimage:latest --image {"Entrypoint":null}
 
-# Add a new layer to the image
-%[1]s --from mysql:latest --to myregistry.com/myimage:latest layer.tar.gz
-`)
+		# Add a new layer to the image
+		oc image append --from mysql:latest --to myregistry.com/myimage:latest layer.tar.gz
+	`)
 )
 
 type AppendImageOptions struct {
@@ -93,6 +93,9 @@ type AppendImageOptions struct {
 	DryRun bool
 	Force  bool
 
+	FromFileDir string
+	FileDir     string
+
 	genericclioptions.IOStreams
 }
 
@@ -104,14 +107,14 @@ func NewAppendImageOptions(streams genericclioptions.IOStreams) *AppendImageOpti
 }
 
 // New creates a new command
-func NewCmdAppendImage(name string, streams genericclioptions.IOStreams) *cobra.Command {
+func NewCmdAppendImage(streams genericclioptions.IOStreams) *cobra.Command {
 	o := NewAppendImageOptions(streams)
 
 	cmd := &cobra.Command{
 		Use:     "append",
 		Short:   "Add layers to images and push them to a registry",
 		Long:    desc,
-		Example: fmt.Sprintf(example, name+" append"),
+		Example: example,
 		Run: func(c *cobra.Command, args []string) {
 			kcmdutil.CheckErr(o.Complete(c, args))
 			kcmdutil.CheckErr(o.Validate())
@@ -135,6 +138,9 @@ func NewCmdAppendImage(name string, streams genericclioptions.IOStreams) *cobra.
 	flag.StringVar(&o.CreatedAt, "created-at", o.CreatedAt, "The creation date for this image, in RFC3339 format or milliseconds from the Unix epoch.")
 
 	flag.BoolVar(&o.Force, "force", o.Force, "If set, the command will attempt to upload all layers instead of skipping those that are already uploaded.")
+
+	flag.StringVar(&o.FileDir, "dir", o.FileDir, "The directory on disk that file:// images will be copied under.")
+	flag.StringVar(&o.FromFileDir, "from-dir", o.FromFileDir, "The directory on disk that file:// images will be read from. Overrides --dir")
 
 	return cmd
 }
@@ -184,22 +190,22 @@ func (o *AppendImageOptions) Run() error {
 		}
 	}
 
-	var from *imagereference.DockerImageReference
+	var from *imagesource.TypedImageReference
 	if len(o.From) > 0 {
-		src, err := imagereference.Parse(o.From)
+		src, err := imagesource.ParseReference(o.From)
 		if err != nil {
 			return err
 		}
-		if len(src.Tag) == 0 && len(src.ID) == 0 {
+		if len(src.Ref.Tag) == 0 && len(src.Ref.ID) == 0 {
 			return fmt.Errorf("--from must point to an image ID or image tag")
 		}
 		from = &src
 	}
-	to, err := imagereference.Parse(o.To)
+	to, err := imagesource.ParseReference(o.To)
 	if err != nil {
 		return err
 	}
-	if len(to.ID) > 0 {
+	if len(to.Ref.ID) > 0 {
 		return fmt.Errorf("--to may not point to an image by ID")
 	}
 
@@ -208,9 +214,23 @@ func (o *AppendImageOptions) Run() error {
 	if err != nil {
 		return err
 	}
-	toContext := fromContext.Copy().WithActions("pull", "push")
+	fromOptions := &imagesource.Options{
+		FileDir:         o.FileDir,
+		Insecure:        o.SecurityOptions.Insecure,
+		RegistryContext: fromContext,
+	}
+	if len(o.FromFileDir) > 0 {
+		fromOptions.FileDir = o.FromFileDir
+	}
 
-	toRepo, err := toContext.Repository(ctx, to.DockerClientDefaults().RegistryURL(), to.RepositoryName(), o.SecurityOptions.Insecure)
+	toContext := fromContext.Copy().WithActions("pull", "push")
+	toOptions := &imagesource.Options{
+		FileDir:         o.FileDir,
+		Insecure:        o.SecurityOptions.Insecure,
+		RegistryContext: toContext,
+	}
+
+	toRepo, err := toOptions.Repository(ctx, to)
 	if err != nil {
 		return err
 	}
@@ -227,13 +247,13 @@ func (o *AppendImageOptions) Run() error {
 		fromRepo          distribution.Repository
 	)
 	if from != nil {
-		repo, err := fromContext.Repository(ctx, from.DockerClientDefaults().RegistryURL(), from.RepositoryName(), o.SecurityOptions.Insecure)
+		repo, err := fromOptions.Repository(ctx, *from)
 		if err != nil {
 			return err
 		}
 		fromRepo = repo
 
-		srcManifest, manifestLocation, err := imagemanifest.FirstManifest(ctx, *from, repo, o.FilterOptions.Include)
+		srcManifest, manifestLocation, err := imagemanifest.FirstManifest(ctx, from.Ref, repo, o.FilterOptions.Include)
 		if err != nil {
 			return fmt.Errorf("unable to read image %s: %v", from, err)
 		}
@@ -265,7 +285,7 @@ func (o *AppendImageOptions) Run() error {
 			return err
 		}
 	} else {
-		if klog.V(4) {
+		if klog.V(4).Enabled() {
 			configJSON, _ := json.MarshalIndent(base, "", "  ")
 			klog.Infof("input config:\n%s\nlayers: %#v", configJSON, layers)
 		}
@@ -297,7 +317,7 @@ func (o *AppendImageOptions) Run() error {
 		}
 	}
 
-	if klog.V(4) {
+	if klog.V(4).Enabled() {
 		configJSON, _ := json.MarshalIndent(base, "", "  ")
 		klog.Infof("output config:\n%s", configJSON)
 	}
@@ -382,7 +402,7 @@ func (o *AppendImageOptions) Run() error {
 
 				// copy the blob, calculating layer digest if needed
 				var mountFrom reference.Named
-				if from != nil && from.Registry == to.Registry {
+				if from != nil && from.EqualRegistry(to) {
 					mountFrom = fromRepo.Named()
 				}
 				desc, layerDigest, err := copyBlob(ctx, fromBlobs, toBlobs, *layer, o.Out, needLayerDigest, mountFrom)
@@ -414,7 +434,7 @@ func (o *AppendImageOptions) Run() error {
 		return fmt.Errorf("unable to upload the new image manifest: %v", err)
 	}
 	klog.V(4).Infof("Created config JSON:\n%s", configJSON)
-	toDigest, err := imagemanifest.PutManifestInCompatibleSchema(ctx, manifest, to.Tag, toManifests, toRepo.Named(), fromRepo.Blobs(ctx), configJSON)
+	toDigest, err := imagemanifest.PutManifestInCompatibleSchema(ctx, manifest, to.Ref.Tag, toManifests, toRepo.Named(), fromRepo.Blobs(ctx), configJSON)
 	if err != nil {
 		return fmt.Errorf("unable to convert the image to a compatible schema version: %v", err)
 	}

@@ -24,7 +24,7 @@ type MyOperatorResourceStatus struct {
 	OperatorStatus `json:",inline"`
 }
 
-// +kubebuilder:validation:Pattern=^(Managed|Unmanaged|Force|Removed)$
+// +kubebuilder:validation:Pattern=`^(Managed|Unmanaged|Force|Removed)$`
 type ManagementState string
 
 var (
@@ -51,7 +51,11 @@ type OperatorSpec struct {
 
 	// logLevel is an intent based logging for an overall component.  It does not give fine grained control, but it is a
 	// simple way to manage coarse grained logging choices that operators have to interpret for their operands.
+	//
+	// Valid values are: "Normal", "Debug", "Trace", "TraceAll".
+	// Defaults to "Normal".
 	// +optional
+	// +kubebuilder:default=Normal
 	LogLevel LogLevel `json:"logLevel"`
 
 	// operatorLogLevel is an intent based logging for the operator itself.  It does not give fine grained control, but it is a
@@ -66,12 +70,14 @@ type OperatorSpec struct {
 	// 3. unsupportedConfigOverrides
 	// +optional
 	// +nullable
+	// +kubebuilder:pruning:PreserveUnknownFields
 	UnsupportedConfigOverrides runtime.RawExtension `json:"unsupportedConfigOverrides"`
 
 	// observedConfig holds a sparse config that controller has observed from the cluster state.  It exists in spec because
 	// it is an input to the level for the operator
 	// +optional
 	// +nullable
+	// +kubebuilder:pruning:PreserveUnknownFields
 	ObservedConfig runtime.RawExtension `json:"observedConfig"`
 }
 
