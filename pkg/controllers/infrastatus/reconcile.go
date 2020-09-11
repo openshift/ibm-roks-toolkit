@@ -1,11 +1,13 @@
 package infrastatus
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"sync"
 
 	"github.com/go-logr/logr"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	kubeclient "k8s.io/client-go/kubernetes"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -48,7 +50,7 @@ func (r *InfraStatusReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error)
 		return ctrl.Result{}, nil
 	}
 	r.Log.Info("Updating infrastructure status")
-	_, err = r.Client.ConfigV1().Infrastructures().UpdateStatus(updated)
+	_, err = r.Client.ConfigV1().Infrastructures().UpdateStatus(context.TODO(), updated, metav1.UpdateOptions{})
 	return ctrl.Result{}, err
 }
 
