@@ -16,7 +16,7 @@ spec:
     metadata:
       labels:
         app: oauth-openshift
-        clusterID: {{ .ClusterID }}
+        clusterID: "{{ .ClusterID }}"
 {{ if .RestartDate }}
       annotations:
         openshift.io/restartedAt: "{{ .RestartDate }}"

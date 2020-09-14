@@ -16,7 +16,7 @@ spec:
     metadata:
       labels:
         app: cluster-policy-controller
-        clusterID: {{ .ClusterID }}
+        clusterID: "{{ .ClusterID }}"
 {{ if .RestartDate }}
       annotations:
         openshift.io/restartedAt: "{{ .RestartDate }}"

@@ -12,7 +12,7 @@ spec:
       name: cluster-version-operator
       labels:
         k8s-app: cluster-version-operator
-        clusterID: {{ .ClusterID }}
+        clusterID: "{{ .ClusterID }}"
 {{ if .RestartDate }}
       annotations:
         openshift.io/restartedAt: "{{ .RestartDate }}"
