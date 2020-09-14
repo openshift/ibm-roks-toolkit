@@ -16,7 +16,7 @@ spec:
     metadata:
       labels:
         app: kube-scheduler
-        clusterID: {{ .ClusterID }}
+        clusterID: "{{ .ClusterID }}"
 {{ if .RestartDate }}
       annotations:
         openshift.io/restartedAt: "{{ .RestartDate }}"
