@@ -2624,6 +2624,8 @@ spec:
           name: config
         - mountPath: /var/run/kubernetes
           name: logs
+        - mountPath: /var/lib/kubelet
+          name: pull-secret
         workingDir: /var/run/kubernetes
       volumes:
       - secret:
@@ -2637,6 +2639,13 @@ spec:
         name: apiserver-config
       - emptyDir: {}
         name: logs
+      - name: pull-secret
+        secret:
+          secretName: pull-secret
+          items:
+          - key: .dockerconfigjson
+            path: config.json
+            mode: 220
 `)
 
 func openshiftApiserverOpenshiftApiserverDeploymentYamlBytes() ([]byte, error) {
