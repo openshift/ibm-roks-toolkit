@@ -605,7 +605,7 @@ spec:
       name: cluster-version-operator
       labels:
         k8s-app: cluster-version-operator
-        clusterID: {{ .ClusterID }}
+        clusterID: "{{ .ClusterID }}"
 {{ if .RestartDate }}
       annotations:
         openshift.io/restartedAt: "{{ .RestartDate }}"
@@ -798,7 +798,7 @@ spec:
     metadata:
       labels:
         app: control-plane-operator
-        clusterID: {{ .ClusterID }}
+        clusterID: "{{ .ClusterID }}"
 {{ if .RestartDate }}
       annotations:
         openshift.io/restartedAt: "{{ .RestartDate }}"
@@ -1124,7 +1124,7 @@ spec:
     metadata:
       labels:
         app: kube-apiserver
-        clusterID: {{ .ClusterID }}
+        clusterID: "{{ .ClusterID }}"
 {{ if .RestartDate }}
       annotations:
         openshift.io/restartedAt: "{{ .RestartDate }}"
@@ -1604,7 +1604,7 @@ spec:
     metadata:
       labels:
         app: kube-controller-manager
-        clusterID: {{ .ClusterID }}
+        clusterID: "{{ .ClusterID }}"
 {{ if .RestartDate }}
       annotations:
         openshift.io/restartedAt: "{{ .RestartDate }}"
@@ -1796,7 +1796,7 @@ spec:
     metadata:
       labels:
         app: kube-scheduler
-        clusterID: {{ .ClusterID }}
+        clusterID: "{{ .ClusterID }}"
 {{ if .RestartDate }}
       annotations:
         openshift.io/restartedAt: "{{ .RestartDate }}"
@@ -2139,7 +2139,7 @@ spec:
     metadata:
       labels:
         app: oauth-openshift
-        clusterID: {{ .ClusterID }}
+        clusterID: "{{ .ClusterID }}"
 {{ if .RestartDate }}
       annotations:
         openshift.io/restartedAt: "{{ .RestartDate }}"
@@ -2550,7 +2550,7 @@ spec:
     metadata:
       labels:
         app: openshift-apiserver
-        clusterID: {{ .ClusterID }}
+        clusterID: "{{ .ClusterID }}"
 {{ if .RestartDate }}
       annotations:
         openshift.io/restartedAt: "{{ .RestartDate }}"
@@ -2835,7 +2835,7 @@ spec:
     metadata:
       labels:
         app: cluster-policy-controller
-        clusterID: {{ .ClusterID }}
+        clusterID: "{{ .ClusterID }}"
 {{ if .RestartDate }}
       annotations:
         openshift.io/restartedAt: "{{ .RestartDate }}"
@@ -3030,7 +3030,7 @@ spec:
     metadata:
       labels:
         app: openshift-controller-manager
-        clusterID: {{ .ClusterID }}
+        clusterID: "{{ .ClusterID }}"
 {{ if .RestartDate }}
       annotations:
         openshift.io/restartedAt: "{{ .RestartDate }}"
