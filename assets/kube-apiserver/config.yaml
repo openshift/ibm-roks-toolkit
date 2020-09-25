@@ -42,6 +42,12 @@ apiServerArguments:
   - "{{ .ExternalAPIIPAddress }}"
   cloud-provider:
   - "{{ .CloudProvider }}"
+  service-account-issuer:
+  - https://kubernetes.default.svc
+  service-account-signing-key-file:
+  - /etc/kubernetes/secret/service-account.key
+  api-audiences:
+  - https://kubernetes.default.svc
 auditConfig:
   auditFilePath: "/var/log/kube-apiserver/audit.log"
   enabled: true
