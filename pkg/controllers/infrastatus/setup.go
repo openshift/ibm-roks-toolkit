@@ -1,6 +1,7 @@
 package infrastatus
 
 import (
+	"context"
 	"fmt"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -32,7 +33,7 @@ func init() {
 
 func Setup(cfg *cpoperator.ControlPlaneOperatorConfig) error {
 	infrastructures := cfg.TargetConfigInformers().Config().V1().Infrastructures()
-	sourceInfraConfigMap, err := cfg.KubeClient().CoreV1().ConfigMaps(cfg.Namespace()).Get(infrastructureConfigMap, metav1.GetOptions{})
+	sourceInfraConfigMap, err := cfg.KubeClient().CoreV1().ConfigMaps(cfg.Namespace()).Get(context.TODO(), infrastructureConfigMap, metav1.GetOptions{})
 	if err != nil {
 		return fmt.Errorf("cannot get infrastructure configmap: %v", err)
 	}

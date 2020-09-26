@@ -15,7 +15,7 @@ import (
 	"golang.org/x/net/context"
 	"golang.org/x/time/rate"
 
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 
 	"github.com/docker/distribution"
 	"github.com/docker/distribution/manifest/schema1"
@@ -38,23 +38,25 @@ type RepositoryRetriever interface {
 // ErrNotV2Registry is returned when the server does not report itself as a V2 Docker registry
 type ErrNotV2Registry struct {
 	Registry string
+	Status   string
 }
 
 func (e *ErrNotV2Registry) Error() string {
-	return fmt.Sprintf("endpoint %q does not support v2 API", e.Registry)
+	return fmt.Sprintf("endpoint %q does not support v2 API (got %s)", e.Registry, e.Status)
 }
 
 type AuthHandlersFunc func(transport http.RoundTripper, registry *url.URL, repoName string) []auth.AuthenticationHandler
 
 // NewContext is capable of creating RepositoryRetrievers.
-func NewContext(transport, insecureTransport http.RoundTripper) *Context {
+func NewContext(transp, insecureTransport http.RoundTripper) *Context {
 	return &Context{
-		Transport:         transport,
+		Transport:         transp,
 		InsecureTransport: insecureTransport,
 		Challenges:        challenge.NewSimpleManager(),
 		Actions:           []string{"pull"},
 		Retries:           2,
 		Credentials:       NoCredentials,
+		RequestModifiers:  make([]transport.RequestModifier, 0),
 
 		pings:    make(map[url.URL]error),
 		redirect: make(map[url.URL]*url.URL),
@@ -75,6 +77,7 @@ type Context struct {
 	Actions           []string
 	Retries           int
 	Credentials       auth.CredentialStore
+	RequestModifiers  []transport.RequestModifier
 	Limiter           *rate.Limiter
 
 	DisableDigestVerification bool
@@ -107,6 +110,11 @@ func (c *Context) Copy() *Context {
 		copied.redirect[k] = v
 	}
 	return copied
+}
+
+func (c *Context) WithRequestModifiers(modifiers ...transport.RequestModifier) *Context {
+	c.RequestModifiers = modifiers
+	return c
 }
 
 func (c *Context) WithRateLimiter(limiter *rate.Limiter) *Context {
@@ -253,7 +261,10 @@ func (c *Context) ping(registry url.URL, insecure bool, transport http.RoundTrip
 		case resp.StatusCode == http.StatusUnauthorized, resp.StatusCode == http.StatusForbidden:
 			// v2
 		default:
-			return nil, &ErrNotV2Registry{Registry: registry.String()}
+			return nil, &ErrNotV2Registry{
+				Registry: registry.String(),
+				Status:   resp.Status,
+			}
 		}
 	}
 
@@ -303,8 +314,7 @@ func (c *Context) cachedTransport(rt http.RoundTripper, scopes []auth.Scope) htt
 		scopes = append(scopes, stringScope(s))
 	}
 
-	t := transport.NewTransport(
-		rt,
+	modifiers := []transport.RequestModifier{
 		// TODO: slightly smarter authorizer that retries unauthenticated requests
 		// TODO: make multiple attempts if the first credential fails
 		auth.NewAuthorizer(
@@ -316,7 +326,9 @@ func (c *Context) cachedTransport(rt http.RoundTripper, scopes []auth.Scope) htt
 			}),
 			auth.NewBasicHandler(c.Credentials),
 		),
-	)
+	}
+	modifiers = append(modifiers, c.RequestModifiers...)
+	t := transport.NewTransport(rt, modifiers...)
 	c.cachedTransports = append(c.cachedTransports, transportCache{
 		rt:        rt,
 		scopes:    scopeNames,
@@ -609,7 +621,7 @@ func VerifyManifestIntegrity(manifest distribution.Manifest, dgst digest.Digest)
 		return err
 	}
 	if contentDigest != dgst {
-		if klog.V(4) {
+		if klog.V(4).Enabled() {
 			_, payload, _ := manifest.Payload()
 			klog.Infof("Mismatched content: %s\n%s", contentDigest, string(payload))
 		}

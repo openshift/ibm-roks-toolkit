@@ -1,10 +1,12 @@
 package clusterversion
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/go-logr/logr"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 
 	configclient "github.com/openshift/client-go/config/clientset/versioned"
@@ -40,7 +42,7 @@ func (r *ClusterVersionReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 	}
 	if updateNeeded {
 		r.Log.Info("Updating clusterversion resource to desired values")
-		_, err := r.Client.ConfigV1().ClusterVersions().Update(clusterVersion)
+		_, err := r.Client.ConfigV1().ClusterVersions().Update(context.TODO(), clusterVersion, metav1.UpdateOptions{})
 		return ctrl.Result{}, err
 	}
 	return ctrl.Result{}, nil

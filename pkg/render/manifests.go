@@ -62,6 +62,7 @@ func (c *clusterManifestContext) setupManifests(externalOauth, includeRegistry b
 	if includeRegistry {
 		c.registry()
 	}
+	c.roksMetrics()
 	c.userManifestsBootstrapper()
 	c.controlPlaneOperator()
 }
@@ -174,6 +175,17 @@ func (c *clusterManifestContext) controlPlaneOperator() {
 func (c *clusterManifestContext) clusterVersionOperator() {
 	c.addManifestFiles(
 		"cluster-version-operator/cluster-version-operator-deployment.yaml",
+	)
+}
+
+func (c *clusterManifestContext) roksMetrics() {
+	c.addUserManifestFiles(
+		"roks-metrics/roks-metrics-00-namespace.yaml",
+		"roks-metrics/roks-metrics-deployment.yaml",
+		"roks-metrics/roks-metrics-rbac.yaml",
+		"roks-metrics/roks-metrics-service.yaml",
+		"roks-metrics/roks-metrics-serviceaccount.yaml",
+		"roks-metrics/roks-metrics-servicemonitor.yaml",
 	)
 }
 

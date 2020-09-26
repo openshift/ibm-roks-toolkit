@@ -64,6 +64,12 @@
 // assets/openshift-controller-manager/openshift-controller-manager-secret.yaml
 // assets/openshift-controller-manager/openshift-controller-manager-service-ca.yaml
 // assets/registry/cluster-imageregistry-config.yaml
+// assets/roks-metrics/roks-metrics-00-namespace.yaml
+// assets/roks-metrics/roks-metrics-deployment.yaml
+// assets/roks-metrics/roks-metrics-rbac.yaml
+// assets/roks-metrics/roks-metrics-service.yaml
+// assets/roks-metrics/roks-metrics-serviceaccount.yaml
+// assets/roks-metrics/roks-metrics-servicemonitor.yaml
 // assets/user-manifests-bootstrapper/user-manifest-template.yaml
 // assets/user-manifests-bootstrapper/user-manifests-bootstrapper-pod.yaml
 // DO NOT EDIT!
@@ -3218,6 +3224,288 @@ func registryClusterImageregistryConfigYaml() (*asset, error) {
 	return a, nil
 }
 
+var _roksMetricsRoksMetrics00NamespaceYaml = []byte(`kind: Namespace
+apiVersion: v1
+metadata:
+  name: openshift-roks-metrics
+  labels:
+    openshift.io/cluster-monitoring: "true"
+`)
+
+func roksMetricsRoksMetrics00NamespaceYamlBytes() ([]byte, error) {
+	return _roksMetricsRoksMetrics00NamespaceYaml, nil
+}
+
+func roksMetricsRoksMetrics00NamespaceYaml() (*asset, error) {
+	bytes, err := roksMetricsRoksMetrics00NamespaceYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "roks-metrics/roks-metrics-00-namespace.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _roksMetricsRoksMetricsDeploymentYaml = []byte(`kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: metrics
+  namespace: openshift-roks-metrics
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: metrics
+  template:
+    metadata:
+      labels:
+        app: metrics
+{{ if .RestartDate }}
+      annotations:
+        openshift.io/restartedAt: "{{ .RestartDate }}"
+{{ end }}
+    spec:
+      tolerations:
+        - key: "multi-az-worker"
+          operator: "Equal"
+          value: "true"
+          effect: NoSchedule
+      affinity:
+        podAntiAffinity:
+      containers:
+      - name: metrics
+        image: {{ .ROKSMetricsImage }}
+        imagePullPolicy: Always
+        args:
+        - "--alsologtostderr"
+        - "--v=3"
+        - "--listen=:8443"
+        ports:
+        - containerPort: 8443
+          name: https
+        volumeMounts:
+        - name: serving-cert
+          mountPath: /var/run/secrets/serving-cert
+      serviceAccountName: roks-metrics 
+      volumes:
+      - name: serving-cert
+        secret:
+          secretName: serving-cert
+          defaultMode: 400
+          optional: true
+`)
+
+func roksMetricsRoksMetricsDeploymentYamlBytes() ([]byte, error) {
+	return _roksMetricsRoksMetricsDeploymentYaml, nil
+}
+
+func roksMetricsRoksMetricsDeploymentYaml() (*asset, error) {
+	bytes, err := roksMetricsRoksMetricsDeploymentYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "roks-metrics/roks-metrics-deployment.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _roksMetricsRoksMetricsRbacYaml = []byte(`---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: roks-metrics
+rules:
+- apiGroups:
+  - config.openshift.io
+  resources:
+  - infrastructures
+  - featuregates
+  - proxies
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - build.openshift.io
+  resources:
+  - builds
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: roks-metrics
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: roks-metrics
+subjects:
+  - kind: ServiceAccount
+    name: roks-metrics
+    namespace: openshift-roks-metrics
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: prometheus-k8s
+  namespace: openshift-roks-metrics
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - services
+  - endpoints
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: prometheus-k8s
+  namespace: openshift-roks-metrics
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: prometheus-k8s
+subjects:
+- kind: ServiceAccount
+  name: prometheus-k8s
+  namespace: openshift-monitoring
+`)
+
+func roksMetricsRoksMetricsRbacYamlBytes() ([]byte, error) {
+	return _roksMetricsRoksMetricsRbacYaml, nil
+}
+
+func roksMetricsRoksMetricsRbacYaml() (*asset, error) {
+	bytes, err := roksMetricsRoksMetricsRbacYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "roks-metrics/roks-metrics-rbac.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _roksMetricsRoksMetricsServiceYaml = []byte(`apiVersion: v1
+kind: Service
+metadata:
+  name: roks-metrics
+  namespace: openshift-roks-metrics
+  labels:
+    app: metrics
+  annotations:
+    service.beta.openshift.io/serving-cert-secret-name: serving-cert
+spec:
+  ports:
+  - name: https
+    port: 8443
+    protocol: TCP
+    targetPort: https
+  selector:
+    app: metrics
+  type: ClusterIP
+`)
+
+func roksMetricsRoksMetricsServiceYamlBytes() ([]byte, error) {
+	return _roksMetricsRoksMetricsServiceYaml, nil
+}
+
+func roksMetricsRoksMetricsServiceYaml() (*asset, error) {
+	bytes, err := roksMetricsRoksMetricsServiceYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "roks-metrics/roks-metrics-service.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _roksMetricsRoksMetricsServiceaccountYaml = []byte(`apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: roks-metrics
+  namespace: openshift-roks-metrics
+`)
+
+func roksMetricsRoksMetricsServiceaccountYamlBytes() ([]byte, error) {
+	return _roksMetricsRoksMetricsServiceaccountYaml, nil
+}
+
+func roksMetricsRoksMetricsServiceaccountYaml() (*asset, error) {
+	bytes, err := roksMetricsRoksMetricsServiceaccountYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "roks-metrics/roks-metrics-serviceaccount.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _roksMetricsRoksMetricsServicemonitorYaml = []byte(`apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: roks-metrics
+  namespace: openshift-roks-metrics
+spec:
+  endpoints:
+  - interval: 30s
+    metricRelabelings:
+    - action: drop
+      regex: apiserver_.*
+      sourceLabels:
+      - __name__
+    - action: drop
+      regex: go_.*
+      sourceLabels:
+      - __name__
+    - action: drop
+      regex: promhttp_.*
+      sourceLabels:
+      - __name__
+    path: /metrics
+    port: https
+    scheme: https
+    tlsConfig:
+      caFile: /etc/prometheus/configmaps/serving-certs-ca-bundle/service-ca.crt
+      serverName: roks-metrics.openshift-roks-metrics.svc
+  jobLabel: component
+  selector:
+    matchLabels:
+      app: metrics
+`)
+
+func roksMetricsRoksMetricsServicemonitorYamlBytes() ([]byte, error) {
+	return _roksMetricsRoksMetricsServicemonitorYaml, nil
+}
+
+func roksMetricsRoksMetricsServicemonitorYaml() (*asset, error) {
+	bytes, err := roksMetricsRoksMetricsServicemonitorYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "roks-metrics/roks-metrics-servicemonitor.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _userManifestsBootstrapperUserManifestTemplateYaml = []byte(`kind: ConfigMap
 apiVersion: v1
 metadata:
@@ -3472,6 +3760,12 @@ var _bindata = map[string]func() (*asset, error){
 	"openshift-controller-manager/openshift-controller-manager-secret.yaml":              openshiftControllerManagerOpenshiftControllerManagerSecretYaml,
 	"openshift-controller-manager/openshift-controller-manager-service-ca.yaml":          openshiftControllerManagerOpenshiftControllerManagerServiceCaYaml,
 	"registry/cluster-imageregistry-config.yaml":                                         registryClusterImageregistryConfigYaml,
+	"roks-metrics/roks-metrics-00-namespace.yaml":                                        roksMetricsRoksMetrics00NamespaceYaml,
+	"roks-metrics/roks-metrics-deployment.yaml":                                          roksMetricsRoksMetricsDeploymentYaml,
+	"roks-metrics/roks-metrics-rbac.yaml":                                                roksMetricsRoksMetricsRbacYaml,
+	"roks-metrics/roks-metrics-service.yaml":                                             roksMetricsRoksMetricsServiceYaml,
+	"roks-metrics/roks-metrics-serviceaccount.yaml":                                      roksMetricsRoksMetricsServiceaccountYaml,
+	"roks-metrics/roks-metrics-servicemonitor.yaml":                                      roksMetricsRoksMetricsServicemonitorYaml,
 	"user-manifests-bootstrapper/user-manifest-template.yaml":                            userManifestsBootstrapperUserManifestTemplateYaml,
 	"user-manifests-bootstrapper/user-manifests-bootstrapper-pod.yaml":                   userManifestsBootstrapperUserManifestsBootstrapperPodYaml,
 }
@@ -3602,6 +3896,14 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	}},
 	"registry": {nil, map[string]*bintree{
 		"cluster-imageregistry-config.yaml": {registryClusterImageregistryConfigYaml, map[string]*bintree{}},
+	}},
+	"roks-metrics": {nil, map[string]*bintree{
+		"roks-metrics-00-namespace.yaml":   {roksMetricsRoksMetrics00NamespaceYaml, map[string]*bintree{}},
+		"roks-metrics-deployment.yaml":     {roksMetricsRoksMetricsDeploymentYaml, map[string]*bintree{}},
+		"roks-metrics-rbac.yaml":           {roksMetricsRoksMetricsRbacYaml, map[string]*bintree{}},
+		"roks-metrics-service.yaml":        {roksMetricsRoksMetricsServiceYaml, map[string]*bintree{}},
+		"roks-metrics-serviceaccount.yaml": {roksMetricsRoksMetricsServiceaccountYaml, map[string]*bintree{}},
+		"roks-metrics-servicemonitor.yaml": {roksMetricsRoksMetricsServicemonitorYaml, map[string]*bintree{}},
 	}},
 	"user-manifests-bootstrapper": {nil, map[string]*bintree{
 		"user-manifest-template.yaml":          {userManifestsBootstrapperUserManifestTemplateYaml, map[string]*bintree{}},

@@ -37,21 +37,24 @@ import (
 	"github.com/openshift/api/authorization"
 	"github.com/openshift/api/build"
 	"github.com/openshift/api/config"
+	"github.com/openshift/api/helm"
 	"github.com/openshift/api/image"
+	"github.com/openshift/api/imageregistry"
 	"github.com/openshift/api/kubecontrolplane"
 	"github.com/openshift/api/network"
 	"github.com/openshift/api/oauth"
 	"github.com/openshift/api/openshiftcontrolplane"
 	"github.com/openshift/api/operator"
+	"github.com/openshift/api/operatorcontrolplane"
 	"github.com/openshift/api/osin"
 	"github.com/openshift/api/project"
 	"github.com/openshift/api/quota"
 	"github.com/openshift/api/route"
+	"github.com/openshift/api/samples"
 	"github.com/openshift/api/security"
 	"github.com/openshift/api/servicecertsigner"
 	"github.com/openshift/api/template"
 	"github.com/openshift/api/user"
-	"github.com/openshift/api/webconsole"
 
 	// just make sure this compiles.  Don't add it to a scheme
 	_ "github.com/openshift/api/legacyconfig/v1"
@@ -63,21 +66,24 @@ var (
 		authorization.Install,
 		build.Install,
 		config.Install,
+		helm.Install,
 		image.Install,
+		imageregistry.Install,
 		kubecontrolplane.Install,
 		network.Install,
 		oauth.Install,
 		openshiftcontrolplane.Install,
 		operator.Install,
+		operatorcontrolplane.Install,
 		osin.Install,
 		project.Install,
 		quota.Install,
 		route.Install,
+		samples.Install,
 		security.Install,
 		servicecertsigner.Install,
 		template.Install,
 		user.Install,
-		webconsole.Install,
 	)
 	// Install is a function which adds every version of every openshift group to a scheme
 	Install = schemeBuilder.AddToScheme

@@ -9,17 +9,18 @@ import (
 
 	"github.com/docker/distribution"
 	"github.com/docker/distribution/manifest/manifestlist"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 
 	units "github.com/docker/go-units"
 	godigest "github.com/opencontainers/go-digest"
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/openshift/library-go/pkg/image/reference"
+	"github.com/openshift/oc/pkg/cli/image/imagesource"
 )
 
 type retrieverError struct {
-	src, dst reference.DockerImageReference
+	src, dst imagesource.TypedImageReference
 	err      error
 }
 
@@ -149,22 +150,23 @@ func (p *plan) AddError(errs ...error) {
 	p.errs = append(p.errs, errs...)
 }
 
-func (p *plan) RegistryPlan(name string) *registryPlan {
+func (p *plan) RegistryPlan(ref imagesource.TypedImageReference) *registryPlan {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 
-	plan, ok := p.registries[name]
+	plan, ok := p.registries[ref.Ref.Registry]
 	if ok {
 		return plan
 	}
 	plan = &registryPlan{
 		parent:      p,
-		name:        name,
+		t:           ref.Type,
+		name:        ref.Ref.Registry,
 		blobsByRepo: make(map[godigest.Digest]string),
 
 		manifestConversions: make(map[godigest.Digest]godigest.Digest),
 	}
-	p.registries[name] = plan
+	p.registries[ref.Ref.Registry] = plan
 	return plan
 }
 
@@ -190,10 +192,20 @@ func (p *plan) CacheBlob(blob distribution.Descriptor) {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 
-	if existing, ok := p.blobs[blob.Digest]; ok && existing.Size > 0 {
+	existing, ok := p.blobs[blob.Digest]
+	if !ok {
+		p.blobs[blob.Digest] = blob
 		return
 	}
-	p.blobs[blob.Digest] = blob
+	if existing.Size == 0 {
+		existing.Size = blob.Size
+	}
+	if len(blob.URLs) > 0 {
+		urls := sets.NewString(existing.URLs...)
+		urls.Insert(blob.URLs...)
+		existing.URLs = urls.List()
+	}
+	p.blobs[blob.Digest] = existing
 }
 
 func (p *plan) GetBlob(digest godigest.Digest) distribution.Descriptor {
@@ -242,7 +254,14 @@ func (p *plan) BlobDescriptors(blobs sets.String) []distribution.Descriptor {
 func (p *plan) Print(w io.Writer) {
 	for _, name := range p.RegistryNames().List() {
 		r := p.registries[name]
-		fmt.Fprintf(w, "%s/\n", name)
+		switch r.t {
+		case imagesource.DestinationFile:
+			fmt.Fprintf(w, "<dir>\n")
+		case imagesource.DestinationS3:
+			fmt.Fprintf(w, "s3://\n")
+		default:
+			fmt.Fprintf(w, "%s/\n", name)
+		}
 		for _, repoName := range r.RepositoryNames().List() {
 			repo := r.repositories[repoName]
 			fmt.Fprintf(w, "  %s\n", repoName)
@@ -302,6 +321,7 @@ func (p *plan) calculateStats() {
 
 type registryPlan struct {
 	parent *plan
+	t      imagesource.DestinationType
 	name   string
 
 	lock         sync.Mutex
@@ -318,11 +338,12 @@ type registryPlan struct {
 	}
 }
 
-func (p *registryPlan) AssociateBlob(digest godigest.Digest, repo string) {
+func (p *registryPlan) AssociateBlob(repo string, desc distribution.Descriptor) {
+	p.parent.CacheBlob(desc)
+
 	p.lock.Lock()
 	defer p.lock.Unlock()
-
-	p.blobsByRepo[digest] = repo
+	p.blobsByRepo[desc.Digest] = repo
 }
 
 func (p *registryPlan) SavedManifest(srcDigest, dstDigest godigest.Digest) {
@@ -331,7 +352,7 @@ func (p *registryPlan) SavedManifest(srcDigest, dstDigest godigest.Digest) {
 	}
 	p.lock.Lock()
 	defer p.lock.Unlock()
-	klog.V(4).Infof("Associated digest %s with converted digest %s", srcDigest, dstDigest)
+	klog.V(2).Infof("Associated digest: %s, Converted digest: %s", srcDigest, dstDigest)
 	p.manifestConversions[srcDigest] = dstDigest
 }
 
@@ -430,7 +451,7 @@ func (p *repositoryPlan) AddError(errs ...error) {
 	p.errs = append(p.errs, errs...)
 }
 
-func (p *repositoryPlan) Blobs(from reference.DockerImageReference, t DestinationType, location string) *repositoryBlobCopy {
+func (p *repositoryPlan) Blobs(from imagesource.TypedImageReference, location string) *repositoryBlobCopy {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 
@@ -442,10 +463,9 @@ func (p *repositoryPlan) Blobs(from reference.DockerImageReference, t Destinatio
 	p.blobs = append(p.blobs, &repositoryBlobCopy{
 		parent: p,
 
-		fromRef:         from,
-		toRef:           reference.DockerImageReference{Registry: p.parent.name, Name: p.name},
-		destinationType: t,
-		location:        location,
+		fromRef:  from,
+		toRef:    imagesource.TypedImageReference{Type: p.parent.t, Ref: reference.DockerImageReference{Registry: p.parent.name, Name: p.name}},
+		location: location,
 
 		blobs: sets.NewString(),
 	})
@@ -460,18 +480,17 @@ func (p *repositoryPlan) ExpectBlob(digest godigest.Digest) {
 	p.existingBlobs.Insert(digest.String())
 }
 
-func (p *repositoryPlan) Manifests(destinationType DestinationType) *repositoryManifestPlan {
+func (p *repositoryPlan) Manifests() *repositoryManifestPlan {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 
 	if p.manifests == nil {
 		p.manifests = &repositoryManifestPlan{
-			parent:          p,
-			toRef:           reference.DockerImageReference{Registry: p.parent.name, Name: p.name},
-			destinationType: destinationType,
-			digestsToTags:   make(map[godigest.Digest]sets.String),
-			digestCopies:    sets.NewString(),
-			prerequisites:   make(map[godigest.Digest]godigest.Digest),
+			parent:        p,
+			toRef:         imagesource.TypedImageReference{Type: p.parent.t, Ref: reference.DockerImageReference{Registry: p.parent.name, Name: p.name}},
+			digestsToTags: make(map[godigest.Digest]sets.String),
+			digestCopies:  sets.NewString(),
+			prerequisites: make(map[godigest.Digest]godigest.Digest),
 		}
 	}
 	return p.manifests
@@ -525,11 +544,10 @@ func (p *repositoryPlan) calculateStats(registryCounts map[string]int) {
 }
 
 type repositoryBlobCopy struct {
-	parent          *repositoryPlan
-	fromRef         reference.DockerImageReference
-	toRef           reference.DockerImageReference
-	destinationType DestinationType
-	location        string
+	parent   *repositoryPlan
+	fromRef  imagesource.TypedImageReference
+	toRef    imagesource.TypedImageReference
+	location string
 
 	lock  sync.Mutex
 	from  distribution.BlobService
@@ -543,8 +561,7 @@ type repositoryBlobCopy struct {
 }
 
 func (p *repositoryBlobCopy) AlreadyExists(blob distribution.Descriptor) {
-	p.parent.parent.parent.CacheBlob(blob)
-	p.parent.parent.AssociateBlob(blob.Digest, p.parent.name)
+	p.parent.parent.AssociateBlob(p.parent.name, blob)
 	p.parent.ExpectBlob(blob.Digest)
 
 	p.lock.Lock()
@@ -582,9 +599,8 @@ func (p *repositoryBlobCopy) calculateStats() {
 }
 
 type repositoryManifestPlan struct {
-	parent          *repositoryPlan
-	toRef           reference.DockerImageReference
-	destinationType DestinationType
+	parent *repositoryPlan
+	toRef  imagesource.TypedImageReference
 
 	lock    sync.Mutex
 	to      distribution.ManifestService

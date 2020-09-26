@@ -50,7 +50,7 @@ func GetReleaseInfo(image string, originReleasePrefix string, pullSecretFile str
 		versions["release"] = info.Metadata.Version
 	}
 	for component, version := range info.ComponentVersions {
-		versions[component] = version
+		versions[component] = version.Version
 	}
 
 	return &ReleaseInfo{

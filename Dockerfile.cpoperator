@@ -1,5 +1,5 @@
 # Image build must be run from repository root directory
-FROM openshift/origin-release:golang-1.13 as builder
+FROM openshift/origin-release:golang-1.14 as builder
 RUN mkdir -p /go/src/github.com/openshift/ibm-roks-toolkit
 WORKDIR /go/src/github.com/openshift/ibm-roks-toolkit
 COPY . .

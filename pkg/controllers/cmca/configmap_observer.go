@@ -75,19 +75,19 @@ func (r *ManagedCAObserver) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	hash := calculateHash(ca.Bytes())
 	controllerLog.Info("Calculated controller manager hash", "hash", hash)
 
-	destinationCM, err := r.Client.CoreV1().ConfigMaps(r.Namespace).Get(destConfigMap, metav1.GetOptions{})
+	destinationCM, err := r.Client.CoreV1().ConfigMaps(r.Namespace).Get(ctx, destConfigMap, metav1.GetOptions{})
 	if err != nil {
 		return ctrl.Result{}, err
 	}
 	if destinationCM.Data["service-ca.crt"] != ca.String() {
 		destinationCM.Data["service-ca.crt"] = ca.String()
 		r.Log.Info("Updating controller manager configmap")
-		if _, err = r.Client.CoreV1().ConfigMaps(r.Namespace).Update(destinationCM); err != nil {
+		if _, err = r.Client.CoreV1().ConfigMaps(r.Namespace).Update(ctx, destinationCM, metav1.UpdateOptions{}); err != nil {
 			return ctrl.Result{}, err
 		}
 	}
 
-	cmDeployment, err := r.Client.AppsV1().Deployments(r.Namespace).Get(kubeControllerManagerDeployment, metav1.GetOptions{})
+	cmDeployment, err := r.Client.AppsV1().Deployments(r.Namespace).Get(ctx, kubeControllerManagerDeployment, metav1.GetOptions{})
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -101,7 +101,7 @@ func (r *ManagedCAObserver) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		cmDeployment.Spec.Template.ObjectMeta.Annotations = map[string]string{}
 	}
 	cmDeployment.Spec.Template.ObjectMeta.Annotations["ca-checksum"] = hash
-	if _, err = r.Client.AppsV1().Deployments(r.Namespace).Update(cmDeployment); err != nil {
+	if _, err = r.Client.AppsV1().Deployments(r.Namespace).Update(ctx, cmDeployment, metav1.UpdateOptions{}); err != nil {
 		return ctrl.Result{}, err
 	}
 	return ctrl.Result{}, nil
