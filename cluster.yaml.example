@@ -148,3 +148,4 @@ apiserverLivenessPath: livez?exclude=etcd
 controlPlaneOperatorImage: registry.svc.ci.openshift.org/ibm-roks/ibm-roks-4.4:control-plane-operator
 controlPlaneOperatorSecurity: 1001
 masterPriorityClass: ''
+roksMetricsImage: registry.svc.ci.openshift.org/hypershift-toolkit/ibm-roks-4.6:roks-metrics
