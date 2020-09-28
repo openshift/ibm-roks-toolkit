@@ -24,6 +24,7 @@ import (
 	"github.com/openshift/cluster-openshift-apiserver-operator/pkg/operator/configobservation"
 	"github.com/openshift/cluster-openshift-apiserver-operator/pkg/operator/configobservation/images"
 	"github.com/openshift/cluster-openshift-apiserver-operator/pkg/operator/configobservation/project"
+	"github.com/openshift/library-go/pkg/controller/factory"
 	"github.com/openshift/library-go/pkg/operator/configobserver"
 	"github.com/openshift/library-go/pkg/operator/events"
 	"github.com/openshift/library-go/pkg/operator/resourcesynccontroller"
@@ -65,6 +66,7 @@ func Setup(cfg *cpoperator.ControlPlaneOperatorConfig) error {
 				configInformers.Config().V1().Ingresses().Informer().HasSynced,
 			},
 		},
+		[]factory.Informer{},
 		images.ObserveInternalRegistryHostname,
 		images.ObserveAllowedRegistriesForImport,
 		project.ObserveProjectRequestMessage,
@@ -83,10 +85,6 @@ func Setup(cfg *cpoperator.ControlPlaneOperatorConfig) error {
 		c.Run(ctx, 1)
 		return nil
 	}))
-	configInformers.Config().V1().Images().Informer().AddEventHandler(c.EventHandler())
-	configInformers.Config().V1().Ingresses().Informer().AddEventHandler(c.EventHandler())
-	configInformers.Config().V1().Projects().Informer().AddEventHandler(c.EventHandler())
-	configInformers.Config().V1().Proxies().Informer().AddEventHandler(c.EventHandler())
 	return nil
 }
 
@@ -104,10 +102,13 @@ type apiServerOperatorClient struct {
 func (c *apiServerOperatorClient) Informer() cache.SharedIndexInformer {
 	panic("informer not supported")
 }
+func (c *apiServerOperatorClient) GetObjectMeta() (meta *metav1.ObjectMeta, err error) {
+	panic("operator object meta not found")
+}
 
 func (c *apiServerOperatorClient) GetOperatorState() (spec *operatorv1.OperatorSpec, status *operatorv1.OperatorStatus, resourceVersion string, err error) {
 	var cm *corev1.ConfigMap
-	cm, err = c.Client.CoreV1().ConfigMaps(c.Namespace).Get(apiserverConfigMapName, metav1.GetOptions{})
+	cm, err = c.Client.CoreV1().ConfigMaps(c.Namespace).Get(context.TODO(), apiserverConfigMapName, metav1.GetOptions{})
 	if err != nil {
 		return
 	}
@@ -131,7 +132,8 @@ func (c *apiServerOperatorClient) GetOperatorState() (spec *operatorv1.OperatorS
 // UpdateOperatorSpec updates the spec of the operator, assuming the given resource version.
 func (c *apiServerOperatorClient) UpdateOperatorSpec(oldResourceVersion string, in *operatorv1.OperatorSpec) (out *operatorv1.OperatorSpec, newResourceVersion string, err error) {
 	var cm *corev1.ConfigMap
-	cm, err = c.Client.CoreV1().ConfigMaps(c.Namespace).Get(apiserverConfigMapName, metav1.GetOptions{})
+	ctx := context.Background()
+	cm, err = c.Client.CoreV1().ConfigMaps(c.Namespace).Get(ctx, apiserverConfigMapName, metav1.GetOptions{})
 	if err != nil {
 		return
 	}
@@ -151,13 +153,13 @@ func (c *apiServerOperatorClient) UpdateOperatorSpec(oldResourceVersion string, 
 	}
 	cm.Data["config.yaml"] = string(configBytes)
 	c.Logger.Info("Updating OpenShift APIServer configmap")
-	_, err = c.Client.CoreV1().ConfigMaps(c.Namespace).Update(cm)
+	_, err = c.Client.CoreV1().ConfigMaps(c.Namespace).Update(ctx, cm, metav1.UpdateOptions{})
 	if err != nil {
 		return
 	}
 	dataHash := calculateHash(configBytes)
 	var deployment *appsv1.Deployment
-	deployment, err = c.Client.AppsV1().Deployments(c.Namespace).Get(openshiftDeploymentName, metav1.GetOptions{})
+	deployment, err = c.Client.AppsV1().Deployments(c.Namespace).Get(ctx, openshiftDeploymentName, metav1.GetOptions{})
 	if err != nil {
 		return
 	}
@@ -166,7 +168,7 @@ func (c *apiServerOperatorClient) UpdateOperatorSpec(oldResourceVersion string, 
 	}
 	c.Logger.Info("Updating OpenShift APIServer deployment")
 	deployment.Spec.Template.ObjectMeta.Annotations["config-checksum"] = dataHash
-	_, err = c.Client.AppsV1().Deployments(c.Namespace).Update(deployment)
+	_, err = c.Client.AppsV1().Deployments(c.Namespace).Update(ctx, deployment, metav1.UpdateOptions{})
 	return
 }
 

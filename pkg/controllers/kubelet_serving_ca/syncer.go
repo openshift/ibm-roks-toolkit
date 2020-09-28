@@ -1,6 +1,7 @@
 package kubelet_serving_ca
 
 import (
+	"context"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -25,19 +26,20 @@ type KubeletServingCASyncer struct {
 }
 
 func (s *KubeletServingCASyncer) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	targetConfigMap, err := s.TargetClient.CoreV1().ConfigMaps("openshift-config-managed").Get("kubelet-serving-ca", metav1.GetOptions{})
+	ctx := context.Background()
+	targetConfigMap, err := s.TargetClient.CoreV1().ConfigMaps("openshift-config-managed").Get(ctx, "kubelet-serving-ca", metav1.GetOptions{})
 	if err != nil && !errors.IsNotFound(err) {
 		return result(err)
 	}
 	expectedConfigMap := s.expectedConfigMap()
 	if err != nil {
 		s.Log.Info("target configmap not found, creating it")
-		_, err = s.TargetClient.CoreV1().ConfigMaps("openshift-config-managed").Create(expectedConfigMap)
+		_, err = s.TargetClient.CoreV1().ConfigMaps("openshift-config-managed").Create(ctx, expectedConfigMap, metav1.CreateOptions{})
 		return result(err)
 	}
 	if targetConfigMap.Data["ca-bundle.crt"] != expectedConfigMap.Data["ca-bundle.crt"] {
 		targetConfigMap.Data["ca-bundle.crt"] = expectedConfigMap.Data["ca-bundle.crt"]
-		_, err = s.TargetClient.CoreV1().ConfigMaps("openshift-config-managed").Update(targetConfigMap)
+		_, err = s.TargetClient.CoreV1().ConfigMaps("openshift-config-managed").Update(ctx, targetConfigMap, metav1.UpdateOptions{})
 		return result(err)
 	}
 	return result(nil)

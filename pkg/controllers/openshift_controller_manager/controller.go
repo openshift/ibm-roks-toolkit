@@ -13,6 +13,7 @@ import (
 	"github.com/openshift/cluster-openshift-controller-manager-operator/pkg/operator/configobservation/builds"
 	"github.com/openshift/cluster-openshift-controller-manager-operator/pkg/operator/configobservation/deployimages"
 	"github.com/openshift/cluster-openshift-controller-manager-operator/pkg/operator/configobservation/images"
+	"github.com/openshift/library-go/pkg/controller/factory"
 	"github.com/openshift/library-go/pkg/operator/configobserver"
 	"github.com/openshift/library-go/pkg/operator/events"
 
@@ -50,6 +51,7 @@ func Setup(cfg *cpoperator.ControlPlaneOperatorConfig) error {
 				kubeInformers.Core().V1().ConfigMaps().Informer().HasSynced,
 			},
 		},
+		[]factory.Informer{},
 		images.ObserveInternalRegistryHostname,
 		builds.ObserveBuildControllerConfig,
 		deployimages.ObserveControllerManagerImagesConfig,
@@ -71,8 +73,5 @@ func Setup(cfg *cpoperator.ControlPlaneOperatorConfig) error {
 		c.Run(ctx, 1)
 		return nil
 	}))
-	configInformers.Config().V1().Images().Informer().AddEventHandler(c.EventHandler())
-	configInformers.Config().V1().Builds().Informer().AddEventHandler(c.EventHandler())
-	kubeInformers.Core().V1().ConfigMaps().Informer().AddEventHandler(c.EventHandler())
 	return nil
 }

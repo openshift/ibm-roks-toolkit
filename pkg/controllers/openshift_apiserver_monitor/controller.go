@@ -1,6 +1,7 @@
 package openshift_apiserver_monitor
 
 import (
+	"context"
 	"github.com/go-logr/logr"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -26,7 +27,8 @@ func (m *OpenshiftAPIServerMonitor) Reconcile(req ctrl.Request) (ctrl.Result, er
 	}
 	l := m.Log.WithValues("crd", req.Name)
 	l.Info("Start reconciling")
-	deployment, err := m.KubeClient.AppsV1().Deployments(m.Namespace).Get(openshiftAPIServerDeployment, metav1.GetOptions{})
+	ctx := context.Background()
+	deployment, err := m.KubeClient.AppsV1().Deployments(m.Namespace).Get(ctx, openshiftAPIServerDeployment, metav1.GetOptions{})
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -39,6 +41,6 @@ func (m *OpenshiftAPIServerMonitor) Reconcile(req ctrl.Request) (ctrl.Result, er
 		deployment.Spec.Template.ObjectMeta.Annotations = map[string]string{}
 	}
 	deployment.Spec.Template.ObjectMeta.Annotations[crdPresentAnnotation] = "true"
-	_, err = m.KubeClient.AppsV1().Deployments(m.Namespace).Update(deployment)
+	_, err = m.KubeClient.AppsV1().Deployments(m.Namespace).Update(ctx, deployment, metav1.UpdateOptions{})
 	return ctrl.Result{}, err
 }
