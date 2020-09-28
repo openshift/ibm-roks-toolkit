@@ -160,6 +160,8 @@ spec:
           value: '{{ .KPInfo }}'
         - name: KP_WDEK_PATH
           value: "/tmp/kp/wdek"
+        - name: KP_STATE_PATH
+          value: "/tmp/kp/state"
         - name: API_KEY
           value: {{ .KPAPIKey }}
         - name: HEALTHZ_PATH
