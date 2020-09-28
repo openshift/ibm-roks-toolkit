@@ -5,6 +5,7 @@ import (
 	"bufio"
 	"bytes"
 	"compress/gzip"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -40,6 +41,7 @@ import (
 	imagereference "github.com/openshift/library-go/pkg/image/reference"
 	imageappend "github.com/openshift/oc/pkg/cli/image/append"
 	"github.com/openshift/oc/pkg/cli/image/extract"
+	"github.com/openshift/oc/pkg/cli/image/imagesource"
 	imagemanifest "github.com/openshift/oc/pkg/cli/image/manifest"
 )
 
@@ -51,7 +53,7 @@ func NewNewOptions(streams genericclioptions.IOStreams) *NewOptions {
 		// We strongly control the set of allowed component versions to prevent confusion
 		// about what component versions may be used for. Changing this list requires
 		// approval from the release architects.
-		AllowedComponents: []string{"kubernetes"},
+		AllowedComponents: []string{"kubernetes", "machine-os"},
 	}
 }
 
@@ -124,6 +126,7 @@ func NewRelease(f kcmdutil.Factory, parentName string, streams genericclioptions
 	flags.StringVar(&o.FromReleaseImage, "from-release", o.FromReleaseImage, "Use an existing release image as input.")
 	flags.StringVar(&o.ReferenceMode, "reference-mode", o.ReferenceMode, "By default, the image reference from an image stream points to the public registry for the stream and the image digest. Pass 'source' to build references to the originating image.")
 	flags.StringVar(&o.ExtraComponentVersions, "component-versions", o.ExtraComponentVersions, "Supply additional version strings to the release in key=value[,key=value] form.")
+	flags.StringVar(&o.ExtraComponentVersionsDisplayNames, "component-versions-display-names", o.ExtraComponentVersionsDisplayNames, "Supply additional version display names to the release in key=value[,key=value] form.")
 
 	// properties of the release
 	flags.StringVar(&o.Name, "name", o.Name, "The name of the release. Will default to the current time.")
@@ -174,8 +177,9 @@ type NewOptions struct {
 	Namespace           string
 	ReferenceMode       string
 
-	ExtraComponentVersions string
-	AllowedComponents      []string
+	ExtraComponentVersions             string
+	ExtraComponentVersionsDisplayNames string
+	AllowedComponents                  []string
 
 	Exclude       []string
 	AlwaysInclude []string
@@ -277,7 +281,7 @@ func (o *NewOptions) Validate() error {
 }
 
 type imageData struct {
-	Ref           imagereference.DockerImageReference
+	Ref           imagesource.TypedImageReference
 	Config        *dockerv1client.DockerImageConfig
 	Digest        digest.Digest
 	ContentDigest digest.Digest
@@ -333,7 +337,7 @@ func (o *NewOptions) Run() error {
 	defer o.cleanup()
 
 	// check parameters
-	extraComponentVersions, err := parseComponentVersionsLabel(o.ExtraComponentVersions)
+	extraComponentVersions, err := parseComponentVersionsLabel(o.ExtraComponentVersions, o.ExtraComponentVersionsDisplayNames)
 	if err != nil {
 		return fmt.Errorf("--component-versions is invalid: %v", err)
 	}
@@ -353,6 +357,7 @@ func (o *NewOptions) Run() error {
 		len(o.PreviousVersions) > 0 ||
 		len(o.ToImageBase) > 0 ||
 		len(o.ExtraComponentVersions) > 0 ||
+		len(o.ExtraComponentVersionsDisplayNames) > 0 ||
 		len(o.Mappings) > 0 ||
 		len(o.Exclude) > 0 ||
 		len(o.AlwaysInclude) > 0
@@ -374,7 +379,7 @@ func (o *NewOptions) Run() error {
 
 	switch {
 	case len(o.FromReleaseImage) > 0:
-		ref, err := imagereference.Parse(o.FromReleaseImage)
+		ref, err := imagesource.ParseReference(o.FromReleaseImage)
 		if err != nil {
 			return fmt.Errorf("--from-release was not a valid pullspec: %v", err)
 		}
@@ -386,6 +391,7 @@ func (o *NewOptions) Run() error {
 
 		buf := &bytes.Buffer{}
 		extractOpts := extract.NewOptions(genericclioptions.IOStreams{Out: buf, ErrOut: o.ErrOut})
+		extractOpts.ParallelOptions = o.ParallelOptions
 		extractOpts.SecurityOptions = o.SecurityOptions
 		extractOpts.OnlyFiles = true
 		extractOpts.Mappings = []extract.Mapping{
@@ -508,7 +514,7 @@ func (o *NewOptions) Run() error {
 					return nil
 				}
 			}
-			if len(ref.Tag) > 0 {
+			if len(ref.Ref.Tag) > 0 {
 				fmt.Fprintf(o.ErrOut, "info: Release %s built from %d images\n", releaseDigest, len(is.Spec.Tags))
 			} else {
 				fmt.Fprintf(o.ErrOut, "info: Release built from %d images\n", len(is.Spec.Tags))
@@ -541,7 +547,7 @@ func (o *NewOptions) Run() error {
 			inputIS = is
 
 		} else {
-			is, err := o.ImageClient.ImageV1().ImageStreams(o.Namespace).Get(o.FromImageStream, metav1.GetOptions{})
+			is, err := o.ImageClient.ImageV1().ImageStreams(o.Namespace).Get(context.TODO(), o.FromImageStream, metav1.GetOptions{})
 			if err != nil {
 				return err
 			}
@@ -595,15 +601,6 @@ func (o *NewOptions) Run() error {
 			}
 		}
 		fmt.Fprintf(o.ErrOut, "info: Found %d operator manifest directories on disk\n", len(ordered))
-
-	default:
-		for _, m := range o.Mappings {
-			if exclude.Has(m.Source) {
-				klog.V(2).Infof("Excluded mapping %s", m.Source)
-				continue
-			}
-			ordered = append(ordered, m.Source)
-		}
 	}
 
 	name := o.Name
@@ -657,6 +654,7 @@ func (o *NewOptions) Run() error {
 			klog.V(2).Infof("Excluded mapping %s", m.Source)
 			continue
 		}
+		ordered = append(ordered, m.Source)
 		tag := hasTag(is.Spec.Tags, m.Source)
 		if tag == nil {
 			is.Spec.Tags = append(is.Spec.Tags, imageapi.TagReference{
@@ -929,9 +927,9 @@ func (o *NewOptions) extractManifests(is *imageapi.ImageStream, name string, met
 	verifier := imagemanifest.NewVerifier()
 	var lock sync.Mutex
 	opts := extract.NewOptions(genericclioptions.IOStreams{Out: o.Out, ErrOut: o.ErrOut})
+	opts.ParallelOptions = o.ParallelOptions
 	opts.SecurityOptions = o.SecurityOptions
 	opts.OnlyFiles = true
-	opts.ParallelOptions = o.ParallelOptions
 	opts.ImageMetadataCallback = func(m *extract.Mapping, dgst, contentDigest digest.Digest, config *dockerv1client.DockerImageConfig) {
 		verifier.Verify(dgst, contentDigest)
 
@@ -970,7 +968,7 @@ func (o *NewOptions) extractManifests(is *imageapi.ImageStream, name string, met
 
 		opts.Mappings = append(opts.Mappings, extract.Mapping{
 			Name:     tag.Name,
-			ImageRef: ref,
+			ImageRef: imagesource.TypedImageReference{Type: imagesource.DestinationRegistry, Ref: ref},
 
 			From: "manifests/",
 			To:   dstDir,
@@ -990,9 +988,9 @@ func (o *NewOptions) extractManifests(is *imageapi.ImageStream, name string, met
 				tag.Annotations[annotationBuildSourceLocation] = labels[annotationBuildSourceLocation]
 
 				if versions := labels[annotationBuildVersions]; len(versions) > 0 {
-					components, err := parseComponentVersionsLabel(versions)
+					components, err := parseComponentVersionsLabel(versions, labels[annotationBuildVersionsDisplayNames])
 					if err != nil {
-						return false, fmt.Errorf("tag %q has an invalid %s label: %v", tag.Name, annotationBuildVersions, err)
+						return false, fmt.Errorf("tag %q has an invalid %s or %s label: %v", tag.Name, annotationBuildVersions, annotationBuildVersionsDisplayNames, err)
 					}
 					// TODO: eventually this can be relaxed
 					for component := range components {
@@ -1001,6 +999,7 @@ func (o *NewOptions) extractManifests(is *imageapi.ImageStream, name string, met
 						}
 					}
 					tag.Annotations[annotationBuildVersions] = versions
+					tag.Annotations[annotationBuildVersionsDisplayNames] = labels[annotationBuildVersionsDisplayNames]
 				}
 
 				if len(labels[annotationReleaseOperator]) == 0 {
@@ -1011,9 +1010,9 @@ func (o *NewOptions) extractManifests(is *imageapi.ImageStream, name string, met
 					return false, err
 				}
 				if custom {
-					fmt.Fprintf(o.ErrOut, "info: Loading override %s %s\n", m.ImageRef.Exact(), tag.Name)
+					fmt.Fprintf(o.ErrOut, "info: Loading override %s %s\n", m.ImageRef, tag.Name)
 				} else {
-					fmt.Fprintf(o.ErrOut, "info: Loading %s %s\n", m.ImageRef.ID, tag.Name)
+					fmt.Fprintf(o.ErrOut, "info: Loading %s %s\n", m.ImageRef.Ref.ID, tag.Name)
 				}
 				return true, nil
 			},
@@ -1055,6 +1054,7 @@ func (o *NewOptions) mirrorImages(is *imageapi.ImageStream) error {
 	opts.ImageStream = copied
 	opts.To = o.Mirror
 	opts.SkipRelease = true
+	opts.ParallelOptions = o.ParallelOptions
 	opts.SecurityOptions = o.SecurityOptions
 
 	if err := opts.Run(); err != nil {
@@ -1185,6 +1185,7 @@ func (o *NewOptions) write(r io.Reader, is *imageapi.ImageStream, now time.Time)
 
 		verifier := imagemanifest.NewVerifier()
 		options := imageappend.NewAppendImageOptions(genericclioptions.IOStreams{Out: ioutil.Discard, ErrOut: o.ErrOut})
+		options.ParallelOptions = o.ParallelOptions
 		options.SecurityOptions = o.SecurityOptions
 		options.DryRun = o.DryRun
 		options.From = toImageBase

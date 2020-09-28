@@ -25,8 +25,8 @@ import (
 	"k8s.io/kubectl/pkg/util/templates"
 
 	"github.com/openshift/library-go/pkg/image/dockerv1client"
-	imagereference "github.com/openshift/library-go/pkg/image/reference"
 	"github.com/openshift/library-go/pkg/image/registryclient"
+	"github.com/openshift/oc/pkg/cli/image/imagesource"
 	imagemanifest "github.com/openshift/oc/pkg/cli/image/manifest"
 	"github.com/openshift/oc/pkg/cli/image/workqueue"
 )
@@ -40,13 +40,32 @@ func NewInfoOptions(streams genericclioptions.IOStreams) *InfoOptions {
 func NewInfo(parentName string, streams genericclioptions.IOStreams) *cobra.Command {
 	o := NewInfoOptions(streams)
 	cmd := &cobra.Command{
-		Use:   "info IMAGE",
+		Use:   "info IMAGE [...]",
 		Short: "Display information about an image",
 		Long: templates.LongDesc(`
 			Show information about an image in a remote image registry
 
-			Experimental: This command is under active development and may change without notice.
-		`),
+			This command will retrieve metadata about container images in a remote image
+			registry. You may specify images by tag or digest and specify multiple at a
+			time.
+
+			Images in manifest list format will be shown for your current operating system.
+			To see the image for a particular OS use the --filter-by-os=OS/ARCH flag.
+			`),
+		Example: templates.Examples(`
+			# Show information about an image
+			%[1]s quay.io/openshift/cli:latest
+
+			# Show information about images matching a wildcard
+			%[1]s quay.io/openshift/cli:4.*
+
+			# Show information about a file mirrored to disk under DIR
+			%[1]s --dir=DIR file://library/busybox:latest
+
+			# Select which image from a multi-OS image to show
+			%[1]s library/busybox:latest --filter-by-os=linux/arm64
+
+			`),
 		Run: func(cmd *cobra.Command, args []string) {
 			kcmdutil.CheckErr(o.Complete(cmd, args))
 			kcmdutil.CheckErr(o.Validate())
@@ -57,6 +76,7 @@ func NewInfo(parentName string, streams genericclioptions.IOStreams) *cobra.Comm
 	o.FilterOptions.Bind(flags)
 	o.SecurityOptions.Bind(flags)
 	flags.StringVarP(&o.Output, "output", "o", o.Output, "Print the image in an alternative format: json")
+	flags.StringVar(&o.FileDir, "dir", o.FileDir, "The directory on disk that file:// images will be read from.")
 	return cmd
 }
 
@@ -67,6 +87,8 @@ type InfoOptions struct {
 	FilterOptions   imagemanifest.FilterOptions
 
 	Images []string
+
+	FileDir string
 
 	Output string
 }
@@ -89,82 +111,89 @@ func (o *InfoOptions) Run() error {
 	}
 
 	// cache the context
-	_, err := o.SecurityOptions.Context()
+	context, err := o.SecurityOptions.Context()
 	if err != nil {
 		return err
+	}
+	opts := &imagesource.Options{
+		FileDir:         o.FileDir,
+		Insecure:        o.SecurityOptions.Insecure,
+		RegistryContext: context,
 	}
 
 	hadError := false
 	for _, location := range o.Images {
-		src, err := imagereference.Parse(location)
+		sources, err := imagesource.ParseSourceReference(location, opts.ExpandWildcard)
 		if err != nil {
 			return err
 		}
-		if len(src.Tag) == 0 && len(src.ID) == 0 {
-			return fmt.Errorf("--from must point to an image ID or image tag")
-		}
+		for _, src := range sources {
+			if len(src.Ref.Tag) == 0 && len(src.Ref.ID) == 0 {
+				return fmt.Errorf("--from must point to an image ID or image tag")
+			}
 
-		var image *Image
-		retriever := &ImageRetriever{
-			Image: map[string]imagereference.DockerImageReference{
-				location: src,
-			},
-			SecurityOptions: o.SecurityOptions,
-			ManifestListCallback: func(from string, list *manifestlist.DeserializedManifestList, all map[digest.Digest]distribution.Manifest) (map[digest.Digest]distribution.Manifest, error) {
-				filtered := make(map[digest.Digest]distribution.Manifest)
-				for _, manifest := range list.Manifests {
-					if !o.FilterOptions.Include(&manifest, len(list.Manifests) > 1) {
-						klog.V(5).Infof("Skipping image for %#v from %s", manifest.Platform, from)
-						continue
+			var image *Image
+			retriever := &ImageRetriever{
+				FileDir: o.FileDir,
+				Image: map[string]imagesource.TypedImageReference{
+					location: src,
+				},
+				SecurityOptions: o.SecurityOptions,
+				ManifestListCallback: func(from string, list *manifestlist.DeserializedManifestList, all map[digest.Digest]distribution.Manifest) (map[digest.Digest]distribution.Manifest, error) {
+					filtered := make(map[digest.Digest]distribution.Manifest)
+					for _, manifest := range list.Manifests {
+						if !o.FilterOptions.Include(&manifest, len(list.Manifests) > 1) {
+							klog.V(5).Infof("Skipping image for %#v from %s", manifest.Platform, from)
+							continue
+						}
+						filtered[manifest.Digest] = all[manifest.Digest]
 					}
-					filtered[manifest.Digest] = all[manifest.Digest]
-				}
-				if len(filtered) == 1 {
-					return filtered, nil
-				}
+					if len(filtered) == 1 {
+						return filtered, nil
+					}
 
-				buf := &bytes.Buffer{}
-				w := tabwriter.NewWriter(buf, 0, 0, 1, ' ', 0)
-				fmt.Fprintf(w, "  OS\tDIGEST\n")
-				for _, manifest := range list.Manifests {
-					fmt.Fprintf(w, "  %s\t%s\n", imagemanifest.PlatformSpecString(manifest.Platform), manifest.Digest)
-				}
-				w.Flush()
-				return nil, fmt.Errorf("the image is a manifest list and contains multiple images - use --filter-by-os to select from:\n\n%s\n", buf.String())
-			},
+					buf := &bytes.Buffer{}
+					w := tabwriter.NewWriter(buf, 0, 0, 1, ' ', 0)
+					fmt.Fprintf(w, "  OS\tDIGEST\n")
+					for _, manifest := range list.Manifests {
+						fmt.Fprintf(w, "  %s\t%s\n", imagemanifest.PlatformSpecString(manifest.Platform), manifest.Digest)
+					}
+					w.Flush()
+					return nil, fmt.Errorf("the image is a manifest list and contains multiple images - use --filter-by-os to select from:\n\n%s\n", buf.String())
+				},
 
-			ImageMetadataCallback: func(from string, i *Image, err error) error {
+				ImageMetadataCallback: func(from string, i *Image, err error) error {
+					if err != nil {
+						return err
+					}
+					image = i
+					return nil
+				},
+			}
+			if err := retriever.Run(); err != nil {
+				return err
+			}
+
+			switch o.Output {
+			case "":
+			case "json":
+				data, err := json.MarshalIndent(image, "", "  ")
 				if err != nil {
 					return err
 				}
-				image = i
-				return nil
-			},
-		}
-		if err := retriever.Run(); err != nil {
-			return err
-		}
-
-		switch o.Output {
-		case "":
-		case "json":
-			data, err := json.MarshalIndent(image, "", "  ")
-			if err != nil {
-				return err
+				fmt.Fprintf(o.Out, "%s", string(data))
+				continue
+			default:
+				return fmt.Errorf("unrecognized --output, only 'json' is supported")
 			}
-			fmt.Fprintf(o.Out, "%s", string(data))
-			continue
-		default:
-			return fmt.Errorf("unrecognized --output, only 'json' is supported")
-		}
 
-		if err := describeImage(o.Out, image); err != nil {
-			hadError = true
-			if err != kcmdutil.ErrExit {
-				fmt.Fprintf(o.ErrOut, "error: %v", err)
+			if err := describeImage(o.Out, image); err != nil {
+				hadError = true
+				if err != kcmdutil.ErrExit {
+					fmt.Fprintf(o.ErrOut, "error: %v", err)
+				}
 			}
 		}
-
 	}
 	if hadError {
 		return kcmdutil.ErrExit
@@ -173,14 +202,14 @@ func (o *InfoOptions) Run() error {
 }
 
 type Image struct {
-	Name          string                              `json:"name"`
-	Ref           imagereference.DockerImageReference `json:"-"`
-	Digest        digest.Digest                       `json:"digest"`
-	ContentDigest digest.Digest                       `json:"contentDigest"`
-	ListDigest    digest.Digest                       `json:"listDigest"`
-	MediaType     string                              `json:"mediaType"`
-	Layers        []distribution.Descriptor           `json:"layers"`
-	Config        *dockerv1client.DockerImageConfig   `json:"config"`
+	Name          string                            `json:"name"`
+	Ref           imagesource.TypedImageReference   `json:"-"`
+	Digest        digest.Digest                     `json:"digest"`
+	ContentDigest digest.Digest                     `json:"contentDigest"`
+	ListDigest    digest.Digest                     `json:"listDigest"`
+	MediaType     string                            `json:"mediaType"`
+	Layers        []distribution.Descriptor         `json:"layers"`
+	Config        *dockerv1client.DockerImageConfig `json:"config"`
 
 	Manifest distribution.Manifest `json:"-"`
 }
@@ -191,7 +220,7 @@ func describeImage(out io.Writer, image *Image) error {
 	w := tabwriter.NewWriter(out, 0, 4, 1, ' ', 0)
 	defer w.Flush()
 	fmt.Fprintf(w, "Name:\t%s\n", image.Name)
-	if len(image.Ref.ID) == 0 || image.Ref.ID != image.Digest.String() {
+	if len(image.Ref.Ref.ID) == 0 || image.Ref.Ref.ID != image.Digest.String() {
 		fmt.Fprintf(w, "Digest:\t%s\n", image.Digest)
 	}
 	if len(image.ListDigest) > 0 {
@@ -318,7 +347,8 @@ func writeTabSection(out io.Writer, fn func(w io.Writer)) {
 }
 
 type ImageRetriever struct {
-	Image           map[string]imagereference.DockerImageReference
+	FileDir         string
+	Image           map[string]imagesource.TypedImageReference
 	SecurityOptions imagemanifest.SecurityOptions
 	ParallelOptions imagemanifest.ParallelOptions
 	// ImageMetadataCallback is invoked once per image retrieved, and may be called in parallel if
@@ -338,6 +368,11 @@ func (o *ImageRetriever) Run() error {
 	if err != nil {
 		return err
 	}
+	fromOptions := &imagesource.Options{
+		FileDir:         o.FileDir,
+		Insecure:        o.SecurityOptions.Insecure,
+		RegistryContext: fromContext,
+	}
 
 	callbackFn := o.ImageMetadataCallback
 	if callbackFn == nil {
@@ -353,12 +388,12 @@ func (o *ImageRetriever) Run() error {
 			name := key
 			from := o.Image[key]
 			q.Try(func() error {
-				repo, err := fromContext.Repository(ctx, from.DockerClientDefaults().RegistryURL(), from.RepositoryName(), o.SecurityOptions.Insecure)
+				repo, err := fromOptions.Repository(ctx, from)
 				if err != nil {
-					return callbackFn(name, nil, fmt.Errorf("unable to connect to image repository %s: %v", from.Exact(), err))
+					return callbackFn(name, nil, fmt.Errorf("unable to connect to image repository %s: %v", from, err))
 				}
 
-				allManifests, manifestList, listDigest, err := imagemanifest.AllManifests(ctx, from, repo)
+				allManifests, manifestList, listDigest, err := imagemanifest.AllManifests(ctx, from.Ref, repo)
 				if err != nil {
 					if imagemanifest.IsImageForbidden(err) {
 						var msg string
@@ -401,7 +436,7 @@ func (o *ImageRetriever) Run() error {
 					imageConfig, layers, manifestErr := imagemanifest.ManifestToImageConfig(ctx, srcManifest, repo.Blobs(ctx), imagemanifest.ManifestLocation{ManifestList: listDigest, Manifest: srcDigest})
 					mediaType, _, _ := srcManifest.Payload()
 					if err := callbackFn(name, &Image{
-						Name:          from.Exact(),
+						Name:          from.Ref.Exact(),
 						Ref:           from,
 						MediaType:     mediaType,
 						Digest:        srcDigest,

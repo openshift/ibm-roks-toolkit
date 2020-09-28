@@ -39,6 +39,7 @@ type ImageInspect struct {
 	Author          string
 	Config          *container.Config
 	Architecture    string
+	Variant         string `json:",omitempty"`
 	Os              string
 	OsVersion       string `json:",omitempty"`
 	Size            int64
@@ -102,9 +103,10 @@ type ContainerStats struct {
 // Ping contains response of Engine API:
 // GET "/_ping"
 type Ping struct {
-	APIVersion   string
-	OSType       string
-	Experimental bool
+	APIVersion     string
+	OSType         string
+	Experimental   bool
+	BuilderVersion BuilderVersion
 }
 
 // ComponentVersion describes the version information for a specific component.
@@ -157,10 +159,12 @@ type Info struct {
 	MemoryLimit        bool
 	SwapLimit          bool
 	KernelMemory       bool
+	KernelMemoryTCP    bool
 	CPUCfsPeriod       bool `json:"CpuCfsPeriod"`
 	CPUCfsQuota        bool `json:"CpuCfsQuota"`
 	CPUShares          bool
 	CPUSet             bool
+	PidsLimit          bool
 	IPv4Forwarding     bool
 	BridgeNfIptables   bool
 	BridgeNfIP6tables  bool `json:"BridgeNfIp6tables"`
@@ -174,6 +178,7 @@ type Info struct {
 	NEventsListener    int
 	KernelVersion      string
 	OperatingSystem    string
+	OSVersion          string
 	OSType             string
 	Architecture       string
 	IndexServerAddress string
@@ -204,6 +209,8 @@ type Info struct {
 	RuncCommit         Commit
 	InitCommit         Commit
 	SecurityOptions    []string
+	ProductLicense     string `json:",omitempty"`
+	Warnings           []string
 }
 
 // KeyValue holds a key/value pair
@@ -512,7 +519,8 @@ type DiskUsage struct {
 	Images      []*ImageSummary
 	Containers  []*Container
 	Volumes     []*Volume
-	BuilderSize int64
+	BuildCache  []*BuildCache
+	BuilderSize int64 // deprecated
 }
 
 // ContainersPruneReport contains the response for Engine API:
@@ -539,6 +547,7 @@ type ImagesPruneReport struct {
 // BuildCachePruneReport contains the response for Engine API:
 // POST "/build/prune"
 type BuildCachePruneReport struct {
+	CachesDeleted  []string
 	SpaceReclaimed uint64
 }
 
@@ -584,4 +593,25 @@ type PushResult struct {
 // BuildResult contains the image id of a successful build
 type BuildResult struct {
 	ID string
+}
+
+// BuildCache contains information about a build cache record
+type BuildCache struct {
+	ID          string
+	Parent      string
+	Type        string
+	Description string
+	InUse       bool
+	Shared      bool
+	Size        int64
+	CreatedAt   time.Time
+	LastUsedAt  *time.Time
+	UsageCount  int
+}
+
+// BuildCachePruneOptions hold parameters to prune the build cache
+type BuildCachePruneOptions struct {
+	All         bool
+	KeepStorage int64
+	Filters     filters.Args
 }

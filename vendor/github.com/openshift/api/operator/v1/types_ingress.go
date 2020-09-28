@@ -4,6 +4,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	corev1 "k8s.io/api/core/v1"
+
+	configv1 "github.com/openshift/api/config/v1"
 )
 
 // +genclient
@@ -73,6 +75,7 @@ type IngressControllerSpec struct {
 	//   AWS:      LoadBalancerService (with External scope)
 	//   Azure:    LoadBalancerService (with External scope)
 	//   GCP:      LoadBalancerService (with External scope)
+	//   IBMCloud: LoadBalancerService (with External scope)
 	//   Libvirt:  HostNetwork
 	//
 	// Any other platform types (including None) default to HostNetwork.
@@ -125,6 +128,40 @@ type IngressControllerSpec struct {
 	//
 	// +optional
 	NodePlacement *NodePlacement `json:"nodePlacement,omitempty"`
+
+	// tlsSecurityProfile specifies settings for TLS connections for ingresscontrollers.
+	//
+	// If unset, the default is based on the apiservers.config.openshift.io/cluster resource.
+	//
+	// Note that when using the Old, Intermediate, and Modern profile types, the effective
+	// profile configuration is subject to change between releases. For example, given
+	// a specification to use the Intermediate profile deployed on release X.Y.Z, an upgrade
+	// to release X.Y.Z+1 may cause a new profile configuration to be applied to the ingress
+	// controller, resulting in a rollout.
+	//
+	// Note that the minimum TLS version for ingress controllers is 1.1, and
+	// the maximum TLS version is 1.2.  An implication of this restriction
+	// is that the Modern TLS profile type cannot be used because it
+	// requires TLS 1.3.
+	//
+	// +optional
+	TLSSecurityProfile *configv1.TLSSecurityProfile `json:"tlsSecurityProfile,omitempty"`
+
+	// routeAdmission defines a policy for handling new route claims (for example,
+	// to allow or deny claims across namespaces).
+	//
+	// If empty, defaults will be applied. See specific routeAdmission fields
+	// for details about their defaults.
+	//
+	// +optional
+	RouteAdmission *RouteAdmissionPolicy `json:"routeAdmission,omitempty"`
+
+	// logging defines parameters for what should be logged where.  If this
+	// field is empty, operational logs are enabled but access logs are
+	// disabled.
+	//
+	// +optional
+	Logging *IngressControllerLogging `json:"logging,omitempty"`
 }
 
 // NodePlacement describes node scheduling configuration for an ingress
@@ -155,6 +192,7 @@ type NodePlacement struct {
 }
 
 // EndpointPublishingStrategyType is a way to publish ingress controller endpoints.
+// +kubebuilder:validation:Enum=LoadBalancerService;HostNetwork;Private;NodePortService
 type EndpointPublishingStrategyType string
 
 const (
@@ -168,9 +206,13 @@ const (
 
 	// Private does not publish the ingress controller.
 	PrivateStrategyType EndpointPublishingStrategyType = "Private"
+
+	// NodePortService publishes the ingress controller using a Kubernetes NodePort Service.
+	NodePortServiceStrategyType EndpointPublishingStrategyType = "NodePortService"
 )
 
 // LoadBalancerScope is the scope at which a load balancer is exposed.
+// +kubebuilder:validation:Enum=Internal;External
 type LoadBalancerScope string
 
 var (
@@ -203,6 +245,10 @@ type HostNetworkStrategy struct {
 type PrivateStrategy struct {
 }
 
+// NodePortStrategy holds parameters for the NodePortService endpoint publishing strategy.
+type NodePortStrategy struct {
+}
+
 // EndpointPublishingStrategy is a way to publish the endpoints of an
 // IngressController, and represents the type and any additional configuration
 // for a specific type.
@@ -217,7 +263,7 @@ type EndpointPublishingStrategy struct {
 	// In this configuration, the ingress controller deployment uses container
 	// networking. A LoadBalancer Service is created to publish the deployment.
 	//
-	// See: https://kubernetes.io/docs/concepts/services-networking/#loadbalancer
+	// See: https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer
 	//
 	// If domain is set, a wildcard DNS record will be managed to point at the
 	// LoadBalancer Service's external name. DNS records are managed only in DNS
@@ -244,6 +290,17 @@ type EndpointPublishingStrategy struct {
 	// In this configuration, the ingress controller deployment uses container
 	// networking, and is not explicitly published. The user must manually publish
 	// the ingress controller.
+	//
+	// * NodePortService
+	//
+	// Publishes the ingress controller using a Kubernetes NodePort Service.
+	//
+	// In this configuration, the ingress controller deployment uses container
+	// networking. A NodePort Service is created to publish the deployment. The
+	// specific node ports are dynamically allocated by OpenShift; however, to
+	// support static port allocations, user changes to the node port
+	// field of the managed NodePort Service will preserved.
+	//
 	// +unionDiscriminator
 	// +kubebuilder:validation:Required
 	// +required
@@ -263,6 +320,197 @@ type EndpointPublishingStrategy struct {
 	// strategy. Present only if type is Private.
 	// +optional
 	Private *PrivateStrategy `json:"private,omitempty"`
+
+	// nodePort holds parameters for the NodePortService endpoint publishing strategy.
+	// Present only if type is NodePortService.
+	// +optional
+	NodePort *NodePortStrategy `json:"nodePort,omitempty"`
+}
+
+// RouteAdmissionPolicy is an admission policy for allowing new route claims.
+type RouteAdmissionPolicy struct {
+	// namespaceOwnership describes how host name claims across namespaces should
+	// be handled.
+	//
+	// Value must be one of:
+	//
+	// - Strict: Do not allow routes in different namespaces to claim the same host.
+	//
+	// - InterNamespaceAllowed: Allow routes to claim different paths of the same
+	//   host name across namespaces.
+	//
+	// If empty, the default is Strict.
+	// +optional
+	NamespaceOwnership NamespaceOwnershipCheck `json:"namespaceOwnership,omitempty"`
+	// wildcardPolicy describes how routes with wildcard policies should
+	// be handled for the ingress controller. WildcardPolicy controls use
+	// of routes [1] exposed by the ingress controller based on the route's
+	// wildcard policy.
+	//
+	// [1] https://github.com/openshift/api/blob/master/route/v1/types.go
+	//
+	// Note: Updating WildcardPolicy from WildcardsAllowed to WildcardsDisallowed
+	// will cause admitted routes with a wildcard policy of Subdomain to stop
+	// working. These routes must be updated to a wildcard policy of None to be
+	// readmitted by the ingress controller.
+	//
+	// WildcardPolicy supports WildcardsAllowed and WildcardsDisallowed values.
+	//
+	// If empty, defaults to "WildcardsDisallowed".
+	//
+	WildcardPolicy WildcardPolicy `json:"wildcardPolicy,omitempty"`
+}
+
+// WildcardPolicy is a route admission policy component that describes how
+// routes with a wildcard policy should be handled.
+// +kubebuilder:validation:Enum=WildcardsAllowed;WildcardsDisallowed
+type WildcardPolicy string
+
+const (
+	// WildcardPolicyAllowed indicates routes with any wildcard policy are
+	// admitted by the ingress controller.
+	WildcardPolicyAllowed WildcardPolicy = "WildcardsAllowed"
+
+	// WildcardPolicyDisallowed indicates only routes with a wildcard policy
+	// of None are admitted by the ingress controller.
+	WildcardPolicyDisallowed WildcardPolicy = "WildcardsDisallowed"
+)
+
+// NamespaceOwnershipCheck is a route admission policy component that describes
+// how host name claims across namespaces should be handled.
+// +kubebuilder:validation:Enum=InterNamespaceAllowed;Strict
+type NamespaceOwnershipCheck string
+
+const (
+	// InterNamespaceAllowedOwnershipCheck allows routes to claim different paths of the same host name across namespaces.
+	InterNamespaceAllowedOwnershipCheck NamespaceOwnershipCheck = "InterNamespaceAllowed"
+
+	// StrictNamespaceOwnershipCheck does not allow routes to claim the same host name across namespaces.
+	StrictNamespaceOwnershipCheck NamespaceOwnershipCheck = "Strict"
+)
+
+// LoggingDestinationType is a type of destination to which to send log
+// messages.
+//
+// +kubebuilder:validation:Enum=Container;Syslog
+type LoggingDestinationType string
+
+const (
+	// Container sends log messages to a sidecar container.
+	ContainerLoggingDestinationType LoggingDestinationType = "Container"
+
+	// Syslog sends log messages to a syslog endpoint.
+	SyslogLoggingDestinationType LoggingDestinationType = "Syslog"
+
+	// ContainerLoggingSidecarContainerName is the name of the container
+	// with the log output in an ingress controller pod when container
+	// logging is used.
+	ContainerLoggingSidecarContainerName = "logs"
+)
+
+// SyslogLoggingDestinationParameters describes parameters for the Syslog
+// logging destination type.
+type SyslogLoggingDestinationParameters struct {
+	// address is the IP address of the syslog endpoint that receives log
+	// messages.
+	//
+	// +kubebuilder:validation:Required
+	// +required
+	Address string `json:"address"`
+
+	// port is the UDP port number of the syslog endpoint that receives log
+	// messages.
+	//
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:Minimum=1
+	// +kubebuilder:validation:Maximum=65535
+	// +required
+	Port uint32 `json:"port"`
+
+	// facility specifies the syslog facility of log messages.
+	//
+	// If this field is empty, the facility is "local1".
+	//
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:validation:Enum=kern;user;mail;daemon;auth;syslog;lpr;news;uucp;cron;auth2;ftp;ntp;audit;alert;cron2;local0;local1;local2;local3;local4;local5;local6;local7
+	// +optional
+	Facility string `json:"facility,omitempty"`
+}
+
+// ContainerLoggingDestinationParameters describes parameters for the Container
+// logging destination type.
+type ContainerLoggingDestinationParameters struct {
+}
+
+// LoggingDestination describes a destination for log messages.
+// +union
+type LoggingDestination struct {
+	// type is the type of destination for logs.  It must be one of the
+	// following:
+	//
+	// * Container
+	//
+	// The ingress operator configures the sidecar container named "logs" on
+	// the ingress controller pod and configures the ingress controller to
+	// write logs to the sidecar.  The logs are then available as container
+	// logs.  The expectation is that the administrator configures a custom
+	// logging solution that reads logs from this sidecar.  Note that using
+	// container logs means that logs may be dropped if the rate of logs
+	// exceeds the container runtime's or the custom logging solution's
+	// capacity.
+	//
+	// * Syslog
+	//
+	// Logs are sent to a syslog endpoint.  The administrator must specify
+	// an endpoint that can receive syslog messages.  The expectation is
+	// that the administrator has configured a custom syslog instance.
+	//
+	// +unionDiscriminator
+	// +kubebuilder:validation:Required
+	// +required
+	Type LoggingDestinationType `json:"type"`
+
+	// syslog holds parameters for a syslog endpoint.  Present only if
+	// type is Syslog.
+	//
+	// +optional
+	Syslog *SyslogLoggingDestinationParameters `json:"syslog,omitempty"`
+
+	// container holds parameters for the Container logging destination.
+	// Present only if type is Container.
+	//
+	// +optional
+	Container *ContainerLoggingDestinationParameters `json:"container,omitempty"`
+}
+
+// AccessLogging describes how client requests should be logged.
+type AccessLogging struct {
+	// destination is where access logs go.
+	//
+	// +kubebuilder:validation:Required
+	// +required
+	Destination LoggingDestination `json:"destination"`
+
+	// httpLogFormat specifies the format of the log message for an HTTP
+	// request.
+	//
+	// If this field is empty, log messages use the implementation's default
+	// HTTP log format.  For HAProxy's default HTTP log format, see the
+	// HAProxy documentation:
+	// http://cbonte.github.io/haproxy-dconv/2.0/configuration.html#8.2.3
+	//
+	// +optional
+	HttpLogFormat string `json:"httpLogFormat,omitempty"`
+}
+
+// IngressControllerLogging describes what should be logged where.
+type IngressControllerLogging struct {
+	// access describes how the client requests should be logged.
+	//
+	// If this field is empty, access logging is disabled.
+	//
+	// +optional
+	Access *AccessLogging `json:"access,omitempty"`
 }
 
 var (
@@ -332,6 +580,14 @@ type IngressControllerStatus struct {
 	//     * DNS records have been successfully created.
 	//   - False if any of those conditions are unsatisfied.
 	Conditions []OperatorCondition `json:"conditions,omitempty"`
+
+	// tlsProfile is the TLS connection configuration that is in effect.
+	// +optional
+	TLSProfile *configv1.TLSProfileSpec `json:"tlsProfile,omitempty"`
+
+	// observedGeneration is the most recent generation observed.
+	// +optional
+	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
