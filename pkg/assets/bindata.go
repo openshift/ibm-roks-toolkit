@@ -3274,8 +3274,6 @@ spec:
           operator: "Equal"
           value: "true"
           effect: NoSchedule
-      affinity:
-        podAntiAffinity:
       containers:
       - name: metrics
         image: {{ .ROKSMetricsImage }}
