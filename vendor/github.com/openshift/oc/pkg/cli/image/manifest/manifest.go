@@ -86,8 +86,10 @@ func (o *SecurityOptions) Context() (*registryclient.Context, error) {
 		return o.CachedContext, nil
 	}
 	context, err := o.NewContext()
-	o.CachedContext = context
-	o.CachedContext.Retries = 3
+	if err == nil {
+		o.CachedContext = context
+		o.CachedContext.Retries = 3
+	}
 	return context, err
 }
 
@@ -147,6 +149,15 @@ func (o *FilterOptions) Complete(flags *pflag.FlagSet) error {
 	return nil
 }
 
+// IsWildcardFilter returns true if the filter regex is set to a wildcard
+func (o *FilterOptions) IsWildcardFilter() bool {
+	wildcardFilter := ".*"
+	if o.FilterByOS == wildcardFilter {
+		return true
+	}
+	return false
+}
+
 // Include returns true if the provided manifest should be included, or the first image if the user didn't alter the
 // default selection and there is only one image.
 func (o *FilterOptions) Include(d *manifestlist.ManifestDescriptor, hasMultiple bool) bool {
@@ -187,14 +198,14 @@ var PreferManifestList = distribution.WithManifestMediaTypes([]string{
 // AllManifests returns all non-list manifests, the list manifest (if any), the digest the from refers to, or an error.
 func AllManifests(ctx context.Context, from imagereference.DockerImageReference, repo distribution.Repository) (map[digest.Digest]distribution.Manifest, *manifestlist.DeserializedManifestList, digest.Digest, error) {
 	var srcDigest digest.Digest
-	if len(from.Tag) > 0 {
+	if len(from.ID) > 0 {
+		srcDigest = digest.Digest(from.ID)
+	} else if len(from.Tag) > 0 {
 		desc, err := repo.Tags(ctx).Get(ctx, from.Tag)
 		if err != nil {
 			return nil, nil, "", err
 		}
 		srcDigest = desc.Digest
-	} else if len(from.ID) > 0 {
-		srcDigest = digest.Digest(from.ID)
 	} else {
 		return nil, nil, "", fmt.Errorf("no tag or digest specified")
 	}
@@ -229,14 +240,14 @@ func (m ManifestLocation) String() string {
 // FirstManifest returns the first manifest at the request location that matches the filter function.
 func FirstManifest(ctx context.Context, from imagereference.DockerImageReference, repo distribution.Repository, filterFn FilterFunc) (distribution.Manifest, ManifestLocation, error) {
 	var srcDigest digest.Digest
-	if len(from.Tag) > 0 {
+	if len(from.ID) > 0 {
+		srcDigest = digest.Digest(from.ID)
+	} else if len(from.Tag) > 0 {
 		desc, err := repo.Tags(ctx).Get(ctx, from.Tag)
 		if err != nil {
 			return nil, ManifestLocation{}, err
 		}
 		srcDigest = desc.Digest
-	} else if len(from.ID) > 0 {
-		srcDigest = digest.Digest(from.ID)
 	} else {
 		return nil, ManifestLocation{}, fmt.Errorf("no tag or digest specified")
 	}
@@ -250,7 +261,7 @@ func FirstManifest(ctx context.Context, from imagereference.DockerImageReference
 	}
 
 	originalSrcDigest := srcDigest
-	srcManifests, srcManifest, srcDigest, err := ProcessManifestList(ctx, srcDigest, srcManifest, manifests, from, filterFn)
+	srcManifests, srcManifest, srcDigest, err := ProcessManifestList(ctx, srcDigest, srcManifest, manifests, from, filterFn, false)
 	if err != nil {
 		return nil, ManifestLocation{}, err
 	}
@@ -328,7 +339,7 @@ func ManifestToImageConfig(ctx context.Context, srcManifest distribution.Manifes
 	}
 }
 
-func ProcessManifestList(ctx context.Context, srcDigest digest.Digest, srcManifest distribution.Manifest, manifests distribution.ManifestService, ref imagereference.DockerImageReference, filterFn FilterFunc) ([]distribution.Manifest, distribution.Manifest, digest.Digest, error) {
+func ProcessManifestList(ctx context.Context, srcDigest digest.Digest, srcManifest distribution.Manifest, manifests distribution.ManifestService, ref imagereference.DockerImageReference, filterFn FilterFunc, keepManifestList bool) ([]distribution.Manifest, distribution.Manifest, digest.Digest, error) {
 	var srcManifests []distribution.Manifest
 	switch t := srcManifest.(type) {
 	case *manifestlist.DeserializedManifestList:
@@ -377,7 +388,7 @@ func ProcessManifestList(ctx context.Context, srcDigest digest.Digest, srcManife
 		}
 
 		switch {
-		case len(srcManifests) == 1:
+		case len(srcManifests) == 1 && !keepManifestList:
 			manifestDigest, err := registryclient.ContentDigestForManifest(srcManifests[0], srcDigest.Algorithm())
 			if err != nil {
 				return nil, nil, "", err
@@ -434,6 +445,16 @@ func PutManifestInCompatibleSchema(
 	} else {
 		klog.V(5).Infof("Put manifest %s", ref)
 	}
+	switch t := srcManifest.(type) {
+	case *schema1.SignedManifest:
+		manifest, err := convertToSchema2(ctx, blobs, t)
+		if err != nil {
+			klog.V(2).Infof("Unable to convert manifest to schema2: %v", err)
+			return toManifests.Put(ctx, t, distribution.WithTag(tag))
+		}
+		return toManifests.Put(ctx, manifest, options...)
+	}
+
 	toDigest, err := toManifests.Put(ctx, srcManifest, options...)
 	if err == nil {
 		return toDigest, nil
@@ -470,6 +491,51 @@ func PutManifestInCompatibleSchema(
 		klog.Infof("Converted to v2schema1\n%s", string(data))
 	}
 	return toManifests.Put(ctx, schema1Manifest, distribution.WithTag(tag))
+}
+
+// convertToSchema2 attempts to build a v2 manifest from a v1 manifest, which requires reading blobs to get layer sizes.
+// Requires the destination layers already exist in the target repository.
+func convertToSchema2(ctx context.Context, blobs distribution.BlobService, srcManifest *schema1.SignedManifest) (distribution.Manifest, error) {
+	if klog.V(6) {
+		klog.Infof("Up converting v1 schema image:\n%#v", srcManifest.Manifest)
+	}
+
+	config, layers, err := ManifestToImageConfig(ctx, srcManifest, blobs, ManifestLocation{})
+	if err != nil {
+		return nil, err
+	}
+	if klog.V(6) {
+		klog.Infof("Resulting schema: %#v", config)
+	}
+	// create synthetic history
+	// TODO: create restored history?
+	if len(config.History) == 0 {
+		for i := len(config.History); i < len(layers); i++ {
+			config.History = append(config.History, dockerv1client.DockerConfigHistory{
+				Created: config.Created,
+			})
+		}
+	}
+
+	configJSON, err := json.Marshal(config)
+	if err != nil {
+		return nil, err
+	}
+	if klog.V(6) {
+		klog.Infof("Resulting config.json:\n%s", string(configJSON))
+	}
+	b := schema2.NewManifestBuilder(blobs, schema2.MediaTypeImageConfig, configJSON)
+	for _, layer := range layers {
+		desc, err := blobs.Stat(ctx, layer.Digest)
+		if err != nil {
+			return nil, err
+		}
+		desc.MediaType = schema2.MediaTypeLayer
+		if err := b.AppendReference(desc); err != nil {
+			return nil, err
+		}
+	}
+	return b.Build(ctx)
 }
 
 // TDOO: remove when quay.io switches to v2 schema

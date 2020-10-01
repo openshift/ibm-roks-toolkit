@@ -17,8 +17,9 @@ func RenderClusterManifests(params *api.ClusterParams, pullSecretFile, outputDir
 	if err != nil {
 		return err
 	}
+	includeMetrics := len(params.ROKSMetricsImage) > 0
 	ctx := newClusterManifestContext(releaseInfo.Images, releaseInfo.Versions, params, outputDir)
-	ctx.setupManifests(externalOauth, includeRegistry)
+	ctx.setupManifests(externalOauth, includeRegistry, includeMetrics)
 	return ctx.renderManifests()
 }
 
@@ -48,7 +49,7 @@ func newClusterManifestContext(images, versions map[string]string, params interf
 	return ctx
 }
 
-func (c *clusterManifestContext) setupManifests(externalOauth, includeRegistry bool) {
+func (c *clusterManifestContext) setupManifests(externalOauth, includeRegistry, includeMetrics bool) {
 	c.kubeAPIServer()
 	c.kubeControllerManager()
 	c.kubeScheduler()
@@ -61,6 +62,9 @@ func (c *clusterManifestContext) setupManifests(externalOauth, includeRegistry b
 	c.clusterVersionOperator()
 	if includeRegistry {
 		c.registry()
+	}
+	if includeMetrics {
+		c.roksMetrics()
 	}
 	c.userManifestsBootstrapper()
 	c.controlPlaneOperator()
@@ -174,6 +178,17 @@ func (c *clusterManifestContext) controlPlaneOperator() {
 func (c *clusterManifestContext) clusterVersionOperator() {
 	c.addManifestFiles(
 		"cluster-version-operator/cluster-version-operator-deployment.yaml",
+	)
+}
+
+func (c *clusterManifestContext) roksMetrics() {
+	c.addUserManifestFiles(
+		"roks-metrics/roks-metrics-00-namespace.yaml",
+		"roks-metrics/roks-metrics-deployment.yaml",
+		"roks-metrics/roks-metrics-rbac.yaml",
+		"roks-metrics/roks-metrics-service.yaml",
+		"roks-metrics/roks-metrics-serviceaccount.yaml",
+		"roks-metrics/roks-metrics-servicemonitor.yaml",
 	)
 }
 

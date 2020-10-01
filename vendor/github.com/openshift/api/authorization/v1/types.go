@@ -32,11 +32,14 @@ type PolicyRule struct {
 	Verbs []string `json:"verbs" protobuf:"bytes,1,rep,name=verbs"`
 	// AttributeRestrictions will vary depending on what the Authorizer/AuthorizationAttributeBuilder pair supports.
 	// If the Authorizer does not recognize how to handle the AttributeRestrictions, the Authorizer should report an error.
+	// +kubebuilder:pruning:PreserveUnknownFields
 	AttributeRestrictions kruntime.RawExtension `json:"attributeRestrictions,omitempty" protobuf:"bytes,2,opt,name=attributeRestrictions"`
 	// APIGroups is the name of the APIGroup that contains the resources.  If this field is empty, then both kubernetes and origin API groups are assumed.
 	// That means that if an action is requested against one of the enumerated resources in either the kubernetes or the origin API group, the request
 	// will be allowed
-	APIGroups []string `json:"apiGroups" protobuf:"bytes,3,rep,name=apiGroups"`
+	// +optional
+	// +nullable
+	APIGroups []string `json:"apiGroups,omitempty" protobuf:"bytes,3,rep,name=apiGroups"`
 	// Resources is a list of resources this rule applies to.  ResourceAll represents all resources.
 	Resources []string `json:"resources" protobuf:"bytes,4,rep,name=resources"`
 	// ResourceNames is an optional white list of names that the rule applies to.  An empty set means that everything is allowed.
@@ -58,8 +61,7 @@ type IsPersonalSubjectAccessReview struct {
 
 // Role is a logical grouping of PolicyRules that can be referenced as a unit by RoleBindings.
 type Role struct {
-	metav1.TypeMeta `json:",inline"`
-	// Standard object's metadata.
+	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
 
 	// Rules holds all the PolicyRules for this Role
@@ -82,19 +84,20 @@ func (t OptionalNames) String() string {
 // It adds who information via (Users and Groups) OR Subjects and namespace information by which namespace it exists in.
 // RoleBindings in a given namespace only have effect in that namespace (excepting the master namespace which has power in all namespaces).
 type RoleBinding struct {
-	metav1.TypeMeta `json:",inline"`
-	// Standard object's metadata.
+	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
 
 	// UserNames holds all the usernames directly bound to the role.
 	// This field should only be specified when supporting legacy clients and servers.
 	// See Subjects for further details.
 	// +k8s:conversion-gen=false
+	// +optional
 	UserNames OptionalNames `json:"userNames" protobuf:"bytes,2,rep,name=userNames"`
 	// GroupNames holds all the groups directly bound to the role.
 	// This field should only be specified when supporting legacy clients and servers.
 	// See Subjects for further details.
 	// +k8s:conversion-gen=false
+	// +optional
 	GroupNames OptionalNames `json:"groupNames" protobuf:"bytes,3,rep,name=groupNames"`
 	// Subjects hold object references to authorize with this rule.
 	// This field is ignored if UserNames or GroupNames are specified to support legacy clients and servers.
@@ -323,9 +326,10 @@ type Action struct {
 	ResourceName string `json:"resourceName" protobuf:"bytes,6,opt,name=resourceName"`
 	// Path is the path of a non resource URL
 	Path string `json:"path" protobuf:"bytes,8,opt,name=path"`
-	// IsNonResourceURL is true if this is a request for a non-resource URL (outside of the resource hieraarchy)
+	// IsNonResourceURL is true if this is a request for a non-resource URL (outside of the resource hierarchy)
 	IsNonResourceURL bool `json:"isNonResourceURL" protobuf:"varint,9,opt,name=isNonResourceURL"`
 	// Content is the actual content of the request for create and update
+	// +kubebuilder:pruning:PreserveUnknownFields
 	Content kruntime.RawExtension `json:"content,omitempty" protobuf:"bytes,7,opt,name=content"`
 }
 
@@ -334,7 +338,6 @@ type Action struct {
 // RoleBindingList is a collection of RoleBindings
 type RoleBindingList struct {
 	metav1.TypeMeta `json:",inline"`
-	// Standard object's metadata.
 	metav1.ListMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
 
 	// Items is a list of RoleBindings
@@ -346,7 +349,6 @@ type RoleBindingList struct {
 // RoleList is a collection of Roles
 type RoleList struct {
 	metav1.TypeMeta `json:",inline"`
-	// Standard object's metadata.
 	metav1.ListMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
 
 	// Items is a list of Roles
@@ -359,8 +361,7 @@ type RoleList struct {
 
 // ClusterRole is a logical grouping of PolicyRules that can be referenced as a unit by ClusterRoleBindings.
 type ClusterRole struct {
-	metav1.TypeMeta `json:",inline"`
-	// Standard object's metadata.
+	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
 
 	// Rules holds all the PolicyRules for this ClusterRole
@@ -380,19 +381,20 @@ type ClusterRole struct {
 // It adds who information via (Users and Groups) OR Subjects and namespace information by which namespace it exists in.
 // ClusterRoleBindings in a given namespace only have effect in that namespace (excepting the master namespace which has power in all namespaces).
 type ClusterRoleBinding struct {
-	metav1.TypeMeta `json:",inline"`
-	// Standard object's metadata.
+	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
 
 	// UserNames holds all the usernames directly bound to the role.
 	// This field should only be specified when supporting legacy clients and servers.
 	// See Subjects for further details.
 	// +k8s:conversion-gen=false
+	// +optional
 	UserNames OptionalNames `json:"userNames" protobuf:"bytes,2,rep,name=userNames"`
 	// GroupNames holds all the groups directly bound to the role.
 	// This field should only be specified when supporting legacy clients and servers.
 	// See Subjects for further details.
 	// +k8s:conversion-gen=false
+	// +optional
 	GroupNames OptionalNames `json:"groupNames" protobuf:"bytes,3,rep,name=groupNames"`
 	// Subjects hold object references to authorize with this rule.
 	// This field is ignored if UserNames or GroupNames are specified to support legacy clients and servers.
@@ -428,7 +430,6 @@ type NamedClusterRoleBinding struct {
 // ClusterRoleBindingList is a collection of ClusterRoleBindings
 type ClusterRoleBindingList struct {
 	metav1.TypeMeta `json:",inline"`
-	// Standard object's metadata.
 	metav1.ListMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
 
 	// Items is a list of ClusterRoleBindings
@@ -440,7 +441,6 @@ type ClusterRoleBindingList struct {
 // ClusterRoleList is a collection of ClusterRoles
 type ClusterRoleList struct {
 	metav1.TypeMeta `json:",inline"`
-	// Standard object's metadata.
 	metav1.ListMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
 
 	// Items is a list of ClusterRoles
@@ -456,9 +456,7 @@ type ClusterRoleList struct {
 // belongs.  If any one of those RoleBindingRestriction objects matches
 // a subject, rolebindings on that subject in the namespace are allowed.
 type RoleBindingRestriction struct {
-	metav1.TypeMeta `json:",inline"`
-
-	// Standard object's metadata.
+	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata" protobuf:"bytes,1,opt,name=metadata"`
 
 	// Spec defines the matcher.
@@ -486,8 +484,6 @@ type RoleBindingRestrictionSpec struct {
 // RoleBindingRestrictionList is a collection of RoleBindingRestriction objects.
 type RoleBindingRestrictionList struct {
 	metav1.TypeMeta `json:",inline"`
-
-	// Standard object's metadata.
 	metav1.ListMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
 
 	// Items is a list of RoleBindingRestriction objects.

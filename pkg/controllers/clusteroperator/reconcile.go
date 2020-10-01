@@ -1,6 +1,7 @@
 package clusteroperator
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 
@@ -352,21 +353,21 @@ func (r *ControlPlaneClusterOperatorSyncer) ensureClusterOperatorIsUpToDate(co *
 	if !needsUpdate {
 		return nil
 	}
-	_, err := r.Client.ConfigV1().ClusterOperators().UpdateStatus(co)
+	_, err := r.Client.ConfigV1().ClusterOperators().UpdateStatus(context.TODO(), co, metav1.UpdateOptions{})
 	return err
 }
 
 func (r *ControlPlaneClusterOperatorSyncer) createClusterOperator(coInfo ClusterOperatorInfo) error {
 	co := &configv1.ClusterOperator{}
 	co.Name = coInfo.Name
-	co, err := r.Client.ConfigV1().ClusterOperators().Create(co)
+	co, err := r.Client.ConfigV1().ClusterOperators().Create(context.TODO(), co, metav1.CreateOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to create cluster operator %s: %v", coInfo.Name, err)
 	}
 
 	co.Status = r.clusterOperatorStatus(coInfo)
 
-	if _, err := r.Client.ConfigV1().ClusterOperators().UpdateStatus(co); err != nil {
+	if _, err := r.Client.ConfigV1().ClusterOperators().UpdateStatus(context.TODO(), co, metav1.UpdateOptions{}); err != nil {
 		return fmt.Errorf("failed to update cluster operator status for %s: %v", coInfo.Name, err)
 	}
 	return nil

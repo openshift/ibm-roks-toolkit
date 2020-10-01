@@ -1,6 +1,8 @@
 package openshift_apiserver_monitor
 
 import (
+	"context"
+
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -25,10 +27,10 @@ func Setup(cfg *cpoperator.ControlPlaneOperatorConfig) error {
 	crdInformer := cache.NewSharedIndexInformer(
 		&cache.ListWatch{
 			ListFunc: func(opt metav1.ListOptions) (runtime.Object, error) {
-				return apiextClient.CustomResourceDefinitions().List(opt)
+				return apiextClient.CustomResourceDefinitions().List(context.TODO(), opt)
 			},
 			WatchFunc: func(opt metav1.ListOptions) (watch.Interface, error) {
-				return apiextClient.CustomResourceDefinitions().Watch(opt)
+				return apiextClient.CustomResourceDefinitions().Watch(context.TODO(), opt)
 			},
 		},
 		&apiextensionsv1.CustomResourceDefinition{},

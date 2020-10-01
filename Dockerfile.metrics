@@ -1,0 +1,10 @@
+FROM openshift/origin-release:golang-1.14 as builder
+RUN mkdir -p /go/src/github.com/openshift/ibm-roks-toolkit
+WORKDIR /go/src/github.com/openshift/ibm-roks-toolkit
+COPY . .
+RUN go build -mod=vendor -o ./bin/roks-metrics ./cmd/roks-metrics/main.go
+
+FROM registry.access.redhat.com/ubi7/ubi
+RUN yum -y update && yum clean all
+COPY --from=builder /go/src/github.com/openshift/ibm-roks-toolkit/bin/roks-metrics /usr/bin/roks-metrics
+ENTRYPOINT /usr/bin/roks-metrics
