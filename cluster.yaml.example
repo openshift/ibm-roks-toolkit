@@ -173,3 +173,5 @@ controlPlaneOperatorImage: registry.svc.ci.openshift.org/ibm-roks/ibm-roks-4.4:c
 controlPlaneOperatorSecurity: 1001
 masterPriorityClass: ''
 roksMetricsImage: registry.svc.ci.openshift.org/hypershift-toolkit/ibm-roks-4.6:roks-metrics
+portierisEnabled: false
+portierisImage: ''
