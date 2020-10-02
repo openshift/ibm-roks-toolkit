@@ -53,6 +53,8 @@ type ClusterParams struct {
 	ControlPlaneOperatorSecurity        string                 `json:"controlPlaneOperatorSecurity"`
 	MasterPriorityClass                 string                 `json:"masterPriorityClass"`
 	ApiserverLivenessPath               string                 `json:"apiserverLivenessPath"`
+	PortierisEnabled                    bool                   `json:"portierisEnabled"`
+	PortierisImage                      string                 `json:"portierisImage"`
 	DefaultFeatureGates                 []string
 	PlatformType                        string `json:"platformType"`
 	EndpointPublishingStrategyScope     string `json:"endpointPublishingStrategyScope"`
