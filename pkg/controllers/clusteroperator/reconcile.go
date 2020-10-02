@@ -258,6 +258,7 @@ func (r *ControlPlaneClusterOperatorSyncer) Reconcile(req ctrl.Request) (ctrl.Re
 	if !clusterOperatorNames.Has(req.Name) {
 		return ctrl.Result{}, nil
 	}
+
 	clusterOperator, err := r.Lister.Get(req.Name)
 	if err != nil {
 		return ctrl.Result{}, fmt.Errorf("cannot fetch cluster operator %s: %v", req.Name, err)
