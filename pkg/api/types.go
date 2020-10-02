@@ -66,6 +66,8 @@ type ClusterParams struct {
 	OAuthServerSecurityContext                *SecurityContext       `json:"oAuthServerSecurityContext"`
 	ClusterPolicyControllerSecurityContext    *SecurityContext       `json:"clusterPolicyControllerSecurityContext"`
 	ClusterConfigOperatorSecurityContext      *SecurityContext       `json:"clusterConfigOperatorSecurityContext"`
+	PortierisEnabled                          bool                   `json:"portierisEnabled"`
+	PortierisImage                            string                 `json:"portierisImage"`
 	DefaultFeatureGates                       []string
 	PlatformType                              string `json:"platformType"`
 	EndpointPublishingStrategyScope           string `json:"endpointPublishingStrategyScope"`

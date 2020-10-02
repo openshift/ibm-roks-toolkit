@@ -200,3 +200,5 @@ oAuthServerSecurityContext:
   runAsUser: 1000
 clusterConfigOperatorSecurityContext:
   runAsUser: 1000
+portierisEnabled: false
+portierisImage: ''
