@@ -36,3 +36,6 @@ control-plane-operator:
 .PHONY: roks-metrics
 roks-metrics:
 	go build -mod=vendor -o ./bin/roks-metrics ./cmd/roks-metrics/main.go
+
+test:
+	./hack/test.sh
