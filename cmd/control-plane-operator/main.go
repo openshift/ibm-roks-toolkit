@@ -149,5 +149,6 @@ func (o *ControlPlaneOperator) Run() error {
 		o.Controllers,
 		controllerFuncs,
 	)
-	return cfg.Start()
+	stopCh := make(chan struct{})
+	return cfg.Start(stopCh)
 }

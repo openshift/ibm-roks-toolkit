@@ -36,6 +36,18 @@ func NewControlPlaneOperatorConfig(targetKubeconfig, namespace string, initialCA
 	}
 }
 
+func NewControlPlaneOperatorConfigWithRestConfig(config, targetConfig *rest.Config, namespace string, initialCA []byte, versions map[string]string, controllers []string, controllerFuncs map[string]ControllerSetupFunc) *ControlPlaneOperatorConfig {
+	return &ControlPlaneOperatorConfig{
+		config:          config,
+		targetConfig:    targetConfig,
+		namespace:       namespace,
+		initialCA:       initialCA,
+		controllers:     controllers,
+		controllerFuncs: controllerFuncs,
+		versions:        versions,
+	}
+}
+
 type ControlPlaneOperatorConfig struct {
 	manager          ctrl.Manager
 	config           *rest.Config
@@ -187,7 +199,7 @@ func (c *ControlPlaneOperatorConfig) Fatal(err error, msg string) {
 	os.Exit(1)
 }
 
-func (c *ControlPlaneOperatorConfig) Start() error {
+func (c *ControlPlaneOperatorConfig) Start(stopCh <-chan struct{}) error {
 	for _, controllerName := range c.controllers {
 		setupFunc, ok := c.controllerFuncs[controllerName]
 		if !ok {
@@ -197,6 +209,5 @@ func (c *ControlPlaneOperatorConfig) Start() error {
 			return fmt.Errorf("cannot setup controller %s: %v", controllerName, err)
 		}
 	}
-	stopCh := make(chan struct{})
 	return c.Manager().Start(stopCh)
 }
