@@ -17,8 +17,9 @@ func RenderClusterManifests(params *api.ClusterParams, pullSecretFile, outputDir
 	if err != nil {
 		return err
 	}
+	includeMetrics := len(params.ROKSMetricsImage) > 0
 	ctx := newClusterManifestContext(releaseInfo.Images, releaseInfo.Versions, params, outputDir)
-	ctx.setupManifests(externalOauth, includeRegistry)
+	ctx.setupManifests(externalOauth, includeRegistry, includeMetrics)
 	return ctx.renderManifests()
 }
 
@@ -48,7 +49,7 @@ func newClusterManifestContext(images, versions map[string]string, params interf
 	return ctx
 }
 
-func (c *clusterManifestContext) setupManifests(externalOauth, includeRegistry bool) {
+func (c *clusterManifestContext) setupManifests(externalOauth, includeRegistry, includeMetrics bool) {
 	c.kubeAPIServer()
 	c.kubeControllerManager()
 	c.kubeScheduler()
@@ -62,7 +63,9 @@ func (c *clusterManifestContext) setupManifests(externalOauth, includeRegistry b
 	if includeRegistry {
 		c.registry()
 	}
-	c.roksMetrics()
+	if includeMetrics {
+		c.roksMetrics()
+	}
 	c.userManifestsBootstrapper()
 	c.controlPlaneOperator()
 }
