@@ -3,6 +3,7 @@ package cpoperator
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/go-logr/logr"
 
@@ -143,9 +144,13 @@ func (c *ControlPlaneOperatorConfig) TargetConfigInformers() configinformers.Sha
 }
 
 func (c *ControlPlaneOperatorConfig) TargetKubeInformersForNamespace(namespace string) informers.SharedInformerFactory {
+	return c.TargetKubeInformersForNamespaceWithInterval(namespace, common.DefaultResync)
+}
+
+func (c *ControlPlaneOperatorConfig) TargetKubeInformersForNamespaceWithInterval(namespace string, syncInterval time.Duration) informers.SharedInformerFactory {
 	informer, exists := c.namespacedInformers[namespace]
 	if !exists {
-		informer = informers.NewSharedInformerFactoryWithOptions(c.TargetKubeClient(), common.DefaultResync, informers.WithNamespace(namespace))
+		informer = informers.NewSharedInformerFactoryWithOptions(c.TargetKubeClient(), syncInterval, informers.WithNamespace(namespace))
 		if c.namespacedInformers == nil {
 			c.namespacedInformers = map[string]informers.SharedInformerFactory{}
 		}
