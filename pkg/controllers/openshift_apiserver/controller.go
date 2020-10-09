@@ -244,7 +244,6 @@ func filterManagedConfigKeys(in []byte) (out []byte, err error) {
 
 // UpdateOperatorStatus updates the status of the operator, assuming the given resource version.
 func (c *apiServerOperatorClient) UpdateOperatorStatus(oldResourceVersion string, in *operatorv1.OperatorStatus) (out *operatorv1.OperatorStatus, err error) {
-	c.Logger.Info("Update called on operator status", "status", in)
 	return
 }
 
