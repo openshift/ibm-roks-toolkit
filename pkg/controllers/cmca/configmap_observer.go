@@ -10,7 +10,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kubeclient "k8s.io/client-go/kubernetes"
-	corev1listers "k8s.io/client-go/listers/core/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
@@ -32,8 +31,8 @@ type ManagedCAObserver struct {
 	// Client is a client that allows access to the management cluster
 	Client kubeclient.Interface
 
-	// TargetCMLister is a lister for configmaps in the target cluster
-	TargetCMLister corev1listers.ConfigMapLister
+	// TargetClient is a Kube client for the target cluster
+	TargetClient kubeclient.Interface
 
 	// Namespace is the namespace where the control plane of the cluster
 	// lives on the management server
@@ -108,24 +107,21 @@ func (r *ManagedCAObserver) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 }
 
 func (r *ManagedCAObserver) getAdditionalCAs(ctx context.Context, logger logr.Logger) ([][]byte, error) {
-
 	additionalCAs := [][]byte{}
-
-	cm, err := r.TargetCMLister.ConfigMaps(ManagedConfigNamespace).Get(RouterCAConfigMap)
+	cm, err := r.TargetClient.CoreV1().ConfigMaps(ManagedConfigNamespace).Get(ctx, RouterCAConfigMap, metav1.GetOptions{})
 	if err != nil && !errors.IsNotFound(err) {
 		return nil, fmt.Errorf("failed to fetch router ca configmap: %v", err)
 	}
 	if err == nil {
 		additionalCAs = append(additionalCAs, []byte(cm.Data["ca-bundle.crt"]))
 	}
-	cm, err = r.TargetCMLister.ConfigMaps(ManagedConfigNamespace).Get(ServiceCAConfigMap)
+	cm, err = r.TargetClient.CoreV1().ConfigMaps(ManagedConfigNamespace).Get(ctx, ServiceCAConfigMap, metav1.GetOptions{})
 	if err != nil && !errors.IsNotFound(err) {
 		return nil, fmt.Errorf("failed to fetch service ca configmap: %v", err)
 	}
 	if err == nil {
 		additionalCAs = append(additionalCAs, []byte(cm.Data["ca-bundle.crt"]))
 	}
-
 	return additionalCAs, nil
 }
 
