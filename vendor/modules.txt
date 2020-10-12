@@ -247,7 +247,7 @@ github.com/opencontainers/image-spec/specs-go/v1
 # github.com/opencontainers/runc v1.0.0-rc91.0.20200707015106-819fcc687efb
 github.com/opencontainers/runc/libcontainer/system
 github.com/opencontainers/runc/libcontainer/user
-# github.com/openshift/api v0.0.0-20200901182017-7ac89ba6b971
+# github.com/openshift/api v0.0.0-20200922074107-8c5a4702c21a
 ## explicit
 github.com/openshift/api
 github.com/openshift/api/apps
@@ -347,7 +347,7 @@ github.com/openshift/cluster-openshift-controller-manager-operator/pkg/operator/
 github.com/openshift/cluster-openshift-controller-manager-operator/pkg/operator/configobservation/deployimages
 github.com/openshift/cluster-openshift-controller-manager-operator/pkg/operator/configobservation/images
 github.com/openshift/cluster-openshift-controller-manager-operator/pkg/util
-# github.com/openshift/library-go v0.0.0-20200902112127-a4e32e339219
+# github.com/openshift/library-go v0.0.0-20200921120329-c803a7b7bb2c
 ## explicit
 github.com/openshift/library-go/pkg/controller/factory
 github.com/openshift/library-go/pkg/crypto
@@ -367,7 +367,13 @@ github.com/openshift/library-go/pkg/operator/resource/resourcehelper
 github.com/openshift/library-go/pkg/operator/resource/resourcemerge
 github.com/openshift/library-go/pkg/operator/resourcesynccontroller
 github.com/openshift/library-go/pkg/operator/v1helpers
-# github.com/openshift/oc v0.0.0-alpha.0.0.20200901230146-f0dcdbc30182
+github.com/openshift/library-go/pkg/verify
+github.com/openshift/library-go/pkg/verify/store
+github.com/openshift/library-go/pkg/verify/store/configmap
+github.com/openshift/library-go/pkg/verify/store/parallel
+github.com/openshift/library-go/pkg/verify/store/sigstore
+github.com/openshift/library-go/pkg/verify/util
+# github.com/openshift/oc v0.0.0-alpha.0.0.20200930115932-6bfa7f97c8d4
 ## explicit
 github.com/openshift/oc/pkg/cli/admin/release
 github.com/openshift/oc/pkg/cli/image/append
@@ -381,7 +387,6 @@ github.com/openshift/oc/pkg/cli/image/mirror
 github.com/openshift/oc/pkg/cli/image/workqueue
 github.com/openshift/oc/pkg/helpers/image/dockerlayer
 github.com/openshift/oc/pkg/helpers/image/dockerlayer/add
-github.com/openshift/oc/pkg/helpers/release
 # github.com/openshift/openshift-controller-manager v0.0.0-alpha.0
 ## explicit
 github.com/openshift/openshift-controller-manager/pkg/build/metrics/prometheus
@@ -799,7 +804,7 @@ k8s.io/apiserver/pkg/util/wsstream
 k8s.io/apiserver/pkg/warning
 k8s.io/apiserver/plugin/pkg/authenticator/token/webhook
 k8s.io/apiserver/plugin/pkg/authorizer/webhook
-# k8s.io/cli-runtime v0.19.0-rc.3 => k8s.io/cli-runtime v0.19.0-rc.3
+# k8s.io/cli-runtime v0.19.0 => k8s.io/cli-runtime v0.19.0-rc.3
 ## explicit
 k8s.io/cli-runtime/pkg/genericclioptions
 k8s.io/cli-runtime/pkg/kustomize
@@ -1027,7 +1032,7 @@ k8s.io/kube-openapi/pkg/schemaconv
 k8s.io/kube-openapi/pkg/util
 k8s.io/kube-openapi/pkg/util/proto
 k8s.io/kube-openapi/pkg/util/proto/validation
-# k8s.io/kubectl v0.19.0-rc.1 => k8s.io/kubectl v0.19.0-rc.3
+# k8s.io/kubectl v0.19.0 => k8s.io/kubectl v0.19.0-rc.3
 k8s.io/kubectl/pkg/cmd/util
 k8s.io/kubectl/pkg/scheme
 k8s.io/kubectl/pkg/util/interrupt
@@ -1036,7 +1041,7 @@ k8s.io/kubectl/pkg/util/openapi/validation
 k8s.io/kubectl/pkg/util/templates
 k8s.io/kubectl/pkg/util/term
 k8s.io/kubectl/pkg/validation
-# k8s.io/kubernetes v1.19.0-rc.1 => github.com/openshift/kubernetes v1.19.0-rc.2
+# k8s.io/kubernetes v1.19.0 => github.com/openshift/kubernetes v1.19.0-rc.2
 k8s.io/kubernetes/pkg/credentialprovider
 # k8s.io/utils v0.0.0-20200729134348-d5654de09c73
 k8s.io/utils/buffer

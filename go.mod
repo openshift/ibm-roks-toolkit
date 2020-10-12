@@ -9,13 +9,13 @@ require (
 	github.com/go-logr/zapr v0.2.0 // indirect
 	github.com/google/uuid v1.1.1
 	github.com/jteeuwen/go-bindata v3.0.8-0.20151023091102-a0ff2567cfb7+incompatible
-	github.com/openshift/api v0.0.0-20200901182017-7ac89ba6b971
+	github.com/openshift/api v0.0.0-20200922074107-8c5a4702c21a
 	github.com/openshift/client-go v0.0.0-20200827190008-3062137373b5
 	github.com/openshift/cluster-kube-apiserver-operator v0.0.0-alpha.0.0.20200901175228-fa89e5a96600
 	github.com/openshift/cluster-openshift-apiserver-operator v0.0.0-alpha.0.0.20200827092600-713cb5655059
 	github.com/openshift/cluster-openshift-controller-manager-operator v0.0.0-alpha.0.0.20200810151007-268aac45c717
-	github.com/openshift/library-go v0.0.0-20200902112127-a4e32e339219
-	github.com/openshift/oc v0.0.0-alpha.0.0.20200901230146-f0dcdbc30182
+	github.com/openshift/library-go v0.0.0-20200921120329-c803a7b7bb2c
+	github.com/openshift/oc v0.0.0-alpha.0.0.20200930115932-6bfa7f97c8d4
 	github.com/openshift/openshift-controller-manager v0.0.0-alpha.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.7.1
@@ -25,7 +25,7 @@ require (
 	k8s.io/apiextensions-apiserver v0.19.0
 	k8s.io/apimachinery v0.19.0
 	k8s.io/apiserver v0.19.0
-	k8s.io/cli-runtime v0.19.0-rc.3
+	k8s.io/cli-runtime v0.19.0
 	k8s.io/client-go v0.19.0
 	k8s.io/component-base v0.19.0
 	k8s.io/klog/v2 v2.3.0
