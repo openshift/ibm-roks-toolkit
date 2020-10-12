@@ -189,6 +189,8 @@ func (c *clusterManifestContext) roksMetrics() {
 		"roks-metrics/roks-metrics-service.yaml",
 		"roks-metrics/roks-metrics-serviceaccount.yaml",
 		"roks-metrics/roks-metrics-servicemonitor.yaml",
+		"roks-metrics/roks-metrics-push-gateway-service.yaml",
+		"roks-metrics/roks-metrics-push-gateway-servicemonitor.yaml",
 	)
 }
 

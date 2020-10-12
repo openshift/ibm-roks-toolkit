@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: push-gateway
+  namespace: openshift-roks-metrics
+  labels:
+    app: metrics-push-gateway
+spec:
+  ports:
+  - name: http
+    port: 9091
+    protocol: TCP
+    targetPort: gateway
+  selector:
+    app: metrics
+  type: ClusterIP

@@ -1,0 +1,15 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: roks-metrics-push-gateway
+  namespace: openshift-roks-metrics
+spec:
+  endpoints:
+  - interval: 30s
+    path: /metrics
+    port: http
+    scheme: http
+  jobLabel: component
+  selector:
+    matchLabels:
+      app: metrics-push-gateway

@@ -41,6 +41,14 @@ spec:
         volumeMounts:
         - name: serving-cert
           mountPath: /var/run/secrets/serving-cert
+      - name: push-gateway
+        image: {{ .ROKSMetricsImage }}
+        imagePullPolicy: Always
+        command:
+        - pushgateway
+        ports:
+        - containerPort: 9091
+          name: gateway
       serviceAccountName: roks-metrics 
       volumes:
       - name: serving-cert
