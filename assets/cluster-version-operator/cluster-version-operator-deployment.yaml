@@ -75,6 +75,24 @@ spec:
                   fieldPath: spec.nodeName
             - name: EXCLUDE_MANIFESTS
               value: internal-openshift-hosted
+{{ if .ROKSMetricsImage }}
+        - name: metrics-pusher
+          image: {{ .ROKSMetricsImage }}
+          imagePullPolicy: Always
+          command:
+            - "metrics-pusher"
+          args:
+            - "--destination-path=/api/v1/namespaces/openshift-roks-metrics/services/push-gateway:http/proxy/metrics"
+            - "--kubeconfig=/etc/openshift/kubeconfig/kubeconfig"
+            - "--job=cluster-version-operator"
+            - "--frequency=30s"
+            - "--source-url=http://localhost:9099/metrics"
+          terminationMessagePolicy: FallbackToLogsOnError
+          volumeMounts:
+            - mountPath: /etc/openshift/kubeconfig
+              name: kubeconfig
+              readOnly: true
+{{ end }}
       volumes:
         - name: work
           emptyDir: {}
