@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
+
+	"k8s.io/apimachinery/pkg/util/wait"
 
 	configv1 "github.com/openshift/api/config/v1"
 	"github.com/openshift/client-go/config/clientset/versioned/fake"
@@ -94,9 +97,17 @@ func TestReconcile(t *testing.T) {
 				},
 			}
 
-			_, err := r.Reconcile(request)
+			var reconcileErr error
+			err := wait.Poll(1*time.Second, 5*time.Second, func() (bool, error) {
+				_, err := r.Reconcile(request)
+				if err != nil {
+					reconcileErr = err
+					return false, nil
+				}
+				return true, nil
+			})
 			if err != nil {
-				t.Errorf("failed to reconcile: %v", err)
+				t.Errorf("failed to reconcile: %v: %v", err, reconcileErr)
 			}
 
 			gotClusterOperators, err := r.Client.ConfigV1().ClusterOperators().List(context.Background(), metav1.ListOptions{})
