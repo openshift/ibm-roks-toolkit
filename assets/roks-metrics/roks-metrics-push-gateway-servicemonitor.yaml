@@ -8,8 +8,7 @@ spec:
   - interval: 30s
     path: /metrics
     port: http
-    scheme: http
-  jobLabel: component
+    honorLabels: true
   selector:
     matchLabels:
       app: metrics-push-gateway
