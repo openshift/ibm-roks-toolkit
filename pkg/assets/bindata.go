@@ -66,6 +66,7 @@
 // assets/registry/cluster-imageregistry-config.yaml
 // assets/roks-metrics/roks-metrics-00-namespace.yaml
 // assets/roks-metrics/roks-metrics-deployment.yaml
+// assets/roks-metrics/roks-metrics-push-gateway-deployment.yaml
 // assets/roks-metrics/roks-metrics-push-gateway-service.yaml
 // assets/roks-metrics/roks-metrics-push-gateway-servicemonitor.yaml
 // assets/roks-metrics/roks-metrics-rbac.yaml
@@ -683,9 +684,8 @@ spec:
           command:
             - "metrics-pusher"
           args:
-            - "--destination-path=/api/v1/namespaces/openshift-roks-metrics/services/push-gateway:http/proxy/metrics"
+            - "--destination-path=/api/v1/namespaces/openshift-roks-metrics/services/push-gateway:http/proxy/metrics/job/cluster-version-operator"
             - "--kubeconfig=/etc/openshift/kubeconfig/kubeconfig"
-            - "--job=cluster-version-operator"
             - "--frequency=30s"
             - "--source-url=http://localhost:9099/metrics"
           terminationMessagePolicy: FallbackToLogsOnError
@@ -3310,14 +3310,6 @@ spec:
         volumeMounts:
         - name: serving-cert
           mountPath: /var/run/secrets/serving-cert
-      - name: push-gateway
-        image: {{ .ROKSMetricsImage }}
-        imagePullPolicy: Always
-        command:
-        - pushgateway
-        ports:
-        - containerPort: 9091
-          name: gateway
       serviceAccountName: roks-metrics 
       volumes:
       - name: serving-cert
@@ -3342,21 +3334,76 @@ func roksMetricsRoksMetricsDeploymentYaml() (*asset, error) {
 	return a, nil
 }
 
+var _roksMetricsRoksMetricsPushGatewayDeploymentYaml = []byte(`kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: push-gateway
+  namespace: openshift-roks-metrics
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: push-gateway
+  template:
+    metadata:
+      labels:
+        app: push-gateway
+{{ if .RestartDate }}
+      annotations:
+        openshift.io/restartedAt: "{{ .RestartDate }}"
+{{ end }}
+    spec:
+      tolerations:
+        - key: "multi-az-worker"
+          operator: "Equal"
+          value: "true"
+          effect: NoSchedule
+      containers:
+      - name: push-gateway
+        image: {{ .ROKSMetricsImage }}
+        imagePullPolicy: Always
+        command:
+        - pushgateway
+        ports:
+        - containerPort: 9091
+          name: http
+`)
+
+func roksMetricsRoksMetricsPushGatewayDeploymentYamlBytes() ([]byte, error) {
+	return _roksMetricsRoksMetricsPushGatewayDeploymentYaml, nil
+}
+
+func roksMetricsRoksMetricsPushGatewayDeploymentYaml() (*asset, error) {
+	bytes, err := roksMetricsRoksMetricsPushGatewayDeploymentYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "roks-metrics/roks-metrics-push-gateway-deployment.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _roksMetricsRoksMetricsPushGatewayServiceYaml = []byte(`apiVersion: v1
 kind: Service
 metadata:
   name: push-gateway
   namespace: openshift-roks-metrics
   labels:
-    app: metrics-push-gateway
+    app: push-gateway
 spec:
   ports:
   - name: http
     port: 9091
     protocol: TCP
-    targetPort: gateway
+    targetPort: http
   selector:
-    app: metrics
+    app: push-gateway
   type: ClusterIP
 `)
 
@@ -3388,7 +3435,7 @@ spec:
     honorLabels: true
   selector:
     matchLabels:
-      app: metrics-push-gateway
+      app: push-gateway
 `)
 
 func roksMetricsRoksMetricsPushGatewayServicemonitorYamlBytes() ([]byte, error) {
@@ -3852,6 +3899,7 @@ var _bindata = map[string]func() (*asset, error){
 	"registry/cluster-imageregistry-config.yaml":                                         registryClusterImageregistryConfigYaml,
 	"roks-metrics/roks-metrics-00-namespace.yaml":                                        roksMetricsRoksMetrics00NamespaceYaml,
 	"roks-metrics/roks-metrics-deployment.yaml":                                          roksMetricsRoksMetricsDeploymentYaml,
+	"roks-metrics/roks-metrics-push-gateway-deployment.yaml":                             roksMetricsRoksMetricsPushGatewayDeploymentYaml,
 	"roks-metrics/roks-metrics-push-gateway-service.yaml":                                roksMetricsRoksMetricsPushGatewayServiceYaml,
 	"roks-metrics/roks-metrics-push-gateway-servicemonitor.yaml":                         roksMetricsRoksMetricsPushGatewayServicemonitorYaml,
 	"roks-metrics/roks-metrics-rbac.yaml":                                                roksMetricsRoksMetricsRbacYaml,
@@ -3992,6 +4040,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	"roks-metrics": {nil, map[string]*bintree{
 		"roks-metrics-00-namespace.yaml":                {roksMetricsRoksMetrics00NamespaceYaml, map[string]*bintree{}},
 		"roks-metrics-deployment.yaml":                  {roksMetricsRoksMetricsDeploymentYaml, map[string]*bintree{}},
+		"roks-metrics-push-gateway-deployment.yaml":     {roksMetricsRoksMetricsPushGatewayDeploymentYaml, map[string]*bintree{}},
 		"roks-metrics-push-gateway-service.yaml":        {roksMetricsRoksMetricsPushGatewayServiceYaml, map[string]*bintree{}},
 		"roks-metrics-push-gateway-servicemonitor.yaml": {roksMetricsRoksMetricsPushGatewayServicemonitorYaml, map[string]*bintree{}},
 		"roks-metrics-rbac.yaml":                        {roksMetricsRoksMetricsRbacYaml, map[string]*bintree{}},

@@ -21,7 +21,6 @@ type MetricsPusher struct {
 	SourceURL       string
 	DestinationPath string
 	Kubeconfig      string
-	Job             string
 	Frequency       time.Duration
 
 	restClient rest.Interface
@@ -72,7 +71,6 @@ func (p *MetricsPusher) pushMetrics() {
 
 func (p *MetricsPusher) getPushPath() []string {
 	parts := strings.Split(p.DestinationPath, "/")
-	parts = append(parts, "job", p.Job)
 	return parts
 }
 
