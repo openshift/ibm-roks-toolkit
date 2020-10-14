@@ -11,4 +11,4 @@ spec:
     honorLabels: true
   selector:
     matchLabels:
-      app: metrics-push-gateway
+      app: push-gateway
