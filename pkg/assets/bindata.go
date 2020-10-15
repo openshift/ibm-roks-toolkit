@@ -3712,6 +3712,8 @@ spec:
           # Exclude the CVO deployment manifest
           rm /tmp/output/manifests/0000_00_cluster-version-operator*deployment.yaml
           cp /tmp/output/manifests/* /work
+          # Add machineconfig CRDs to prevent upgrade getting stuck
+          cp /release-manifests/*machine-config-operator*machineconfig*.crd.yaml /work
       volumeMounts:
         - mountPath: /work
           name: work
