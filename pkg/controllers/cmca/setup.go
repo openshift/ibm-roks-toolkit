@@ -1,6 +1,8 @@
 package cmca
 
 import (
+	"time"
+
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
@@ -11,6 +13,7 @@ import (
 const (
 	ManagedConfigNamespace                 = "openshift-config-managed"
 	ControllerManagerAdditionalCAConfigMap = "controller-manager-additional-ca"
+	syncInterval                           = 10 * time.Minute
 )
 
 func Setup(cfg *cpoperator.ControlPlaneOperatorConfig) error {
@@ -21,14 +24,14 @@ func Setup(cfg *cpoperator.ControlPlaneOperatorConfig) error {
 }
 
 func setupConfigMapObserver(cfg *cpoperator.ControlPlaneOperatorConfig) error {
-	informerFactory := cfg.TargetKubeInformersForNamespace(ManagedConfigNamespace)
+	informerFactory := cfg.TargetKubeInformersForNamespaceWithInterval(ManagedConfigNamespace, syncInterval)
 	configMaps := informerFactory.Core().V1().ConfigMaps()
 	reconciler := &ManagedCAObserver{
-		InitialCA:      cfg.InitialCA(),
-		Client:         cfg.KubeClient(),
-		TargetCMLister: configMaps.Lister(),
-		Namespace:      cfg.Namespace(),
-		Log:            cfg.Logger().WithName("ManagedCAObserver"),
+		InitialCA:    cfg.InitialCA(),
+		Client:       cfg.KubeClient(),
+		TargetClient: cfg.TargetKubeClient(),
+		Namespace:    cfg.Namespace(),
+		Log:          cfg.Logger().WithName("ManagedCAObserver"),
 	}
 	c, err := controller.New("ca-configmap-observer", cfg.Manager(), controller.Options{Reconciler: reconciler})
 	if err != nil {
