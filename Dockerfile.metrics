@@ -1,10 +1,18 @@
 FROM openshift/origin-release:golang-1.14 as builder
 RUN mkdir -p /go/src/github.com/openshift/ibm-roks-toolkit
+ENV PUSHGATEWAY_VERSION="1.3.0"
 WORKDIR /go/src/github.com/openshift/ibm-roks-toolkit
 COPY . .
 RUN go build -mod=vendor -o ./bin/roks-metrics ./cmd/roks-metrics/main.go
-
+RUN go build -mod=vendor -o ./bin/metrics-pusher ./cmd/metrics-pusher/main.go
+RUN cd /tmp && \
+    curl -OL https://github.com/prometheus/pushgateway/releases/download/v${PUSHGATEWAY_VERSION}/pushgateway-${PUSHGATEWAY_VERSION}.linux-amd64.tar.gz && \
+    tar -xzf pushgateway-${PUSHGATEWAY_VERSION}.linux-amd64.tar.gz && \
+    cp pushgateway-${PUSHGATEWAY_VERSION}.linux-amd64/pushgateway /pushgateway
+  
 FROM registry.access.redhat.com/ubi7/ubi
 RUN yum -y update && yum clean all
 COPY --from=builder /go/src/github.com/openshift/ibm-roks-toolkit/bin/roks-metrics /usr/bin/roks-metrics
+COPY --from=builder /go/src/github.com/openshift/ibm-roks-toolkit/bin/metrics-pusher /usr/bin/metrics-pusher
+COPY --from=builder /pushgateway /usr/bin/pushgateway
 ENTRYPOINT /usr/bin/roks-metrics
