@@ -957,6 +957,12 @@ apiServerArguments:
   - "{{ .ExternalAPIIPAddress }}"
   cloud-provider:
   - "{{ .CloudProvider }}"
+  service-account-issuer:
+  - https://kubernetes.default.svc
+  service-account-signing-key-file:
+  - /etc/kubernetes/secret/service-account.key
+  api-audiences:
+  - https://kubernetes.default.svc
 auditConfig:
   auditFilePath: "/var/log/kube-apiserver/audit.log"
   enabled: true
@@ -1393,6 +1399,7 @@ data:
   etcd-client.key: {{ pki "etcd-client.key" }}
   proxy-client.crt: {{ pki "kube-apiserver-aggregator-proxy-client.crt" }}
   proxy-client.key: {{ pki "kube-apiserver-aggregator-proxy-client.key" }}
+  service-account.key: {{ pki "service-account.key" }}
 `)
 
 func kubeApiserverKubeApiserverSecretYamlBytes() ([]byte, error) {
