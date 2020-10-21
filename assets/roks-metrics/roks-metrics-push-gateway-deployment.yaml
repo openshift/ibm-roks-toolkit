@@ -36,3 +36,7 @@ spec:
         ports:
         - containerPort: 9091
           name: http
+        resources:
+          requests: 
+            cpu: "10m"
+            memory: "50Mi"
