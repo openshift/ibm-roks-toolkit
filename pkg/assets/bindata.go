@@ -14,6 +14,7 @@
 // assets/cluster-bootstrap/namespace-security-allocation-controller-clusterrole.yaml
 // assets/cluster-bootstrap/namespace-security-allocation-controller-clusterrolebinding.yaml
 // assets/cluster-bootstrap/node-bootstrapper-clusterrolebinding.yaml
+// assets/cluster-bootstrap/openshift-install-configmap.yaml
 // assets/cluster-version-operator/cluster-version-operator-deployment.yaml
 // assets/common/service-network-admin-kubeconfig-secret.yaml
 // assets/control-plane-operator/cp-operator-configmap.yaml
@@ -596,6 +597,31 @@ func clusterBootstrapNodeBootstrapperClusterrolebindingYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "cluster-bootstrap/node-bootstrapper-clusterrolebinding.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _clusterBootstrapOpenshiftInstallConfigmapYaml = []byte(`apiVersion: v1
+data:
+  invoker: ROKS
+  version: "{{ version "release" }}"
+kind: ConfigMap
+metadata:
+  name: openshift-install
+  namespace: openshift-config
+`)
+
+func clusterBootstrapOpenshiftInstallConfigmapYamlBytes() ([]byte, error) {
+	return _clusterBootstrapOpenshiftInstallConfigmapYaml, nil
+}
+
+func clusterBootstrapOpenshiftInstallConfigmapYaml() (*asset, error) {
+	bytes, err := clusterBootstrapOpenshiftInstallConfigmapYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "cluster-bootstrap/openshift-install-configmap.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -3856,6 +3882,7 @@ var _bindata = map[string]func() (*asset, error){
 	"cluster-bootstrap/namespace-security-allocation-controller-clusterrole.yaml":        clusterBootstrapNamespaceSecurityAllocationControllerClusterroleYaml,
 	"cluster-bootstrap/namespace-security-allocation-controller-clusterrolebinding.yaml": clusterBootstrapNamespaceSecurityAllocationControllerClusterrolebindingYaml,
 	"cluster-bootstrap/node-bootstrapper-clusterrolebinding.yaml":                        clusterBootstrapNodeBootstrapperClusterrolebindingYaml,
+	"cluster-bootstrap/openshift-install-configmap.yaml":                                 clusterBootstrapOpenshiftInstallConfigmapYaml,
 	"cluster-version-operator/cluster-version-operator-deployment.yaml":                  clusterVersionOperatorClusterVersionOperatorDeploymentYaml,
 	"common/service-network-admin-kubeconfig-secret.yaml":                                commonServiceNetworkAdminKubeconfigSecretYaml,
 	"control-plane-operator/cp-operator-configmap.yaml":                                  controlPlaneOperatorCpOperatorConfigmapYaml,
@@ -3975,6 +4002,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"namespace-security-allocation-controller-clusterrole.yaml":        {clusterBootstrapNamespaceSecurityAllocationControllerClusterroleYaml, map[string]*bintree{}},
 		"namespace-security-allocation-controller-clusterrolebinding.yaml": {clusterBootstrapNamespaceSecurityAllocationControllerClusterrolebindingYaml, map[string]*bintree{}},
 		"node-bootstrapper-clusterrolebinding.yaml":                        {clusterBootstrapNodeBootstrapperClusterrolebindingYaml, map[string]*bintree{}},
+		"openshift-install-configmap.yaml":                                 {clusterBootstrapOpenshiftInstallConfigmapYaml, map[string]*bintree{}},
 	}},
 	"cluster-version-operator": {nil, map[string]*bintree{
 		"cluster-version-operator-deployment.yaml": {clusterVersionOperatorClusterVersionOperatorDeploymentYaml, map[string]*bintree{}},
