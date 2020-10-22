@@ -81,6 +81,19 @@ spec:
             cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
             memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
 {{ end }}
+{{- if .SchedulerLivenessProbe }}
+{{- $probe := .SchedulerLivenessProbe }}
+        livenessProbe:
+          httpGet:
+            scheme: {{ or $probe.HttpGet.Scheme "HTTPS" }}
+            port: {{ or $probe.HttpGet.Port 10259 }}
+            path: {{ or $probe.HttpGet.Path "healthz" }}
+          initialDelaySeconds: {{ or $probe.InitialDelaySeconds 10 }}
+          periodSeconds: {{ or $probe.PeriodSeconds 10 }}
+          timeoutSeconds: {{ or $probe.TimeoutSeconds 1 }}
+          failureThreshold: {{ or $probe.FailureThreshold 3 }}
+          successThreshold: {{ or $probe.SuccessThreshold 1 }}
+{{- end }}
         volumeMounts:
         - mountPath: /etc/kubernetes/secret
           name: secret
