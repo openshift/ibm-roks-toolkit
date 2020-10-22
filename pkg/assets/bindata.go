@@ -3344,6 +3344,10 @@ spec:
         volumeMounts:
         - name: serving-cert
           mountPath: /var/run/secrets/serving-cert
+        resources:
+          requests: 
+            cpu: "10m"
+            memory: "50Mi"
       serviceAccountName: roks-metrics 
       volumes:
       - name: serving-cert
@@ -3406,6 +3410,10 @@ spec:
         ports:
         - containerPort: 9091
           name: http
+        resources:
+          requests: 
+            cpu: "10m"
+            memory: "50Mi"
 `)
 
 func roksMetricsRoksMetricsPushGatewayDeploymentYamlBytes() ([]byte, error) {
