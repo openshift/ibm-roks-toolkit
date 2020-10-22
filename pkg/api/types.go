@@ -56,11 +56,31 @@ type ClusterParams struct {
 	DefaultFeatureGates                 []string
 	PlatformType                        string `json:"platformType"`
 	EndpointPublishingStrategyScope     string `json:"endpointPublishingStrategyScope"`
+	ApiserverLivenessProbe              *Probe `json:"apiserverLivenessProbe",omitempty`
+	ApiserverReadinessProbe             *Probe `json:"apiserverReadinessProbe",omitempty`
+	ControllerManagerLivenessProbe      *Probe `json:"controllerManagerLivenessProbe",omitempty`
+	SchedulerLivenessProbe              *Probe `json:"schedulerLivenessProbe",omitempty`
+	KMSLivenessProbe                    *Probe `json:"kmsLivenessProbe",omitempty`
 }
 
 type NamedCert struct {
 	NamedCertPrefix string `json:"namedCertPrefix"`
 	NamedCertDomain string `json:"namedCertDomain"`
+}
+
+type HttpGetAction struct {
+	Path   string `json:"path"`
+	Port   uint   `json:"port"`
+	Scheme string `json:"scheme"`
+}
+
+type Probe struct {
+	HttpGet             HttpGetAction `json:"httpGet"`
+	InitialDelaySeconds uint          `json:"initialDelaySeconds"`
+	PeriodSeconds       uint          `json:"periodSeconds"`
+	TimeoutSeconds      uint          `json:"timeoutSeconds"`
+	FailureThreshold    uint          `json:"failureThreshold"`
+	SuccessThreshold    uint          `json:"successThreshold"`
 }
 
 type ResourceRequirements struct {
