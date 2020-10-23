@@ -144,7 +144,31 @@ kpRegion: us-south
 apiServerAuditEnabled: true
 restartDate: "2017-07-27T16:39:00Z"
 extraFeatureGates: [ExpandInUsePersistentVolumes=true]
-apiserverLivenessPath: livez?exclude=etcd
+# apiserverLivenessPath: livez?exclude=etcd
+apiserverLivenessProbe:
+  initialDelaySeconds: 300
+  periodSeconds: 10
+  timeoutSeconds: 160
+  failureThreshold: 6
+  successThreshold: 1
+apiserverReadinessProbe:
+  initialDelaySeconds: 15
+  periodSeconds: 30
+  timeoutSeconds: 120
+  failureThreshold: 6
+  successThreshold: 1
+kmsLivenessProbe:
+  initialDelaySeconds: 120
+  periodSeconds: 300
+  timeoutSeconds: 160
+  failureThreshold: 3
+  successThreshold: 1
+controllerManagerLivenessProbe:
+  initialDelaySeconds: 300
+  timeoutSeconds: 160
+schedulerLivenessProbe:
+  initialDelaySeconds: 300
+  timeoutSeconds: 160
 controlPlaneOperatorImage: registry.svc.ci.openshift.org/ibm-roks/ibm-roks-4.4:control-plane-operator
 controlPlaneOperatorSecurity: 1001
 masterPriorityClass: ''
