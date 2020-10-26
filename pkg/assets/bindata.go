@@ -1234,17 +1234,44 @@ spec:
         - "--encryption-provider-config=/etc/kubernetes/kms-config/config.yaml"
 {{ end }}
         workingDir: /var/log/kube-apiserver
+{{- if .ApiserverLivenessProbe }}
+{{- $probe := .ApiserverLivenessProbe }}
+        livenessProbe:
+          httpGet:
+            scheme: {{ or $probe.HttpGet.Scheme "HTTPS" }}
+            port: {{ or $probe.HttpGet.Port .InternalAPIPort }}
+            path: {{ or $probe.HttpGet.Path "livez?exclude=etcd" }}
+          initialDelaySeconds: {{ or $probe.InitialDelaySeconds 10 }}
+          periodSeconds: {{ or $probe.PeriodSeconds 10 }}
+          timeoutSeconds: {{ or $probe.TimeoutSeconds 1 }}
+          failureThreshold: {{ or $probe.FailureThreshold 3 }}
+          successThreshold: {{ or $probe.SuccessThreshold 1 }}
+{{- else }}
         livenessProbe:
           httpGet:
             scheme: HTTPS
             port: {{ .InternalAPIPort }}
-{{ if .ApiserverLivenessPath }}
+{{- if .ApiserverLivenessPath }}
             path: "{{ .ApiserverLivenessPath }}"
-{{ else }}
+{{- else }}
             path: livez
-{{ end }}
+{{- end }}
           initialDelaySeconds: 45
           timeoutSeconds: 10
+{{- end }}
+{{- if .ApiserverReadinessProbe }}
+{{- $probe := .ApiserverReadinessProbe }}
+        readinessProbe:
+          httpGet:
+            scheme: {{ or $probe.HttpGet.Scheme "HTTPS" }}
+            port: {{ or $probe.HttpGet.Port .InternalAPIPort }}
+            path: {{ or $probe.HttpGet.Path "readyz" }}
+          initialDelaySeconds: {{ or $probe.InitialDelaySeconds 10 }}
+          periodSeconds: {{ or $probe.PeriodSeconds 10 }}
+          timeoutSeconds: {{ or $probe.TimeoutSeconds 1 }}
+          failureThreshold: {{ or $probe.FailureThreshold 3 }}
+          successThreshold: {{ or $probe.SuccessThreshold 1 }}
+{{- else }}
         readinessProbe:
           httpGet:
             scheme: HTTPS
@@ -1252,6 +1279,7 @@ spec:
             path: readyz
           initialDelaySeconds: 10
           timeoutSeconds: 10
+{{- end }}
 {{ if .KubeAPIServerResources }}
         resources:{{ range .KubeAPIServerResources }}{{ range .ResourceRequest }}
           requests: {{ if .CPU }}
@@ -1295,6 +1323,19 @@ spec:
 {{ end }}
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
+{{- if .KMSLivenessProbe }}
+{{- $probe := .KMSLivenessProbe }}
+        livenessProbe:
+          httpGet:
+            scheme: {{ or $probe.HttpGet.Scheme "HTTP" }}
+            port: {{ or $probe.HttpGet.Port 8081 }}
+            path: {{ or $probe.HttpGet.Path "healthz/liveness" }}
+          initialDelaySeconds: {{ or $probe.InitialDelaySeconds 10 }}
+          periodSeconds: {{ or $probe.PeriodSeconds 10 }}
+          timeoutSeconds: {{ or $probe.TimeoutSeconds 1 }}
+          failureThreshold: {{ or $probe.FailureThreshold 3 }}
+          successThreshold: {{ or $probe.SuccessThreshold 1 }}
+{{- else }}
         livenessProbe:
           httpGet:
             path: /healthz/liveness
@@ -1305,6 +1346,7 @@ spec:
           successThreshold: 1
           failureThreshold: 3
           timeoutSeconds: 160
+{{- end }}
         env:
         - name: REGION
           value: {{ .KPRegion }}
@@ -1723,6 +1765,19 @@ spec:
             cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
             memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
 {{ end }}
+{{- if .ControllerManagerLivenessProbe }}
+{{- $probe := .ControllerManagerLivenessProbe }}
+        livenessProbe:
+          httpGet:
+            scheme: {{ or $probe.HttpGet.Scheme "HTTPS" }}
+            port: {{ or $probe.HttpGet.Port 10257 }}
+            path: {{ or $probe.HttpGet.Path "healthz" }}
+          initialDelaySeconds: {{ or $probe.InitialDelaySeconds 10 }}
+          periodSeconds: {{ or $probe.PeriodSeconds 10 }}
+          timeoutSeconds: {{ or $probe.TimeoutSeconds 1 }}
+          failureThreshold: {{ or $probe.FailureThreshold 3 }}
+          successThreshold: {{ or $probe.SuccessThreshold 1 }}
+{{- end }}
         volumeMounts:
         - mountPath: /etc/kubernetes/cmconfig
           name: cmconfig
@@ -1922,6 +1977,19 @@ spec:
             cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
             memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
 {{ end }}
+{{- if .SchedulerLivenessProbe }}
+{{- $probe := .SchedulerLivenessProbe }}
+        livenessProbe:
+          httpGet:
+            scheme: {{ or $probe.HttpGet.Scheme "HTTPS" }}
+            port: {{ or $probe.HttpGet.Port 10259 }}
+            path: {{ or $probe.HttpGet.Path "healthz" }}
+          initialDelaySeconds: {{ or $probe.InitialDelaySeconds 10 }}
+          periodSeconds: {{ or $probe.PeriodSeconds 10 }}
+          timeoutSeconds: {{ or $probe.TimeoutSeconds 1 }}
+          failureThreshold: {{ or $probe.FailureThreshold 3 }}
+          successThreshold: {{ or $probe.SuccessThreshold 1 }}
+{{- end }}
         volumeMounts:
         - mountPath: /etc/kubernetes/secret
           name: secret
