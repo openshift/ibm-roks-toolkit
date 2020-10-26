@@ -36,6 +36,18 @@
 // assets/kube-scheduler/kube-scheduler-config-configmap.yaml
 // assets/kube-scheduler/kube-scheduler-deployment.yaml
 // assets/kube-scheduler/kube-scheduler-secret.yaml
+// assets/machine-config-server/cluster-infrastructure-02-config.yaml
+// assets/machine-config-server/cluster-network-02-config.yaml
+// assets/machine-config-server/cluster-proxy-01-config.yaml
+// assets/machine-config-server/install-config.yaml
+// assets/machine-config-server/machine-config-server-configmap.yaml
+// assets/machine-config-server/machine-config-server-deployment.yaml
+// assets/machine-config-server/machine-config-server-kubeconfig-secret.yaml
+// assets/machine-config-server/machine-config-server-secret.yaml
+// assets/machine-config-server/machine-config-server-service.yaml
+// assets/machine-config-server/master.machineconfigpool.yaml
+// assets/machine-config-server/pull-secret.yaml
+// assets/machine-config-server/worker.machineconfigpool.yaml
 // assets/oauth-openshift/oauth-browser-client.yaml
 // assets/oauth-openshift/oauth-challenging-client.yaml
 // assets/oauth-openshift/oauth-server-config-configmap.yaml
@@ -2047,6 +2059,508 @@ func kubeSchedulerKubeSchedulerSecretYaml() (*asset, error) {
 	return a, nil
 }
 
+var _machineConfigServerClusterInfrastructure02ConfigYaml = []byte(`apiVersion: config.openshift.io/v1
+kind: Infrastructure
+metadata:
+  name: cluster
+spec:
+  cloudConfig:
+    name: ""
+status:
+  apiServerInternalURI: https://{{ .ExternalAPIDNSName }}:{{ .ExternalAPIPort }}
+  apiServerURL: https://{{ .ExternalAPIDNSName }}:{{ .ExternalAPIPort }}
+  etcdDiscoveryDomain: {{ .BaseDomain }}
+  infrastructureName: kubernetes
+  platform: {{ if .PlatformType }}{{ .PlatformType }}{{ else }}None {{ end }}
+  platformStatus: {{ if eq .PlatformType "IBMCloud" }}
+    type: {{ .PlatformType }} {{ else }}
+    type: None {{ end }}
+`)
+
+func machineConfigServerClusterInfrastructure02ConfigYamlBytes() ([]byte, error) {
+	return _machineConfigServerClusterInfrastructure02ConfigYaml, nil
+}
+
+func machineConfigServerClusterInfrastructure02ConfigYaml() (*asset, error) {
+	bytes, err := machineConfigServerClusterInfrastructure02ConfigYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "machine-config-server/cluster-infrastructure-02-config.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _machineConfigServerClusterNetwork02ConfigYaml = []byte(`apiVersion: config.openshift.io/v1
+kind: Network
+metadata:
+  name: cluster
+spec:
+  clusterNetwork:
+  - cidr: {{ .PodCIDR }}
+    hostPrefix: 23
+  externalIP:
+    policy: {}
+  networkType: {{ .NetworkType }}
+  serviceNetwork:
+  - {{ .ServiceCIDR }}
+status: {}
+`)
+
+func machineConfigServerClusterNetwork02ConfigYamlBytes() ([]byte, error) {
+	return _machineConfigServerClusterNetwork02ConfigYaml, nil
+}
+
+func machineConfigServerClusterNetwork02ConfigYaml() (*asset, error) {
+	bytes, err := machineConfigServerClusterNetwork02ConfigYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "machine-config-server/cluster-network-02-config.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _machineConfigServerClusterProxy01ConfigYaml = []byte(`apiVersion: config.openshift.io/v1
+kind: Proxy
+metadata:
+  name: cluster
+spec:
+  trustedCA:
+    name: ""
+status: {}
+`)
+
+func machineConfigServerClusterProxy01ConfigYamlBytes() ([]byte, error) {
+	return _machineConfigServerClusterProxy01ConfigYaml, nil
+}
+
+func machineConfigServerClusterProxy01ConfigYaml() (*asset, error) {
+	bytes, err := machineConfigServerClusterProxy01ConfigYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "machine-config-server/cluster-proxy-01-config.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _machineConfigServerInstallConfigYaml = []byte(`apiVersion: v1
+controlPlane:
+  replicas: 1
+networking:
+  machineCIDR: 10.0.0.0/16
+platform:
+  none: {}
+`)
+
+func machineConfigServerInstallConfigYamlBytes() ([]byte, error) {
+	return _machineConfigServerInstallConfigYaml, nil
+}
+
+func machineConfigServerInstallConfigYaml() (*asset, error) {
+	bytes, err := machineConfigServerInstallConfigYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "machine-config-server/install-config.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _machineConfigServerMachineConfigServerConfigmapYaml = []byte(`apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: machine-config-server
+data:
+  cluster-infrastructure-02-config.yaml: |-
+{{ include "machine-config-server/cluster-infrastructure-02-config.yaml" 4 }}
+  cluster-network-02-config.yaml: |-
+{{ include "machine-config-server/cluster-network-02-config.yaml" 4 }}
+  cluster-proxy-01-config.yaml: |-
+{{ include "machine-config-server/cluster-proxy-01-config.yaml" 4 }}
+  install-config.yaml: |-
+{{ include "machine-config-server/install-config.yaml" 4 }}
+  pull-secret.yaml: |-
+{{ include "machine-config-server/pull-secret.yaml" 4 }}
+  master.machineconfigpool.yaml: |-
+{{ include "machine-config-server/master.machineconfigpool.yaml" 4 }}
+  worker.machineconfigpool.yaml: |-
+{{ include "machine-config-server/worker.machineconfigpool.yaml" 4 }}
+`)
+
+func machineConfigServerMachineConfigServerConfigmapYamlBytes() ([]byte, error) {
+	return _machineConfigServerMachineConfigServerConfigmapYaml, nil
+}
+
+func machineConfigServerMachineConfigServerConfigmapYaml() (*asset, error) {
+	bytes, err := machineConfigServerMachineConfigServerConfigmapYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "machine-config-server/machine-config-server-configmap.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _machineConfigServerMachineConfigServerDeploymentYaml = []byte(`---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: machine-config-server
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: machine-config-server
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: edit
+subjects:
+  - kind: ServiceAccount
+    name: machine-config-server
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: machine-config-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: machine-config-server
+  template:
+    metadata:
+      labels:
+        app: machine-config-server
+    spec:
+      tolerations:
+        - key: "multi-az-worker"
+          operator: "Equal"
+          value: "true"
+          effect: NoSchedule
+      serviceAccountName: machine-config-server
+      initContainers:
+      - image: {{ imageFor "machine-config-operator" }}
+        name: machine-config-operator-bootstrap
+        command:
+        - /bin/bash
+        args:
+        - -c
+        - |-
+          mkdir -p /mcc-manifests/bootstrap/manifests
+          mkdir -p /mcc-manifests/manifests
+          exec machine-config-operator bootstrap \
+          --etcd-ca=/assets/ca/root-ca.crt \
+          --etcd-metric-ca=/assets/ca/root-ca.crt \
+          --etcd-image={{ imageFor "etcd" }} \
+          --kube-client-agent-image={{ imageFor "kube-client-agent" }} \
+          --root-ca=/assets/ca/root-ca.crt \
+          --kube-ca=/assets/ca/root-ca.crt \
+          --machine-config-operator-image={{ imageFor "machine-config-operator" }} \
+          --machine-config-oscontent-image={{ imageFor "machine-os-content" }} \
+          --infra-image={{ imageFor "pod" }} \
+          --keepalived-image={{ imageFor "keepalived-ipfailover" }} \
+          --coredns-image={{ imageFor "coredns" }} \
+          --mdns-publisher-image={{ imageFor "mdns-publisher" }} \
+          --haproxy-image={{ imageFor "haproxy-router" }} \
+          --baremetal-runtimecfg-image={{ imageFor "baremetal-runtimecfg" }} \
+          --infra-config-file=/assets/manifests/cluster-infrastructure-02-config.yaml \
+          --network-config-file=/assets/manifests/cluster-network-02-config.yaml \
+          --proxy-config-file=/assets/manifests/cluster-proxy-01-config.yaml \
+          --config-file=/assets/manifests/install-config.yaml \
+          --dest-dir=/mcc-manifests \
+          --pull-secret=/assets/manifests/pull-secret.yaml
+
+          # Use our own version of configpools that swap master and workers
+          mv /mcc-manifests/bootstrap/manifests /mcc-manifests/bootstrap/manifests.tmp
+          mkdir /mcc-manifests/bootstrap/manifests
+          cp /mcc-manifests/bootstrap/manifests.tmp/* /mcc-manifests/bootstrap/manifests/
+          cp /assets/manifests/*.machineconfigpool.yaml /mcc-manifests/bootstrap/manifests/
+        volumeMounts:
+        - mountPath: /mcc-manifests
+          name: mcc-manifests
+        - mountPath: /assets/manifests
+          name: config
+        - mountPath: /assets/ca
+          name: ca
+      - image: {{ imageFor "cli" }}
+        imagePullPolicy: IfNotPresent
+        name: inject-custom-machine-configs
+        env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        workingDir: /tmp
+        command:
+        - /usr/bin/bash
+        args:
+        - -c
+        - |-
+          cat <<"EOF" > "./copy-ignition-config.sh"
+          #!/bin/bash
+          name="${1}"
+          oc get cm ${name} -n "${NAMESPACE}" -o jsonpath='{ .data.data }' > "/mcc-manifests/bootstrap/manifests/${name/#ignition-config-//}.yaml"
+          EOF
+          chmod +x ./copy-ignition-config.sh
+          oc get cm -l ignition-config="true" -n "${NAMESPACE}" --no-headers | awk '{ print $1 }' | xargs -n1 ./copy-ignition-config.sh
+        volumeMounts:
+        - mountPath: /mcc-manifests
+          name: mcc-manifests
+      - image: {{ imageFor "machine-config-operator" }}
+        imagePullPolicy: IfNotPresent
+        name: machine-config-controller-bootstrap
+        command:
+        - /usr/bin/machine-config-controller
+        args:
+        - bootstrap
+        - --manifest-dir=/mcc-manifests/bootstrap/manifests
+        - --pull-secret=/mcc-manifests/bootstrap/manifests/machineconfigcontroller-pull-secret
+        - --dest-dir=/mcs-manifests
+        volumeMounts:
+        - mountPath: /mcc-manifests
+          name: mcc-manifests
+        - mountPath: /mcs-manifests
+          name: mcs-manifests
+      containers:
+      - image: {{ imageFor "machine-config-operator" }}
+        imagePullPolicy: IfNotPresent
+        name: machine-config-server
+        command:
+        - /usr/bin/machine-config-server
+        args:
+        - bootstrap
+        - --bootstrap-kubeconfig=/etc/openshift/kubeconfig
+        - --secure-port=8443
+        - --insecure-port=8080
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        - name: https
+          containerPort: 8443
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /etc/openshift
+          name: kubeconfig
+          readOnly: true
+        - mountPath: /etc/mcs/bootstrap
+          name: mcs-manifests
+        - mountPath: /etc/mcc/bootstrap
+          name: mcc-manifests
+        - mountPath: /etc/ssl/mcs
+          name: mcs-tls
+      volumes:
+      - name: kubeconfig
+        secret:
+          secretName: machine-config-server-kubeconfig
+      - name: mcs-tls
+        secret:
+          secretName: kube-apiserver
+          items:
+          - key: server.crt
+            path: tls.crt
+          - key: server.key
+            path: tls.key
+      - name: mcc-manifests
+        emptyDir: {}
+      - name: mcs-manifests
+        emptyDir: {}
+      - name: config
+        configMap:
+          name: machine-config-server
+      - name: ca
+        configMap:
+          name: kube-controller-manager
+`)
+
+func machineConfigServerMachineConfigServerDeploymentYamlBytes() ([]byte, error) {
+	return _machineConfigServerMachineConfigServerDeploymentYaml, nil
+}
+
+func machineConfigServerMachineConfigServerDeploymentYaml() (*asset, error) {
+	bytes, err := machineConfigServerMachineConfigServerDeploymentYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "machine-config-server/machine-config-server-deployment.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _machineConfigServerMachineConfigServerKubeconfigSecretYaml = []byte(`apiVersion: v1
+kind: Secret
+metadata:
+  name: machine-config-server-kubeconfig
+type: Opaque
+data:
+  kubeconfig: {{ pki "kubelet-bootstrap.kubeconfig" }}
+`)
+
+func machineConfigServerMachineConfigServerKubeconfigSecretYamlBytes() ([]byte, error) {
+	return _machineConfigServerMachineConfigServerKubeconfigSecretYaml, nil
+}
+
+func machineConfigServerMachineConfigServerKubeconfigSecretYaml() (*asset, error) {
+	bytes, err := machineConfigServerMachineConfigServerKubeconfigSecretYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "machine-config-server/machine-config-server-kubeconfig-secret.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _machineConfigServerMachineConfigServerSecretYaml = []byte(`apiVersion: v1
+kind: Secret
+metadata:
+  name: machine-config-server
+type: Opaque
+data:
+  tls.crt: {{ pki "machine-config-server.crt" }}
+  tls.key: {{ pki "machine-config-server.key" }}
+`)
+
+func machineConfigServerMachineConfigServerSecretYamlBytes() ([]byte, error) {
+	return _machineConfigServerMachineConfigServerSecretYaml, nil
+}
+
+func machineConfigServerMachineConfigServerSecretYaml() (*asset, error) {
+	bytes, err := machineConfigServerMachineConfigServerSecretYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "machine-config-server/machine-config-server-secret.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _machineConfigServerMachineConfigServerServiceYaml = []byte(`apiVersion: v1
+kind: Service
+metadata:
+  name: machine-config-server
+spec:
+  ports:
+  - port: 80
+    name: http
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: machine-config-server
+  type: NodePort
+`)
+
+func machineConfigServerMachineConfigServerServiceYamlBytes() ([]byte, error) {
+	return _machineConfigServerMachineConfigServerServiceYaml, nil
+}
+
+func machineConfigServerMachineConfigServerServiceYaml() (*asset, error) {
+	bytes, err := machineConfigServerMachineConfigServerServiceYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "machine-config-server/machine-config-server-service.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _machineConfigServerMasterMachineconfigpoolYaml = []byte(`apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfigPool
+metadata:
+  name: master
+  labels:
+    "machineconfiguration.openshift.io/mco-built-in": ""
+spec:
+  machineConfigSelector:
+    matchLabels:
+      "machineconfiguration.openshift.io/role": "worker"
+  nodeSelector:
+    matchLabels:
+      node-role.kubernetes.io/worker: ""
+`)
+
+func machineConfigServerMasterMachineconfigpoolYamlBytes() ([]byte, error) {
+	return _machineConfigServerMasterMachineconfigpoolYaml, nil
+}
+
+func machineConfigServerMasterMachineconfigpoolYaml() (*asset, error) {
+	bytes, err := machineConfigServerMasterMachineconfigpoolYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "machine-config-server/master.machineconfigpool.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _machineConfigServerPullSecretYaml = []byte(`apiVersion: v1
+kind: Secret
+type: kubernetes.io/dockerconfigjson
+metadata:
+  namespace: openshift-config
+  name: pull-secret
+data:
+  .dockerconfigjson: {{ pullSecretBase64 }}
+`)
+
+func machineConfigServerPullSecretYamlBytes() ([]byte, error) {
+	return _machineConfigServerPullSecretYaml, nil
+}
+
+func machineConfigServerPullSecretYaml() (*asset, error) {
+	bytes, err := machineConfigServerPullSecretYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "machine-config-server/pull-secret.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _machineConfigServerWorkerMachineconfigpoolYaml = []byte(`apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfigPool
+metadata:
+  name: worker
+  labels:
+    "operator.machineconfiguration.openshift.io/required-for-upgrade": ""
+    "machineconfiguration.openshift.io/mco-built-in": ""
+spec:
+  machineConfigSelector:
+    matchLabels:
+      "machineconfiguration.openshift.io/role": "master"
+  nodeSelector:
+    matchLabels:
+      node-role.kubernetes.io/master: ""
+`)
+
+func machineConfigServerWorkerMachineconfigpoolYamlBytes() ([]byte, error) {
+	return _machineConfigServerWorkerMachineconfigpoolYaml, nil
+}
+
+func machineConfigServerWorkerMachineconfigpoolYaml() (*asset, error) {
+	bytes, err := machineConfigServerWorkerMachineconfigpoolYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "machine-config-server/worker.machineconfigpool.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _oauthOpenshiftOauthBrowserClientYaml = []byte(`apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -3980,6 +4494,18 @@ var _bindata = map[string]func() (*asset, error){
 	"kube-scheduler/kube-scheduler-config-configmap.yaml":                                kubeSchedulerKubeSchedulerConfigConfigmapYaml,
 	"kube-scheduler/kube-scheduler-deployment.yaml":                                      kubeSchedulerKubeSchedulerDeploymentYaml,
 	"kube-scheduler/kube-scheduler-secret.yaml":                                          kubeSchedulerKubeSchedulerSecretYaml,
+	"machine-config-server/cluster-infrastructure-02-config.yaml":                        machineConfigServerClusterInfrastructure02ConfigYaml,
+	"machine-config-server/cluster-network-02-config.yaml":                               machineConfigServerClusterNetwork02ConfigYaml,
+	"machine-config-server/cluster-proxy-01-config.yaml":                                 machineConfigServerClusterProxy01ConfigYaml,
+	"machine-config-server/install-config.yaml":                                          machineConfigServerInstallConfigYaml,
+	"machine-config-server/machine-config-server-configmap.yaml":                         machineConfigServerMachineConfigServerConfigmapYaml,
+	"machine-config-server/machine-config-server-deployment.yaml":                        machineConfigServerMachineConfigServerDeploymentYaml,
+	"machine-config-server/machine-config-server-kubeconfig-secret.yaml":                 machineConfigServerMachineConfigServerKubeconfigSecretYaml,
+	"machine-config-server/machine-config-server-secret.yaml":                            machineConfigServerMachineConfigServerSecretYaml,
+	"machine-config-server/machine-config-server-service.yaml":                           machineConfigServerMachineConfigServerServiceYaml,
+	"machine-config-server/master.machineconfigpool.yaml":                                machineConfigServerMasterMachineconfigpoolYaml,
+	"machine-config-server/pull-secret.yaml":                                             machineConfigServerPullSecretYaml,
+	"machine-config-server/worker.machineconfigpool.yaml":                                machineConfigServerWorkerMachineconfigpoolYaml,
 	"oauth-openshift/oauth-browser-client.yaml":                                          oauthOpenshiftOauthBrowserClientYaml,
 	"oauth-openshift/oauth-challenging-client.yaml":                                      oauthOpenshiftOauthChallengingClientYaml,
 	"oauth-openshift/oauth-server-config-configmap.yaml":                                 oauthOpenshiftOauthServerConfigConfigmapYaml,
@@ -4112,6 +4638,20 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"kube-scheduler-config-configmap.yaml": {kubeSchedulerKubeSchedulerConfigConfigmapYaml, map[string]*bintree{}},
 		"kube-scheduler-deployment.yaml":       {kubeSchedulerKubeSchedulerDeploymentYaml, map[string]*bintree{}},
 		"kube-scheduler-secret.yaml":           {kubeSchedulerKubeSchedulerSecretYaml, map[string]*bintree{}},
+	}},
+	"machine-config-server": {nil, map[string]*bintree{
+		"cluster-infrastructure-02-config.yaml":        {machineConfigServerClusterInfrastructure02ConfigYaml, map[string]*bintree{}},
+		"cluster-network-02-config.yaml":               {machineConfigServerClusterNetwork02ConfigYaml, map[string]*bintree{}},
+		"cluster-proxy-01-config.yaml":                 {machineConfigServerClusterProxy01ConfigYaml, map[string]*bintree{}},
+		"install-config.yaml":                          {machineConfigServerInstallConfigYaml, map[string]*bintree{}},
+		"machine-config-server-configmap.yaml":         {machineConfigServerMachineConfigServerConfigmapYaml, map[string]*bintree{}},
+		"machine-config-server-deployment.yaml":        {machineConfigServerMachineConfigServerDeploymentYaml, map[string]*bintree{}},
+		"machine-config-server-kubeconfig-secret.yaml": {machineConfigServerMachineConfigServerKubeconfigSecretYaml, map[string]*bintree{}},
+		"machine-config-server-secret.yaml":            {machineConfigServerMachineConfigServerSecretYaml, map[string]*bintree{}},
+		"machine-config-server-service.yaml":           {machineConfigServerMachineConfigServerServiceYaml, map[string]*bintree{}},
+		"master.machineconfigpool.yaml":                {machineConfigServerMasterMachineconfigpoolYaml, map[string]*bintree{}},
+		"pull-secret.yaml":                             {machineConfigServerPullSecretYaml, map[string]*bintree{}},
+		"worker.machineconfigpool.yaml":                {machineConfigServerWorkerMachineconfigpoolYaml, map[string]*bintree{}},
 	}},
 	"oauth-openshift": {nil, map[string]*bintree{
 		"oauth-browser-client.yaml":              {oauthOpenshiftOauthBrowserClientYaml, map[string]*bintree{}},

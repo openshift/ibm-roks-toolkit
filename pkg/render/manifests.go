@@ -18,7 +18,7 @@ func RenderClusterManifests(params *api.ClusterParams, pullSecretFile, outputDir
 		return err
 	}
 	includeMetrics := len(params.ROKSMetricsImage) > 0
-	ctx := newClusterManifestContext(releaseInfo.Images, releaseInfo.Versions, params, outputDir)
+	ctx := newClusterManifestContext(releaseInfo.Images, releaseInfo.Versions, pullSecretFile, params, outputDir)
 	ctx.setupManifests(externalOauth, includeRegistry, includeMetrics)
 	return ctx.renderManifests()
 }
@@ -29,7 +29,7 @@ type clusterManifestContext struct {
 	userManifests     map[string]string
 }
 
-func newClusterManifestContext(images, versions map[string]string, params interface{}, outputDir string) *clusterManifestContext {
+func newClusterManifestContext(images, versions map[string]string, pullSecretFile string, params interface{}, outputDir string) *clusterManifestContext {
 	ctx := &clusterManifestContext{
 		renderContext: newRenderContext(params, outputDir),
 		userManifests: make(map[string]string),
@@ -45,6 +45,7 @@ func newClusterManifestContext(images, versions map[string]string, params interf
 		"randomString":      randomString,
 		"includeData":       includeDataFunc(),
 		"trimTrailingSpace": trimTrailingSpace,
+		"pullSecretBase64":  pullSecretBase64(pullSecretFile),
 	})
 	return ctx
 }
@@ -66,6 +67,7 @@ func (c *clusterManifestContext) setupManifests(externalOauth, includeRegistry, 
 	if includeMetrics {
 		c.roksMetrics()
 	}
+	c.machineConfigServer()
 	c.userManifestsBootstrapper()
 	c.controlPlaneOperator()
 }
@@ -235,6 +237,12 @@ func (c *clusterManifestContext) addUserManifestFiles(name ...string) {
 
 func (c *clusterManifestContext) addUserManifest(name, content string) {
 	c.userManifests[name] = content
+}
+
+func (c *clusterManifestContext) machineConfigServer() {
+	c.addManifestFiles("machine-config-server/machine-config-server-configmap.yaml")
+	c.addManifestFiles("machine-config-server/machine-config-server-deployment.yaml")
+	c.addManifestFiles("machine-config-server/machine-config-server-service.yaml")
 }
 
 func trimFirstSegment(s string) string {
