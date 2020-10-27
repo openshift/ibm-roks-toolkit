@@ -35,6 +35,7 @@ func newMetricsPusherCommand() *cobra.Command {
 	}
 	flags := cmd.Flags()
 	flags.StringVar(&metricsPusher.SourceURL, "source-url", "", "Source URL to poll for metrics")
+	flags.StringVar(&metricsPusher.SourcePath, "source-path", "", "Source path to poll for metrics (using kubeconfig)")
 	flags.StringVar(&metricsPusher.DestinationPath, "destination-path", "", "URL path to use as a destination on the target cluster")
 	flags.StringVar(&metricsPusher.Kubeconfig, "kubeconfig", "", "Kubeconfig file for destination cluster")
 	flags.DurationVar(&metricsPusher.Frequency, "frequency", 30*time.Second, "Frequency with which to push metrics")
