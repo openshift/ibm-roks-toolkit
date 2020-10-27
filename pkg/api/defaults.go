@@ -8,13 +8,9 @@ import (
 func NewClusterParams() *ClusterParams {
 	p := &ClusterParams{}
 	p.DefaultFeatureGates = []string{
-		"APIPriorityAndFairness=true",
 		"SupportPodPidsLimit=true",
+		"LocalStorageCapacityIsolation=false",
 		"RotateKubeletServerCertificate=true",
-		"LegacyNodeRoleBehavior=false",
-		"NodeDisruptionExclusion=true",
-		"SCTPSupport=true",
-		"ServiceNodeExclusion=true",
 	}
 	p.ImageRegistryHTTPSecret = uuid.New().String()
 	return p
