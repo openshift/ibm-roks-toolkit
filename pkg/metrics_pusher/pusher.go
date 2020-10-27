@@ -19,12 +19,14 @@ import (
 type MetricsPusher struct {
 	Log             logr.Logger
 	SourceURL       string
+	SourcePath      string
 	DestinationPath string
 	Kubeconfig      string
 	Frequency       time.Duration
 
 	restClient rest.Interface
 	pushPath   []string
+	readPath   []string
 }
 
 const (
@@ -38,26 +40,38 @@ func (p *MetricsPusher) Run() error {
 		p.Log.Error(err, "Failed to get REST client for target")
 		return err
 	}
-	p.pushPath = p.getPushPath()
+	p.splitPaths()
 	p.Log.Info("Polling for metrics", "from", p.SourceURL, "to", p.DestinationPath)
 	wait.Forever(p.pushMetrics, p.Frequency)
 	return nil
 }
 
 func (p *MetricsPusher) pushMetrics() {
-	resp, err := http.Get(p.SourceURL)
-	if err != nil {
-		p.Log.Error(err, "failed to fetch metrics from source")
-		return
-	}
-	if resp.StatusCode != http.StatusOK {
-		p.Log.Error(fmt.Errorf("Status: %s (%d)", resp.Status, resp.StatusCode), "Unexpected status from source URL")
-		return
-	}
-	metricsBody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		p.Log.Error(err, "Failed to read metrics body from source URL")
-		return
+	var metricsBody []byte
+	if len(p.SourcePath) > 0 {
+		ctx, cancel := context.WithTimeout(context.Background(), requestTimeout)
+		defer cancel()
+		var err error
+		metricsBody, err = p.restClient.Get().AbsPath(p.readPath...).Do(ctx).Raw()
+		if err != nil {
+			p.Log.Error(err, "failed to fetch metrics from source path")
+			return
+		}
+	} else {
+		resp, err := http.Get(p.SourceURL)
+		if err != nil {
+			p.Log.Error(err, "failed to fetch metrics from source URL")
+			return
+		}
+		if resp.StatusCode != http.StatusOK {
+			p.Log.Error(fmt.Errorf("Status: %s (%d)", resp.Status, resp.StatusCode), "Unexpected status from source URL")
+			return
+		}
+		metricsBody, err = ioutil.ReadAll(resp.Body)
+		if err != nil {
+			p.Log.Error(err, "Failed to read metrics body from source URL")
+			return
+		}
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), requestTimeout)
 	defer cancel()
@@ -69,9 +83,9 @@ func (p *MetricsPusher) pushMetrics() {
 	}
 }
 
-func (p *MetricsPusher) getPushPath() []string {
-	parts := strings.Split(p.DestinationPath, "/")
-	return parts
+func (p *MetricsPusher) splitPaths() {
+	p.pushPath = strings.Split(p.DestinationPath, "/")
+	p.readPath = strings.Split(p.SourcePath, "/")
 }
 
 func (p *MetricsPusher) getRESTClient() (rest.Interface, error) {
