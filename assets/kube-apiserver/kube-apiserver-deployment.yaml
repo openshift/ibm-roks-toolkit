@@ -234,6 +234,40 @@ spec:
             name: kubeconfig
             readOnly: true
 {{- end }}
+{{ if .PortierisEnabled }}
+      - name: portieris
+        image: {{ .PortierisImage }}
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000
+          name: http
+          protocol: TCP
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        livenessProbe:
+          httpGet:
+            port: 8000
+            path: "/health/liveness"
+            scheme: HTTPS
+          initialDelaySeconds: 10
+          timeoutSeconds: 10
+        readinessProbe:
+          httpGet:
+            port: 8000
+            path: "/health/readiness"
+            scheme: HTTPS
+          initialDelaySeconds: 10
+          timeoutSeconds: 10
+        env:
+        - name: KUBECONFIG
+          value: /etc/kubernetes/secret/kubeconfig
+        volumeMounts:
+        - mountPath: /etc/kubernetes/secret/
+          name: secret
+        - mountPath: /etc/certs
+          name: portieris-certs
+{{ end }}
       volumes:
       - secret:
           secretName: kube-apiserver
@@ -270,4 +304,10 @@ spec:
           secretName: kp-wdek-secret
           optional: true
           defaultMode: 0400
+{{ end }}
+{{ if .PortierisEnabled }}
+      - name: portieris-certs
+        secret:
+          defaultMode: 420
+          secretName: portieris-certs
 {{ end }}
