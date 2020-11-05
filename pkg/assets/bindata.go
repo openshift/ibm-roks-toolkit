@@ -1351,6 +1351,10 @@ spec:
           - "--frequency=30s"
           - "--source-path=/metrics"
         terminationMessagePolicy: FallbackToLogsOnError
+        resources:
+          requests:
+            cpu: 5m
+            memory: 50Mi
         volumeMounts:
           - mountPath: /etc/openshift/kubeconfig
             name: kubeconfig
