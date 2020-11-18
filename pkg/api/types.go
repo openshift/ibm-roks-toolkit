@@ -51,6 +51,10 @@ type ClusterParams struct {
 	ControlPlaneOperatorSecurity        string                 `json:"controlPlaneOperatorSecurity"`
 	MasterPriorityClass                 string                 `json:"masterPriorityClass"`
 	ApiserverLivenessPath               string                 `json:"apiserverLivenessPath"`
+	KubeAPIServerSecurity               string                 `json:"kubeAPIServerSecurity"`
+	KubeSchedulerSecurity               string                 `json:"kubeSchedulerSecurity"`
+	OpenshiftAPIserverSecurity          string                 `json:"openshiftAPIserverSecurity"`
+	OpenshiftControllerManagerSecurity  string                 `json:"openshiftControllerManagerSecurity"`
 	DefaultFeatureGates                 []string
 	PlatformType                        string `json:"platformType"`
 	EndpointPublishingStrategyScope     string `json:"endpointPublishingStrategyScope"`

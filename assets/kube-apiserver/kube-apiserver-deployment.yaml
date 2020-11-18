@@ -49,6 +49,10 @@ spec:
 {{ end }}
       containers:
       - name: kube-apiserver
+{{ if .KubeAPIServerSecurity }}
+        securityContext:
+          runAsUser: {{ .KubeAPIServerSecurity }}
+{{ end }}
         image: {{ imageFor "hyperkube" }}
         command:
         - hyperkube

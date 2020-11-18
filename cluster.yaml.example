@@ -147,3 +147,7 @@ apiserverLivenessPath: livez?exclude=etcd
 controlPlaneOperatorImage: registry.svc.ci.openshift.org/ibm-roks/ibm-roks-4.4:control-plane-operator
 controlPlaneOperatorSecurity: 1001
 masterPriorityClass: ''
+kubeAPIServerSecurity: 1001
+kubeSchedulerSecurity: 1001
+openshiftAPIserverSecurity: 1001
+openshiftControllerManagerSecurity: 1001

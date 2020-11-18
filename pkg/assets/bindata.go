@@ -566,6 +566,30 @@ spec:
                   fieldPath: spec.nodeName
             - name: EXCLUDE_MANIFESTS
               value: internal-openshift-hosted
+<<<<<<< HEAD
+=======
+{{ if .ROKSMetricsImage }}
+        - name: metrics-pusher
+          image: {{ .ROKSMetricsImage }}
+{{ if .ROKSMetricsSecurity }}
+          securityContext:
+            runAsUser: {{ .ROKSMetricsSecurity }}
+{{ end }}
+          imagePullPolicy: Always
+          command:
+            - "metrics-pusher"
+          args:
+            - "--destination-path=/api/v1/namespaces/openshift-roks-metrics/services/push-gateway:http/proxy/metrics/job/cluster-version-operator"
+            - "--kubeconfig=/etc/openshift/kubeconfig/kubeconfig"
+            - "--frequency=30s"
+            - "--source-url=http://localhost:9099/metrics"
+          terminationMessagePolicy: FallbackToLogsOnError
+          volumeMounts:
+            - mountPath: /etc/openshift/kubeconfig
+              name: kubeconfig
+              readOnly: true
+{{ end }}
+>>>>>>> a22fbcb... Added securityContext runAsUser to master components
       volumes:
         - name: work
           emptyDir: {}
@@ -1041,6 +1065,10 @@ spec:
 {{ end }}
       containers:
       - name: kube-apiserver
+{{ if .KubeAPIServerSecurity }}
+        securityContext:
+          runAsUser: {{ .KubeAPIServerSecurity }}
+{{ end }}
         image: {{ imageFor "hyperkube" }}
         command:
         - hyperkube
@@ -1156,6 +1184,34 @@ spec:
           mountPath: /tmp/kp
           readOnly: true
 {{ end }}
+<<<<<<< HEAD
+=======
+{{- if .ROKSMetricsImage }}
+      - name: metrics-pusher
+{{ if .ROKSMetricsSecurity }}
+        securityContext:
+          runAsUser: {{ .ROKSMetricsSecurity }}
+{{ end }}
+        image: {{ .ROKSMetricsImage }}
+        imagePullPolicy: Always
+        command:
+          - "metrics-pusher"
+        args:
+          - "--destination-path=/api/v1/namespaces/openshift-roks-metrics/services/push-gateway:http/proxy/metrics/job/cluster-version-operator"
+          - "--kubeconfig=/etc/openshift/kubeconfig/kubeconfig"
+          - "--frequency=30s"
+          - "--source-path=/metrics"
+        terminationMessagePolicy: FallbackToLogsOnError
+        resources:
+          requests:
+            cpu: 5m
+            memory: 50Mi
+        volumeMounts:
+          - mountPath: /etc/openshift/kubeconfig
+            name: kubeconfig
+            readOnly: true
+{{- end }}
+>>>>>>> a22fbcb... Added securityContext runAsUser to master components
       volumes:
       - secret:
           secretName: kube-apiserver
@@ -1512,6 +1568,10 @@ spec:
 {{ end }}
       containers:
       - name: kube-controller-manager
+{{ if .KubeAPIServerSecurity }}
+        securityContext:
+          runAsUser: {{ .KubeAPIServerSecurity }}
+{{ end }}
         image: {{ imageFor "hyperkube" }}
         command:
         - hyperkube
@@ -1693,6 +1753,10 @@ spec:
 {{ end }}
       containers:
       - name: kube-scheduler
+{{ if .KubeSchedulerSecurity }}
+        securityContext:
+          runAsUser: {{ .KubeSchedulerSecurity }}
+{{ end }}
         image: {{ imageFor "hyperkube" }}
         command:
         - hyperkube
@@ -2425,6 +2489,10 @@ spec:
 {{ end }}
       containers:
       - name: openshift-apiserver
+{{ if .OpenshiftAPIserverSecurity }}
+        securityContext:
+          runAsUser: {{ .OpenshiftAPIserverSecurity }}
+{{ end }}
         image: {{ imageFor "openshift-apiserver" }}
         args:
         - "start"
@@ -2883,6 +2951,10 @@ spec:
 {{ end }}
       containers:
       - name: openshift-controller-manager
+{{ if .OpenshiftControllerManagerSecurity }}
+        securityContext:
+          runAsUser: {{ .OpenshiftControllerManagerSecurity }}
+{{ end }}
         image: {{ imageFor "openshift-controller-manager" }}
         command:
         - "openshift-controller-manager"
@@ -3027,6 +3099,424 @@ func registryClusterImageregistryConfigYaml() (*asset, error) {
 	return a, nil
 }
 
+<<<<<<< HEAD
+=======
+var _roksMetricsRoksMetrics00NamespaceYaml = []byte(`kind: Namespace
+apiVersion: v1
+metadata:
+  name: openshift-roks-metrics
+  labels:
+    openshift.io/cluster-monitoring: "true"
+`)
+
+func roksMetricsRoksMetrics00NamespaceYamlBytes() ([]byte, error) {
+	return _roksMetricsRoksMetrics00NamespaceYaml, nil
+}
+
+func roksMetricsRoksMetrics00NamespaceYaml() (*asset, error) {
+	bytes, err := roksMetricsRoksMetrics00NamespaceYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "roks-metrics/roks-metrics-00-namespace.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _roksMetricsRoksMetricsDeploymentYaml = []byte(`kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: metrics
+  namespace: openshift-roks-metrics
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: metrics
+  template:
+    metadata:
+      labels:
+        app: metrics
+{{ if .RestartDate }}
+      annotations:
+        openshift.io/restartedAt: "{{ .RestartDate }}"
+{{ end }}
+    spec:
+      tolerations:
+        - key: "multi-az-worker"
+          operator: "Equal"
+          value: "true"
+          effect: NoSchedule
+      containers:
+      - name: metrics
+{{ if .ROKSMetricsSecurity }}
+        securityContext:
+          runAsUser: {{ .ROKSMetricsSecurity }}
+{{ end }}
+        image: {{ .ROKSMetricsImage }}
+        imagePullPolicy: Always
+        args:
+        - "--alsologtostderr"
+        - "--v=3"
+        - "--listen=:8443"
+        ports:
+        - containerPort: 8443
+          name: https
+        volumeMounts:
+        - name: serving-cert
+          mountPath: /var/run/secrets/serving-cert
+        resources:
+          requests: 
+            cpu: "10m"
+            memory: "50Mi"
+      serviceAccountName: roks-metrics 
+      volumes:
+      - name: serving-cert
+        secret:
+          secretName: serving-cert
+          defaultMode: 400
+          optional: true
+`)
+
+func roksMetricsRoksMetricsDeploymentYamlBytes() ([]byte, error) {
+	return _roksMetricsRoksMetricsDeploymentYaml, nil
+}
+
+func roksMetricsRoksMetricsDeploymentYaml() (*asset, error) {
+	bytes, err := roksMetricsRoksMetricsDeploymentYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "roks-metrics/roks-metrics-deployment.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _roksMetricsRoksMetricsPushGatewayDeploymentYaml = []byte(`kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: push-gateway
+  namespace: openshift-roks-metrics
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: push-gateway
+  template:
+    metadata:
+      labels:
+        app: push-gateway
+{{ if .RestartDate }}
+      annotations:
+        openshift.io/restartedAt: "{{ .RestartDate }}"
+{{ end }}
+    spec:
+      tolerations:
+        - key: "multi-az-worker"
+          operator: "Equal"
+          value: "true"
+          effect: NoSchedule
+      containers:
+      - name: push-gateway
+{{ if .ROKSMetricsSecurity }}
+        securityContext:
+          runAsUser: {{ .ROKSMetricsSecurity }}
+{{ end }}
+        image: {{ .ROKSMetricsImage }}
+        imagePullPolicy: Always
+        command:
+        - pushgateway
+        ports:
+        - containerPort: 9091
+          name: http
+        resources:
+          requests: 
+            cpu: "10m"
+            memory: "50Mi"
+`)
+
+func roksMetricsRoksMetricsPushGatewayDeploymentYamlBytes() ([]byte, error) {
+	return _roksMetricsRoksMetricsPushGatewayDeploymentYaml, nil
+}
+
+func roksMetricsRoksMetricsPushGatewayDeploymentYaml() (*asset, error) {
+	bytes, err := roksMetricsRoksMetricsPushGatewayDeploymentYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "roks-metrics/roks-metrics-push-gateway-deployment.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _roksMetricsRoksMetricsPushGatewayServiceYaml = []byte(`apiVersion: v1
+kind: Service
+metadata:
+  name: push-gateway
+  namespace: openshift-roks-metrics
+  labels:
+    app: push-gateway
+spec:
+  ports:
+  - name: http
+    port: 9091
+    protocol: TCP
+    targetPort: http
+  selector:
+    app: push-gateway
+  type: ClusterIP
+`)
+
+func roksMetricsRoksMetricsPushGatewayServiceYamlBytes() ([]byte, error) {
+	return _roksMetricsRoksMetricsPushGatewayServiceYaml, nil
+}
+
+func roksMetricsRoksMetricsPushGatewayServiceYaml() (*asset, error) {
+	bytes, err := roksMetricsRoksMetricsPushGatewayServiceYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "roks-metrics/roks-metrics-push-gateway-service.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _roksMetricsRoksMetricsPushGatewayServicemonitorYaml = []byte(`apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: roks-metrics-push-gateway
+  namespace: openshift-roks-metrics
+spec:
+  endpoints:
+  - interval: 30s
+    path: /metrics
+    port: http
+    honorLabels: true
+  selector:
+    matchLabels:
+      app: push-gateway
+`)
+
+func roksMetricsRoksMetricsPushGatewayServicemonitorYamlBytes() ([]byte, error) {
+	return _roksMetricsRoksMetricsPushGatewayServicemonitorYaml, nil
+}
+
+func roksMetricsRoksMetricsPushGatewayServicemonitorYaml() (*asset, error) {
+	bytes, err := roksMetricsRoksMetricsPushGatewayServicemonitorYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "roks-metrics/roks-metrics-push-gateway-servicemonitor.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _roksMetricsRoksMetricsRbacYaml = []byte(`---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: roks-metrics
+rules:
+- apiGroups:
+  - config.openshift.io
+  resources:
+  - infrastructures
+  - featuregates
+  - proxies
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - build.openshift.io
+  resources:
+  - builds
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: roks-metrics
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: roks-metrics
+subjects:
+  - kind: ServiceAccount
+    name: roks-metrics
+    namespace: openshift-roks-metrics
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: prometheus-k8s
+  namespace: openshift-roks-metrics
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - services
+  - endpoints
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: prometheus-k8s
+  namespace: openshift-roks-metrics
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: prometheus-k8s
+subjects:
+- kind: ServiceAccount
+  name: prometheus-k8s
+  namespace: openshift-monitoring
+`)
+
+func roksMetricsRoksMetricsRbacYamlBytes() ([]byte, error) {
+	return _roksMetricsRoksMetricsRbacYaml, nil
+}
+
+func roksMetricsRoksMetricsRbacYaml() (*asset, error) {
+	bytes, err := roksMetricsRoksMetricsRbacYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "roks-metrics/roks-metrics-rbac.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _roksMetricsRoksMetricsServiceYaml = []byte(`apiVersion: v1
+kind: Service
+metadata:
+  name: roks-metrics
+  namespace: openshift-roks-metrics
+  labels:
+    app: metrics
+  annotations:
+    service.beta.openshift.io/serving-cert-secret-name: serving-cert
+spec:
+  ports:
+  - name: https
+    port: 8443
+    protocol: TCP
+    targetPort: https
+  selector:
+    app: metrics
+  type: ClusterIP
+`)
+
+func roksMetricsRoksMetricsServiceYamlBytes() ([]byte, error) {
+	return _roksMetricsRoksMetricsServiceYaml, nil
+}
+
+func roksMetricsRoksMetricsServiceYaml() (*asset, error) {
+	bytes, err := roksMetricsRoksMetricsServiceYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "roks-metrics/roks-metrics-service.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _roksMetricsRoksMetricsServiceaccountYaml = []byte(`apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: roks-metrics
+  namespace: openshift-roks-metrics
+`)
+
+func roksMetricsRoksMetricsServiceaccountYamlBytes() ([]byte, error) {
+	return _roksMetricsRoksMetricsServiceaccountYaml, nil
+}
+
+func roksMetricsRoksMetricsServiceaccountYaml() (*asset, error) {
+	bytes, err := roksMetricsRoksMetricsServiceaccountYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "roks-metrics/roks-metrics-serviceaccount.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _roksMetricsRoksMetricsServicemonitorYaml = []byte(`apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: roks-metrics
+  namespace: openshift-roks-metrics
+spec:
+  endpoints:
+  - interval: 30s
+    metricRelabelings:
+    - action: drop
+      regex: apiserver_.*
+      sourceLabels:
+      - __name__
+    - action: drop
+      regex: go_.*
+      sourceLabels:
+      - __name__
+    - action: drop
+      regex: promhttp_.*
+      sourceLabels:
+      - __name__
+    path: /metrics
+    port: https
+    scheme: https
+    tlsConfig:
+      caFile: /etc/prometheus/configmaps/serving-certs-ca-bundle/service-ca.crt
+      serverName: roks-metrics.openshift-roks-metrics.svc
+  jobLabel: component
+  selector:
+    matchLabels:
+      app: metrics
+`)
+
+func roksMetricsRoksMetricsServicemonitorYamlBytes() ([]byte, error) {
+	return _roksMetricsRoksMetricsServicemonitorYaml, nil
+}
+
+func roksMetricsRoksMetricsServicemonitorYaml() (*asset, error) {
+	bytes, err := roksMetricsRoksMetricsServicemonitorYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "roks-metrics/roks-metrics-servicemonitor.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+>>>>>>> a22fbcb... Added securityContext runAsUser to master components
 var _userManifestsBootstrapperUserManifestTemplateYaml = []byte(`kind: ConfigMap
 apiVersion: v1
 metadata:
