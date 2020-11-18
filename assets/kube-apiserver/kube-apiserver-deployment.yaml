@@ -60,6 +60,10 @@ spec:
 {{ end }}
       containers:
       - name: kube-apiserver
+{{ if .KubeAPIServerSecurity }}
+        securityContext:
+          runAsUser: {{ .KubeAPIServerSecurity }}
+{{ end }}
         image: {{ imageFor "hyperkube" }}
         command:
         - hyperkube
@@ -219,6 +223,10 @@ spec:
 {{ end }}
 {{- if .ROKSMetricsImage }}
       - name: metrics-pusher
+{{ if .ROKSMetricsSecurity }}
+        securityContext:
+          runAsUser: {{ .ROKSMetricsSecurity }}
+{{ end }}
         image: {{ .ROKSMetricsImage }}
         imagePullPolicy: Always
         command:

@@ -58,6 +58,10 @@ spec:
 {{ end }}
       containers:
       - name: kube-controller-manager
+{{ if .KubeAPIServerSecurity }}
+        securityContext:
+          runAsUser: {{ .KubeAPIServerSecurity }}
+{{ end }}
         image: {{ imageFor "hyperkube" }}
         command:
         - hyperkube
