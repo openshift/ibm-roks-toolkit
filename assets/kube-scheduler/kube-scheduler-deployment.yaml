@@ -58,6 +58,10 @@ spec:
 {{ end }}
       containers:
       - name: kube-scheduler
+{{ if .KubeSchedulerSecurity }}
+        securityContext:
+          runAsUser: {{ .KubeSchedulerSecurity }}
+{{ end }}
         image: {{ imageFor "hyperkube" }}
         command:
         - hyperkube

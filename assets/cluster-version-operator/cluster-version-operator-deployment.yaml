@@ -78,6 +78,10 @@ spec:
 {{ if .ROKSMetricsImage }}
         - name: metrics-pusher
           image: {{ .ROKSMetricsImage }}
+{{ if .ROKSMetricsSecurity }}
+          securityContext:
+            runAsUser: {{ .ROKSMetricsSecurity }}
+{{ end }}
           imagePullPolicy: Always
           command:
             - "metrics-pusher"

@@ -173,5 +173,10 @@ controlPlaneOperatorImage: registry.svc.ci.openshift.org/ibm-roks/ibm-roks-4.4:c
 controlPlaneOperatorSecurity: 1001
 masterPriorityClass: ''
 roksMetricsImage: registry.svc.ci.openshift.org/hypershift-toolkit/ibm-roks-4.6:roks-metrics
+roksMetricsSecurity: 1001
 portierisEnabled: false
 portierisImage: ''
+kubeAPIServerSecurity: 1001
+kubeSchedulerSecurity: 1001
+openshiftAPIserverSecurity: 1001
+openshiftControllerManagerSecurity: 1001

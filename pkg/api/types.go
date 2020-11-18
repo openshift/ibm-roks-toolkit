@@ -49,12 +49,17 @@ type ClusterParams struct {
 	ControlPlaneOperatorImage           string                 `json:"controlPlaneOperatorImage"`
 	ControlPlaneOperatorControllers     []string               `json:"controlPlaneOperatorControllers"`
 	ROKSMetricsImage                    string                 `json:"roksMetricsImage"`
+	ROKSMetricsSecurity                 string                 `json:"roksMetricsSecurity"`
 	ExtraFeatureGates                   []string               `json:"extraFeatureGates"`
 	ControlPlaneOperatorSecurity        string                 `json:"controlPlaneOperatorSecurity"`
 	MasterPriorityClass                 string                 `json:"masterPriorityClass"`
 	ApiserverLivenessPath               string                 `json:"apiserverLivenessPath"`
 	PortierisEnabled                    bool                   `json:"portierisEnabled"`
 	PortierisImage                      string                 `json:"portierisImage"`
+	KubeAPIServerSecurity               string                 `json:"kubeAPIServerSecurity"`
+	KubeSchedulerSecurity               string                 `json:"kubeSchedulerSecurity"`
+	OpenshiftAPIserverSecurity          string                 `json:"openshiftAPIserverSecurity"`
+	OpenshiftControllerManagerSecurity  string                 `json:"openshiftControllerManagerSecurity"`
 	DefaultFeatureGates                 []string
 	PlatformType                        string `json:"platformType"`
 	EndpointPublishingStrategyScope     string `json:"endpointPublishingStrategyScope"`
