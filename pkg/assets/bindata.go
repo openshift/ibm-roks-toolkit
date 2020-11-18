@@ -664,6 +664,10 @@ spec:
 {{ if .ROKSMetricsImage }}
         - name: metrics-pusher
           image: {{ .ROKSMetricsImage }}
+{{ if .ROKSMetricsSecurity }}
+          securityContext:
+            runAsUser: {{ .ROKSMetricsSecurity }}
+{{ end }}
           imagePullPolicy: Always
           command:
             - "metrics-pusher"
@@ -1184,6 +1188,10 @@ spec:
 {{ end }}
       containers:
       - name: kube-apiserver
+{{ if .KubeAPIServerSecurity }}
+        securityContext:
+          runAsUser: {{ .KubeAPIServerSecurity }}
+{{ end }}
         image: {{ imageFor "hyperkube" }}
         command:
         - hyperkube
@@ -1343,6 +1351,10 @@ spec:
 {{ end }}
 {{- if .ROKSMetricsImage }}
       - name: metrics-pusher
+{{ if .ROKSMetricsSecurity }}
+        securityContext:
+          runAsUser: {{ .ROKSMetricsSecurity }}
+{{ end }}
         image: {{ .ROKSMetricsImage }}
         imagePullPolicy: Always
         command:
@@ -1735,6 +1747,10 @@ spec:
 {{ end }}
       containers:
       - name: kube-controller-manager
+{{ if .KubeAPIServerSecurity }}
+        securityContext:
+          runAsUser: {{ .KubeAPIServerSecurity }}
+{{ end }}
         image: {{ imageFor "hyperkube" }}
         command:
         - hyperkube
@@ -1940,6 +1956,10 @@ spec:
 {{ end }}
       containers:
       - name: kube-scheduler
+{{ if .KubeSchedulerSecurity }}
+        securityContext:
+          runAsUser: {{ .KubeSchedulerSecurity }}
+{{ end }}
         image: {{ imageFor "hyperkube" }}
         command:
         - hyperkube
@@ -2707,6 +2727,10 @@ spec:
 {{ end }}
       containers:
       - name: openshift-apiserver
+{{ if .OpenshiftAPIserverSecurity }}
+        securityContext:
+          runAsUser: {{ .OpenshiftAPIserverSecurity }}
+{{ end }}
         image: {{ imageFor "openshift-apiserver" }}
         args:
         - "start"
@@ -3187,6 +3211,10 @@ spec:
 {{ end }}
       containers:
       - name: openshift-controller-manager
+{{ if .OpenshiftControllerManagerSecurity }}
+        securityContext:
+          runAsUser: {{ .OpenshiftControllerManagerSecurity }}
+{{ end }}
         image: {{ imageFor "openshift-controller-manager" }}
         command:
         - "openshift-controller-manager"
@@ -3385,6 +3413,10 @@ spec:
           effect: NoSchedule
       containers:
       - name: metrics
+{{ if .ROKSMetricsSecurity }}
+        securityContext:
+          runAsUser: {{ .ROKSMetricsSecurity }}
+{{ end }}
         image: {{ .ROKSMetricsImage }}
         imagePullPolicy: Always
         args:
@@ -3456,6 +3488,10 @@ spec:
           effect: NoSchedule
       containers:
       - name: push-gateway
+{{ if .ROKSMetricsSecurity }}
+        securityContext:
+          runAsUser: {{ .ROKSMetricsSecurity }}
+{{ end }}
         image: {{ .ROKSMetricsImage }}
         imagePullPolicy: Always
         command:
