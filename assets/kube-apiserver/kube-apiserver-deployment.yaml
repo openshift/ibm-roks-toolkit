@@ -60,10 +60,11 @@ spec:
 {{ end }}
       containers:
       - name: kube-apiserver
-{{ if .KubeAPIServerSecurity }}
+{{- if .KubeAPIServerSecurityContext }}
+{{- $securityContext := .KubeAPIServerSecurityContext }}
         securityContext:
-          runAsUser: {{ .KubeAPIServerSecurity }}
-{{ end }}
+          runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
         image: {{ imageFor "hyperkube" }}
         command:
         - hyperkube
@@ -150,6 +151,11 @@ spec:
         - name: kms-socket
           mountPath: /tmp
       - name: kms
+{{- if .KMSSecurityContext }}
+{{- $securityContext := .KMSSecurityContext }}
+        securityContext:
+          runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
         image: {{ .KMSImage }}
         imagePullPolicy: IfNotPresent
 {{ if .KMSServerResources }}
@@ -223,10 +229,11 @@ spec:
 {{ end }}
 {{- if .ROKSMetricsImage }}
       - name: metrics-pusher
-{{ if .ROKSMetricsSecurity }}
+{{- if .ROKSMetricsSecurityContext }}
+{{- $securityContext := .ROKSMetricsSecurityContext }}
         securityContext:
-          runAsUser: {{ .ROKSMetricsSecurity }}
-{{ end }}
+          runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
         image: {{ .ROKSMetricsImage }}
         imagePullPolicy: Always
         command:
@@ -248,6 +255,11 @@ spec:
 {{- end }}
 {{ if .PortierisEnabled }}
       - name: portieris
+{{- if .PortierisSecurityContext }}
+{{- $securityContext := .PortierisSecurityContext }}
+        securityContext:
+          runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
         image: {{ .PortierisImage }}
         imagePullPolicy: IfNotPresent
         ports:
