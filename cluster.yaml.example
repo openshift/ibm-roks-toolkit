@@ -137,6 +137,13 @@ kmsServerResources:
     - resourceLimit:
         - cpu: 200m
           memory: 200Mi
+portierisContainerResources:
+    - resourceRequest:
+        - cpu: 100m
+          memory: 100Mi
+    - resourceLimit:
+        - cpu: 200m
+          memory: 200Mi
 kmsImage: example.image:v1.0.0
 kmsAPIKey: abcdefghijklmnopqrstuvwxyz
 kpInfo: '{"example":"foobar"}'
