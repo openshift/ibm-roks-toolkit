@@ -47,10 +47,11 @@ spec:
 {{ end }}
       containers:
       - name: openshift-apiserver
-{{ if .OpenshiftAPIserverSecurity }}
+{{- if .OpenshiftAPIServerSecurityContext }}
+{{- $securityContext := .OpenshiftAPIServerSecurityContext }}
         securityContext:
-          runAsUser: {{ .OpenshiftAPIserverSecurity }}
-{{ end }}
+          runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
         image: {{ imageFor "openshift-apiserver" }}
         args:
         - "start"

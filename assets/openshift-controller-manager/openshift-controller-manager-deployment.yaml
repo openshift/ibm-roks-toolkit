@@ -47,10 +47,11 @@ spec:
 {{ end }}
       containers:
       - name: openshift-controller-manager
-{{ if .OpenshiftControllerManagerSecurity }}
+{{- if .OpenshiftControllerManagerSecurityContext }}
+{{- $securityContext := .OpenshiftControllerManagerSecurityContext }}
         securityContext:
-          runAsUser: {{ .OpenshiftControllerManagerSecurity }}
-{{ end }}
+          runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
         image: {{ imageFor "openshift-controller-manager" }}
         command:
         - "openshift-controller-manager"

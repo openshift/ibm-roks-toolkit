@@ -30,6 +30,11 @@ spec:
         - name: cluster-version-operator
           image: {{ .ReleaseImage }}
           imagePullPolicy: Always
+{{- if .ClusterVersionOperatorSecurityContext }}
+{{- $securityContext := .ClusterVersionOperatorSecurityContext }}
+          securityContext:
+            runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
           command:
             - "cluster-version-operator"
           args:
