@@ -40,6 +40,7 @@ type ClusterParams struct {
 	ClusterPolicyControllerResources          []ResourceRequirements `json:"clusterPolicyControllerResources"`
 	AutoApproverResources                     []ResourceRequirements `json:"autoApproverResources"`
 	KMSServerResources                        []ResourceRequirements `json:"kmsServerResources"`
+	PortierisContainerResources               []ResourceRequirements `json:"portierisContainerResources"`
 	KMSImage                                  string                 `json:"kmsImage"`
 	KPInfo                                    string                 `json:"kpInfo"`
 	KPRegion                                  string                 `json:"kpRegion"`

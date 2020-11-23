@@ -266,7 +266,15 @@ spec:
         - containerPort: 8000
           name: http
           protocol: TCP
-        resources: {}
+{{ if .PortierisContainerResources }}
+        resources:{{ range .PortierisContainerResources }}{{ range .ResourceRequest }}
+          requests: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ range .ResourceLimit }}
+          limits: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
+{{ end }}
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
         livenessProbe:
@@ -274,15 +282,8 @@ spec:
             port: 8000
             path: "/health/liveness"
             scheme: HTTPS
-          initialDelaySeconds: 10
-          timeoutSeconds: 10
-        readinessProbe:
-          httpGet:
-            port: 8000
-            path: "/health/readiness"
-            scheme: HTTPS
-          initialDelaySeconds: 10
-          timeoutSeconds: 10
+          initialDelaySeconds: 120
+          timeoutSeconds: 160
         env:
         - name: KUBECONFIG
           value: /etc/kubernetes/secret/kubeconfig
