@@ -42,6 +42,11 @@ spec:
         - name: cluster-version-operator
           image: {{ .ReleaseImage }}
           imagePullPolicy: Always
+{{- if .ClusterVersionOperatorSecurityContext }}
+{{- $securityContext := .ClusterVersionOperatorSecurityContext }}
+          securityContext:
+            runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
           command:
             - "cluster-version-operator"
           args:
@@ -78,10 +83,11 @@ spec:
 {{ if .ROKSMetricsImage }}
         - name: metrics-pusher
           image: {{ .ROKSMetricsImage }}
-{{ if .ROKSMetricsSecurity }}
+{{- if .ROKSMetricsSecurityContext }}
+{{- $securityContext := .ROKSMetricsSecurityContext }}
           securityContext:
-            runAsUser: {{ .ROKSMetricsSecurity }}
-{{ end }}
+            runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
           imagePullPolicy: Always
           command:
             - "metrics-pusher"
