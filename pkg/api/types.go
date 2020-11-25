@@ -77,6 +77,7 @@ type ClusterParams struct {
 	ControllerManagerLivenessProbe            *Probe `json:"controllerManagerLivenessProbe",omitempty`
 	SchedulerLivenessProbe                    *Probe `json:"schedulerLivenessProbe",omitempty`
 	KMSLivenessProbe                          *Probe `json:"kmsLivenessProbe",omitempty`
+	PortierisLivenessProbe                    *Probe `json:"portierisLivenessProbe",omitempty`
 }
 
 type NamedCert struct {

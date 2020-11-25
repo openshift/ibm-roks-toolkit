@@ -270,19 +270,32 @@ spec:
             cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
             memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
 {{ end }}
-{{ if .KubeAPIServerSecurity }}
-        securityContext:
-          runAsUser: {{ .KubeAPIServerSecurity }}
-{{ end }}
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
+{{- if .PortierisLivenessProbe }}
+{{- $probe := .PortierisLivenessProbe }}
+        livenessProbe:
+          httpGet:
+            scheme: {{ or $probe.HttpGet.Scheme "HTTP" }}
+            port: {{ or $probe.HttpGet.Port 8000 }}
+            path: {{ or $probe.HttpGet.Path "healthz/liveness" }}
+          initialDelaySeconds: {{ or $probe.InitialDelaySeconds 10 }}
+          periodSeconds: {{ or $probe.PeriodSeconds 10 }}
+          timeoutSeconds: {{ or $probe.TimeoutSeconds 1 }}
+          failureThreshold: {{ or $probe.FailureThreshold 3 }}
+          successThreshold: {{ or $probe.SuccessThreshold 1 }}
+{{- else }}
         livenessProbe:
           httpGet:
             port: 8000
             path: "/health/liveness"
             scheme: HTTPS
           initialDelaySeconds: 120
+          periodSeconds: 300
+          successThreshold: 1
+          failureThreshold: 3
           timeoutSeconds: 160
+{{ end }}
         env:
         - name: KUBECONFIG
           value: /etc/kubernetes/secret/kubeconfig

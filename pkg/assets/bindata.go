@@ -1396,23 +1396,41 @@ spec:
         - containerPort: 8000
           name: http
           protocol: TCP
-        resources: {}
+{{ if .PortierisContainerResources }}
+        resources:{{ range .PortierisContainerResources }}{{ range .ResourceRequest }}
+          requests: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ range .ResourceLimit }}
+          limits: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
+{{ end }}
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
+{{- if .PortierisLivenessProbe }}
+{{- $probe := .PortierisLivenessProbe }}
+        livenessProbe:
+          httpGet:
+            scheme: {{ or $probe.HttpGet.Scheme "HTTP" }}
+            port: {{ or $probe.HttpGet.Port 8000 }}
+            path: {{ or $probe.HttpGet.Path "healthz/liveness" }}
+          initialDelaySeconds: {{ or $probe.InitialDelaySeconds 10 }}
+          periodSeconds: {{ or $probe.PeriodSeconds 10 }}
+          timeoutSeconds: {{ or $probe.TimeoutSeconds 1 }}
+          failureThreshold: {{ or $probe.FailureThreshold 3 }}
+          successThreshold: {{ or $probe.SuccessThreshold 1 }}
+{{- else }}
         livenessProbe:
           httpGet:
             port: 8000
             path: "/health/liveness"
             scheme: HTTPS
-          initialDelaySeconds: 10
-          timeoutSeconds: 10
-        readinessProbe:
-          httpGet:
-            port: 8000
-            path: "/health/readiness"
-            scheme: HTTPS
-          initialDelaySeconds: 10
-          timeoutSeconds: 10
+          initialDelaySeconds: 120
+          periodSeconds: 300
+          successThreshold: 1
+          failureThreshold: 3
+          timeoutSeconds: 160
+{{ end }}
         env:
         - name: KUBECONFIG
           value: /etc/kubernetes/secret/kubeconfig
