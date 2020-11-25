@@ -170,6 +170,12 @@ kmsLivenessProbe:
   timeoutSeconds: 160
   failureThreshold: 3
   successThreshold: 1
+portierisLivenessProbe:
+  initialDelaySeconds: 120
+  periodSeconds: 300
+  timeoutSeconds: 160
+  failureThreshold: 3
+  successThreshold: 1
 controllerManagerLivenessProbe:
   initialDelaySeconds: 300
   timeoutSeconds: 160
