@@ -1398,6 +1398,10 @@ spec:
 {{- end }}
         image: {{ .PortierisImage }}
         imagePullPolicy: IfNotPresent
+        command:
+          - "/portieris"
+        args:
+          - "--kubeconfig=/etc/openshift/kubeconfig/kubeconfig"
         ports:
         - containerPort: 8000
           name: http
@@ -1417,9 +1421,9 @@ spec:
 {{- $probe := .PortierisLivenessProbe }}
         livenessProbe:
           httpGet:
-            scheme: {{ or $probe.HttpGet.Scheme "HTTP" }}
+            scheme: {{ or $probe.HttpGet.Scheme "HTTPS" }}
             port: {{ or $probe.HttpGet.Port 8000 }}
-            path: {{ or $probe.HttpGet.Path "healthz/liveness" }}
+            path: {{ or $probe.HttpGet.Path "health/liveness" }}
           initialDelaySeconds: {{ or $probe.InitialDelaySeconds 10 }}
           periodSeconds: {{ or $probe.PeriodSeconds 10 }}
           timeoutSeconds: {{ or $probe.TimeoutSeconds 1 }}
@@ -1437,14 +1441,13 @@ spec:
           failureThreshold: 3
           timeoutSeconds: 160
 {{ end }}
-        env:
-        - name: KUBECONFIG
-          value: /etc/kubernetes/secret/kubeconfig
         volumeMounts:
-        - mountPath: /etc/kubernetes/secret/
-          name: secret
+        - mountPath: /etc/openshift/kubeconfig
+          name: kubeconfig
+          readOnly: true
         - mountPath: /etc/certs
           name: portieris-certs
+          readOnly: true
 {{ end }}
       volumes:
       - secret:
