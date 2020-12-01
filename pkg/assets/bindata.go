@@ -1417,7 +1417,7 @@ spec:
           httpGet:
             scheme: {{ or $probe.HttpGet.Scheme "HTTPS" }}
             port: {{ or $probe.HttpGet.Port 8000 }}
-            path: {{ or $probe.HttpGet.Path "health/liveness" }}
+            path: {{ or $probe.HttpGet.Path "/health/liveness" }}
           initialDelaySeconds: {{ or $probe.InitialDelaySeconds 10 }}
           periodSeconds: {{ or $probe.PeriodSeconds 10 }}
           timeoutSeconds: {{ or $probe.TimeoutSeconds 1 }}
@@ -1434,7 +1434,7 @@ spec:
           successThreshold: 1
           failureThreshold: 3
           timeoutSeconds: 160
-{{ end }}
+{{- end }}
         volumeMounts:
         - mountPath: /etc/openshift/kubeconfig
           name: kubeconfig
@@ -1458,7 +1458,7 @@ spec:
       - configMap:
           name: kube-apiserver-oauth-metadata
         name: oauth
-{{- if .ROKSMetricsImage }}
+{{- if or .ROKSMetricsImage .PortierisEnabled }}
       - secret:
           secretName: service-network-admin-kubeconfig
         name: kubeconfig
@@ -1483,7 +1483,7 @@ spec:
 {{ if .PortierisEnabled }}
       - name: portieris-certs
         secret:
-          defaultMode: 420
+          defaultMode: 0640
           secretName: portieris-certs
 {{ end }}
 `)
