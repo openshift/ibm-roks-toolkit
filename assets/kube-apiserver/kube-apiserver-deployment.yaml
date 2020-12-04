@@ -266,6 +266,8 @@ spec:
           - "/portieris"
         args:
           - "--kubeconfig=/etc/openshift/kubeconfig/kubeconfig"
+          - "--alsologtostderr"
+          - "-v=4"
         ports:
         - containerPort: 8000
           name: http
