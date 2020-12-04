@@ -629,6 +629,11 @@ spec:
         - name: cluster-version-operator
           image: {{ .ReleaseImage }}
           imagePullPolicy: Always
+{{- if .ClusterVersionOperatorSecurityContext }}
+{{- $securityContext := .ClusterVersionOperatorSecurityContext }}
+          securityContext:
+            runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
           command:
             - "cluster-version-operator"
           args:
@@ -665,10 +670,11 @@ spec:
 {{ if .ROKSMetricsImage }}
         - name: metrics-pusher
           image: {{ .ROKSMetricsImage }}
-{{ if .ROKSMetricsSecurity }}
+{{- if .ROKSMetricsSecurityContext }}
+{{- $securityContext := .ROKSMetricsSecurityContext }}
           securityContext:
-            runAsUser: {{ .ROKSMetricsSecurity }}
-{{ end }}
+            runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
           imagePullPolicy: Always
           command:
             - "metrics-pusher"
@@ -842,10 +848,11 @@ spec:
       - image: {{ .ControlPlaneOperatorImage }}
         imagePullPolicy: IfNotPresent
         name: control-plane-operator
-{{ if .ControlPlaneOperatorSecurity }}
+{{ if .ControlPlaneOperatorSecurityContext }}
+{{- $securityContext := .ControlPlaneOperatorSecurityContext }}
         securityContext:
-          runAsUser: {{ .ControlPlaneOperatorSecurity }}
-{{ end }}
+          runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
         env:
         - name: POD_NAMESPACE
           valueFrom:
@@ -1189,10 +1196,11 @@ spec:
 {{ end }}
       containers:
       - name: kube-apiserver
-{{ if .KubeAPIServerSecurity }}
+{{- if .KubeAPIServerSecurityContext }}
+{{- $securityContext := .KubeAPIServerSecurityContext }}
         securityContext:
-          runAsUser: {{ .KubeAPIServerSecurity }}
-{{ end }}
+          runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
         image: {{ imageFor "hyperkube" }}
         command:
         - hyperkube
@@ -1279,6 +1287,11 @@ spec:
         - name: kms-socket
           mountPath: /tmp
       - name: kms
+{{- if .KMSSecurityContext }}
+{{- $securityContext := .KMSSecurityContext }}
+        securityContext:
+          runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
         image: {{ .KMSImage }}
         imagePullPolicy: IfNotPresent
 {{ if .KMSServerResources }}
@@ -1352,10 +1365,11 @@ spec:
 {{ end }}
 {{- if .ROKSMetricsImage }}
       - name: metrics-pusher
-{{ if .ROKSMetricsSecurity }}
+{{- if .ROKSMetricsSecurityContext }}
+{{- $securityContext := .ROKSMetricsSecurityContext }}
         securityContext:
-          runAsUser: {{ .ROKSMetricsSecurity }}
-{{ end }}
+          runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
         image: {{ .ROKSMetricsImage }}
         imagePullPolicy: Always
         command:
@@ -1377,6 +1391,11 @@ spec:
 {{- end }}
 {{ if .PortierisEnabled }}
       - name: portieris
+{{- if .PortierisSecurityContext }}
+{{- $securityContext := .PortierisSecurityContext }}
+        securityContext:
+          runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
         image: {{ .PortierisImage }}
         imagePullPolicy: IfNotPresent
         ports:
@@ -1788,10 +1807,11 @@ spec:
 {{ end }}
       containers:
       - name: kube-controller-manager
-{{ if .KubeAPIServerSecurity }}
+{{- if .KubeControllerManagerSecurityContext }}
+{{- $securityContext := .KubeControllerManagerSecurityContext }}
         securityContext:
-          runAsUser: {{ .KubeAPIServerSecurity }}
-{{ end }}
+          runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
         image: {{ imageFor "hyperkube" }}
         command:
         - hyperkube
@@ -1997,10 +2017,11 @@ spec:
 {{ end }}
       containers:
       - name: kube-scheduler
-{{ if .KubeSchedulerSecurity }}
+{{- if .KubeSchedulerSecurityContext }}
+{{- $securityContext := .KubeSchedulerSecurityContext }}
         securityContext:
-          runAsUser: {{ .KubeSchedulerSecurity }}
-{{ end }}
+          runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
         image: {{ imageFor "hyperkube" }}
         command:
         - hyperkube
@@ -2768,10 +2789,11 @@ spec:
 {{ end }}
       containers:
       - name: openshift-apiserver
-{{ if .OpenshiftAPIserverSecurity }}
+{{- if .OpenshiftAPIServerSecurityContext }}
+{{- $securityContext := .OpenshiftAPIServerSecurityContext }}
         securityContext:
-          runAsUser: {{ .OpenshiftAPIserverSecurity }}
-{{ end }}
+          runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
         image: {{ imageFor "openshift-apiserver" }}
         args:
         - "start"
@@ -3252,10 +3274,11 @@ spec:
 {{ end }}
       containers:
       - name: openshift-controller-manager
-{{ if .OpenshiftControllerManagerSecurity }}
+{{- if .OpenshiftControllerManagerSecurityContext }}
+{{- $securityContext := .OpenshiftControllerManagerSecurityContext }}
         securityContext:
-          runAsUser: {{ .OpenshiftControllerManagerSecurity }}
-{{ end }}
+          runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
         image: {{ imageFor "openshift-controller-manager" }}
         command:
         - "openshift-controller-manager"
@@ -3454,10 +3477,11 @@ spec:
           effect: NoSchedule
       containers:
       - name: metrics
-{{ if .ROKSMetricsSecurity }}
+{{- if .ROKSMetricsSecurityContext }}
+{{- $securityContext := .ROKSMetricsSecurityContext }}
         securityContext:
-          runAsUser: {{ .ROKSMetricsSecurity }}
-{{ end }}
+          runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
         image: {{ .ROKSMetricsImage }}
         imagePullPolicy: Always
         args:
@@ -3529,10 +3553,11 @@ spec:
           effect: NoSchedule
       containers:
       - name: push-gateway
-{{ if .ROKSMetricsSecurity }}
+{{- if .ROKSMetricsSecurityContext }}
+{{- $securityContext := .ROKSMetricsSecurityContext }}
         securityContext:
-          runAsUser: {{ .ROKSMetricsSecurity }}
-{{ end }}
+          runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
         image: {{ .ROKSMetricsImage }}
         imagePullPolicy: Always
         command:

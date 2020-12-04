@@ -29,10 +29,11 @@ spec:
           effect: NoSchedule
       containers:
       - name: push-gateway
-{{ if .ROKSMetricsSecurity }}
+{{- if .ROKSMetricsSecurityContext }}
+{{- $securityContext := .ROKSMetricsSecurityContext }}
         securityContext:
-          runAsUser: {{ .ROKSMetricsSecurity }}
-{{ end }}
+          runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
         image: {{ .ROKSMetricsImage }}
         imagePullPolicy: Always
         command:
