@@ -145,5 +145,20 @@ restartDate: "2017-07-27T16:39:00Z"
 extraFeatureGates: [ExpandInUsePersistentVolumes=true]
 apiserverLivenessPath: livez?exclude=etcd
 controlPlaneOperatorImage: registry.svc.ci.openshift.org/ibm-roks/ibm-roks-4.4:control-plane-operator
-controlPlaneOperatorSecurity: 1001
+controlPlaneOperatorSecurityContext:
+  runAsUser: 1000
 masterPriorityClass: ''
+kubeAPIServerSecurityContext:
+  runAsUser: 1000
+kubeSchedulerSecurityContext:
+  runAsUser: 1000
+kubeControllerManagerSecurityContext:
+  runAsUser: 1000
+openshiftAPIServerSecurityContext:
+  runAsUser: 1000
+openshiftControllerManagerSecurityContext:
+  runAsUser: 1000
+clusterVersionOperatorSecurityContext:
+  runAsUser: 1000
+kmsSecurityContext:
+  runAsUser: 1000

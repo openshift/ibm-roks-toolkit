@@ -49,6 +49,11 @@ spec:
 {{ end }}
       containers:
       - name: kube-apiserver
+{{- if .KubeAPIServerSecurityContext }}
+{{- $securityContext := .KubeAPIServerSecurityContext }}
+        securityContext:
+          runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
         image: {{ imageFor "hyperkube" }}
         command:
         - hyperkube
@@ -107,6 +112,11 @@ spec:
         - name: kms-socket
           mountPath: /tmp
       - name: kms
+{{- if .KMSSecurityContext }}
+{{- $securityContext := .KMSSecurityContext }}
+        securityContext:
+          runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
         image: {{ .KMSImage }}
         imagePullPolicy: IfNotPresent
 {{ if .KMSServerResources }}
