@@ -29,6 +29,11 @@ spec:
           effect: NoSchedule
       containers:
       - name: metrics
+{{- if .ROKSMetricsSecurityContext }}
+{{- $securityContext := .ROKSMetricsSecurityContext }}
+        securityContext:
+          runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
         image: {{ .ROKSMetricsImage }}
         imagePullPolicy: Always
         args:

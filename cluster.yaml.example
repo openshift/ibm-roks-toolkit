@@ -170,8 +170,27 @@ schedulerLivenessProbe:
   initialDelaySeconds: 300
   timeoutSeconds: 160
 controlPlaneOperatorImage: registry.svc.ci.openshift.org/ibm-roks/ibm-roks-4.4:control-plane-operator
-controlPlaneOperatorSecurity: 1001
+controlPlaneOperatorSecurityContext:
+  runAsUser: 1000
 masterPriorityClass: ''
 roksMetricsImage: registry.svc.ci.openshift.org/hypershift-toolkit/ibm-roks-4.6:roks-metrics
+roksMetricsSecurityContext:
+  runAsUser: 1000
 portierisEnabled: false
 portierisImage: ''
+kubeAPIServerSecurityContext:
+  runAsUser: 1000
+kubeSchedulerSecurityContext:
+  runAsUser: 1000
+kubeControllerManagerSecurityContext:
+  runAsUser: 1000
+openshiftAPIServerSecurityContext:
+  runAsUser: 1000
+openshiftControllerManagerSecurityContext:
+  runAsUser: 1000
+clusterVersionOperatorSecurityContext:
+  runAsUser: 1000
+portierisSecurityContext:
+  runAsUser: 1000
+kmsSecurityContext:
+  runAsUser: 1000
