@@ -59,6 +59,11 @@ spec:
       containers:
         - name: openshift-oauthserver
           image: {{ imageFor "oauth-server" }}
+{{- if .OAuthServerSecurityContext }}
+{{- $securityContext := .OAuthServerSecurityContext }}
+          securityContext:
+            runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
           livenessProbe:
             failureThreshold: 3
             httpGet:
