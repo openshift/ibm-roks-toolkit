@@ -47,6 +47,11 @@ spec:
 {{ end }}
       containers:
       - name: cluster-policy-controller
+{{- if .ClusterPolicyControllerSecurityContext }}
+{{- $securityContext := .ClusterPolicyControllerSecurityContext }}
+        securityContext:
+          runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
         image: {{ imageFor "cluster-policy-controller" }}
         command:
         - "cluster-policy-controller"
