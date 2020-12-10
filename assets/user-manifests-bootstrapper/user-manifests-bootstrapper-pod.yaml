@@ -30,6 +30,11 @@ spec:
     - image: {{ .ReleaseImage }}
       imagePullPolicy: IfNotPresent
       name: cluster-version-operator
+{{- if .ClusterVersionOperatorSecurityContext }}
+{{- $securityContext := .ClusterVersionOperatorSecurityContext }}
+      securityContext:
+        runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
       workingDir: /tmp
       command:
         - /bin/bash
@@ -48,6 +53,11 @@ spec:
         - mountPath: /work
           name: work
     - image: {{ imageFor "cluster-config-operator" }}
+{{- if .ClusterConfigOperatorSecurityContext }}
+{{- $securityContext := .ClusterConfigOperatorSecurityContext }}
+      securityContext:
+        runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
       imagePullPolicy: IfNotPresent
       name: config-operator
       workingDir: /tmp
@@ -67,6 +77,11 @@ spec:
     - image: {{ imageFor "cli" }}
       imagePullPolicy: IfNotPresent
       name: bootstrapper
+{{- if .ManifestBootstrapperSecurityContext }}
+{{- $securityContext := .ManifestBootstrapperSecurityContext }}
+      securityContext:
+        runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
       workingDir: /work
       command:
         - /bin/bash
