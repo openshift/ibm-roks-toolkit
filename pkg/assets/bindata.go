@@ -2052,6 +2052,11 @@ spec:
       containers:
         - name: openshift-oauthserver
           image: {{ imageFor "oauth-server" }}
+{{- if .OAuthServerSecurityContext }}
+{{- $securityContext := .OAuthServerSecurityContext }}
+          securityContext:
+            runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
           livenessProbe:
             failureThreshold: 3
             httpGet:
@@ -2730,6 +2735,11 @@ spec:
 {{ end }}
       containers:
       - name: cluster-policy-controller
+{{- if .ClusterPolicyControllerSecurityContext }}
+{{- $securityContext := .ClusterPolicyControllerSecurityContext }}
+        securityContext:
+          runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
         image: {{ imageFor "cluster-policy-controller" }}
         command:
         - "cluster-policy-controller"
@@ -3119,6 +3129,11 @@ spec:
     - image: {{ .ReleaseImage }}
       imagePullPolicy: IfNotPresent
       name: cluster-version-operator
+{{- if .ClusterVersionOperatorSecurityContext }}
+{{- $securityContext := .ClusterVersionOperatorSecurityContext }}
+      securityContext:
+        runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
       workingDir: /tmp
       command:
         - /bin/bash
@@ -3135,6 +3150,11 @@ spec:
         - mountPath: /work
           name: work
     - image: {{ imageFor "cluster-config-operator" }}
+{{- if .ClusterConfigOperatorSecurityContext }}
+{{- $securityContext := .ClusterConfigOperatorSecurityContext }}
+      securityContext:
+        runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
       imagePullPolicy: IfNotPresent
       name: config-operator
       workingDir: /tmp
@@ -3154,6 +3174,11 @@ spec:
     - image: {{ imageFor "cli" }}
       imagePullPolicy: IfNotPresent
       name: bootstrapper
+{{- if .ManifestBootstrapperSecurityContext }}
+{{- $securityContext := .ManifestBootstrapperSecurityContext }}
+      securityContext:
+        runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
       workingDir: /work
       command:
         - /bin/bash

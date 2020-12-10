@@ -162,3 +162,11 @@ clusterVersionOperatorSecurityContext:
   runAsUser: 1000
 kmsSecurityContext:
   runAsUser: 1000
+manifestBootstrapperSecurityContext:
+  runAsUser: 1000
+clusterPolicyControllerSecurityContext:
+  runAsUser: 1000
+oAuthServerSecurityContext:
+  runAsUser: 1000
+clusterConfigOperatorSecurityContext:
+  runAsUser: 1000
