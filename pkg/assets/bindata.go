@@ -673,7 +673,7 @@ spec:
 {{- if .ROKSMetricsSecurityContext }}
 {{- $securityContext := .ROKSMetricsSecurityContext }}
           securityContext:
-            runAsUser: {{ $securityContext.RunAsUser }}
+            runAsNonRoot: {{ $securityContext.RunAsNonRoot }}
 {{- end }}
           imagePullPolicy: Always
           command:
@@ -1368,7 +1368,7 @@ spec:
 {{- if .ROKSMetricsSecurityContext }}
 {{- $securityContext := .ROKSMetricsSecurityContext }}
         securityContext:
-          runAsUser: {{ $securityContext.RunAsUser }}
+          runAsNonRoot: {{ $securityContext.RunAsNonRoot }}
 {{- end }}
         image: {{ .ROKSMetricsImage }}
         imagePullPolicy: Always
@@ -3513,7 +3513,7 @@ spec:
 {{- if .ROKSMetricsSecurityContext }}
 {{- $securityContext := .ROKSMetricsSecurityContext }}
         securityContext:
-          runAsUser: {{ $securityContext.RunAsUser }}
+          runAsNonRoot: {{ $securityContext.RunAsNonRoot }}
 {{- end }}
         image: {{ .ROKSMetricsImage }}
         imagePullPolicy: Always
@@ -3589,7 +3589,7 @@ spec:
 {{- if .ROKSMetricsSecurityContext }}
 {{- $securityContext := .ROKSMetricsSecurityContext }}
         securityContext:
-          runAsUser: {{ $securityContext.RunAsUser }}
+          runAsNonRoot: {{ $securityContext.RunAsNonRoot }}
 {{- end }}
         image: {{ .ROKSMetricsImage }}
         imagePullPolicy: Always
@@ -3941,7 +3941,7 @@ spec:
         - -c
         - |-
           cd /tmp
-          mkdir output
+          mkdir -p output/manifests output/bootstrap
           /usr/bin/cluster-version-operator render --output-dir /tmp/output --release-image {{ .ReleaseImage }}
           # Exclude the CVO deployment manifest
           rm /tmp/output/manifests/0000_00_cluster-version-operator*deployment.yaml
