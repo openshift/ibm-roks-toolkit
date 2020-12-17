@@ -86,7 +86,7 @@ spec:
 {{- if .ROKSMetricsSecurityContext }}
 {{- $securityContext := .ROKSMetricsSecurityContext }}
           securityContext:
-            runAsUser: {{ $securityContext.RunAsUser }}
+            runAsNonRoot: {{ $securityContext.RunAsNonRoot }}
 {{- end }}
           imagePullPolicy: Always
           command:
