@@ -1,6 +1,6 @@
 module github.com/openshift/ibm-roks-toolkit
 
-go 1.14
+go 1.15
 
 require (
 	github.com/blang/semver v3.5.1+incompatible
