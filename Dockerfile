@@ -4,7 +4,7 @@ WORKDIR /go/src/github.com/openshift/ibm-roks-toolkit
 COPY . .
 RUN go build -mod=vendor -o bin/ibm-roks github.com/openshift/ibm-roks-toolkit/cmd/ibm-roks
 
-FROM registry.access.redhat.com/ubi7/ubi
+FROM quay.io/openshift/origin-base:4.6
 
 COPY --from=builder /go/src/github.com/openshift/ibm-roks-toolkit/bin/ibm-roks /usr/bin
 
