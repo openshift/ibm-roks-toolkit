@@ -175,7 +175,7 @@ controlPlaneOperatorSecurityContext:
 masterPriorityClass: ''
 roksMetricsImage: registry.svc.ci.openshift.org/hypershift-toolkit/ibm-roks-4.6:roks-metrics
 roksMetricsSecurityContext:
-  runAsUser: 1000
+  runAsNonRoot: true
 kubeAPIServerSecurityContext:
   runAsUser: 1000
 kubeSchedulerSecurityContext:
