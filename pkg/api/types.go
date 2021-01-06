@@ -16,6 +16,7 @@ type ClusterParams struct {
 	APINodePort                               uint                   `json:"apiNodePort"`
 	IngressSubdomain                          string                 `json:"ingressSubdomain"`
 	OpenShiftAPIClusterIP                     string                 `json:"openshiftAPIClusterIP"`
+	OauthAPIClusterIP                         string                 `json:"oauthAPIClusterIP"`
 	ImageRegistryHTTPSecret                   string                 `json:"imageRegistryHTTPSecret"`
 	RouterNodePortHTTP                        string                 `json:"routerNodePortHTTP"`
 	RouterNodePortHTTPS                       string                 `json:"routerNodePortHTTPS"`
@@ -25,6 +26,7 @@ type ClusterParams struct {
 	EtcdClientName                            string                 `json:"etcdClientName"`
 	OriginReleasePrefix                       string                 `json:"originReleasePrefix"`
 	OpenshiftAPIServerCABundle                string                 `json:"openshiftAPIServerCABundle"`
+	OauthAPIServerCABundle                    string                 `json:"oauthAPIServerCABundle"`
 	CloudProvider                             string                 `json:"cloudProvider"`
 	CVOSetupImage                             string                 `json:"cvoSetupImage"`
 	InternalAPIPort                           uint                   `json:"internalAPIPort"`
@@ -34,6 +36,7 @@ type ClusterParams struct {
 	ClusterVersionOperatorResources           []ResourceRequirements `json:"clusterVersionOperatorResources"`
 	KubeControllerManagerResources            []ResourceRequirements `json:"kubeControllerManagerResources"`
 	OpenshiftAPIServerResources               []ResourceRequirements `json:"openshiftAPIServerResources"`
+	OauthAPIServerResources                   []ResourceRequirements `json:"oauthAPIServerResources"`
 	KubeSchedulerResources                    []ResourceRequirements `json:"kubeSchedulerResources"`
 	ControlPlaneOperatorResources             []ResourceRequirements `json:"controlPlaneOperatorResources"`
 	OAuthServerResources                      []ResourceRequirements `json:"oAuthServerResources"`
@@ -61,6 +64,7 @@ type ClusterParams struct {
 	KubeSchedulerSecurityContext              *SecurityContext       `json:"kubeSchedulerSecurityContext"`
 	KubeControllerManagerSecurityContext      *SecurityContext       `json:"kubeControllerManagerSecurityContext"`
 	OpenshiftAPIServerSecurityContext         *SecurityContext       `json:"openshiftAPIServerSecurityContext"`
+	OauthAPIServerSecurityContext             *SecurityContext       `json:"oauthAPIServerSecurityContext"`
 	OpenshiftControllerManagerSecurityContext *SecurityContext       `json:"openshiftControllerManagerSecurityContext"`
 	PortierisSecurityContext                  *SecurityContext       `json:"portierisSecurityContext"`
 	ClusterVersionOperatorSecurityContext     *SecurityContext       `json:"clusterVersionOperatorSecurityContext"`
@@ -72,12 +76,12 @@ type ClusterParams struct {
 	DefaultFeatureGates                       []string
 	PlatformType                              string `json:"platformType"`
 	EndpointPublishingStrategyScope           string `json:"endpointPublishingStrategyScope"`
-	ApiserverLivenessProbe                    *Probe `json:"apiserverLivenessProbe",omitempty`
-	ApiserverReadinessProbe                   *Probe `json:"apiserverReadinessProbe",omitempty`
-	ControllerManagerLivenessProbe            *Probe `json:"controllerManagerLivenessProbe",omitempty`
-	SchedulerLivenessProbe                    *Probe `json:"schedulerLivenessProbe",omitempty`
-	KMSLivenessProbe                          *Probe `json:"kmsLivenessProbe",omitempty`
-	PortierisLivenessProbe                    *Probe `json:"portierisLivenessProbe",omitempty`
+	ApiserverLivenessProbe                    *Probe `json:"apiserverLivenessProbe,omitempty"`
+	ApiserverReadinessProbe                   *Probe `json:"apiserverReadinessProbe,omitempty"`
+	ControllerManagerLivenessProbe            *Probe `json:"controllerManagerLivenessProbe,omitempty"`
+	SchedulerLivenessProbe                    *Probe `json:"schedulerLivenessProbe,omitempty"`
+	KMSLivenessProbe                          *Probe `json:"kmsLivenessProbe,omitempty"`
+	PortierisLivenessProbe                    *Probe `json:"portierisLivenessProbe,omitempty"`
 }
 
 type NamedCert struct {
