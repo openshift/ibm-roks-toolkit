@@ -10,7 +10,7 @@ RUN cd /tmp && \
     tar -xzf pushgateway-${PUSHGATEWAY_VERSION}.linux-amd64.tar.gz && \
     cp pushgateway-${PUSHGATEWAY_VERSION}.linux-amd64/pushgateway /pushgateway
 
-FROM quay.io/openshift/origin-base:4.6
+FROM quay.io/openshift/origin-base:latest
 RUN yum -y update && yum clean all
 COPY --from=builder /go/src/github.com/openshift/ibm-roks-toolkit/bin/roks-metrics /usr/bin/roks-metrics
 COPY --from=builder /go/src/github.com/openshift/ibm-roks-toolkit/bin/metrics-pusher /usr/bin/metrics-pusher
