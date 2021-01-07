@@ -49,7 +49,8 @@ type ClusterParams struct {
 	ControlPlaneOperatorImage                 string                 `json:"controlPlaneOperatorImage"`
 	ControlPlaneOperatorControllers           []string               `json:"controlPlaneOperatorControllers"`
 	ROKSMetricsImage                          string                 `json:"roksMetricsImage"`
-	ROKSMetricsSecurityContext                *SecurityContext       `json:"roksMetricsSecurityContext"`
+	ROKSMetricsSecurityContextMaster          *SecurityContext       `json:"roksMetricsSecurityContextMaster"`
+	ROKSMetricsSecurityContextWorker          *SecurityContext       `json:"roksMetricsSecurityContextWorker"`
 	ExtraFeatureGates                         []string               `json:"extraFeatureGates"`
 	ControlPlaneOperatorSecurityContext       *SecurityContext       `json:"controlPlaneOperatorSecurityContext"`
 	MasterPriorityClass                       string                 `json:"masterPriorityClass"`
