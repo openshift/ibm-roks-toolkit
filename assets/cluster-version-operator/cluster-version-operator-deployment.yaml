@@ -83,10 +83,10 @@ spec:
 {{ if .ROKSMetricsImage }}
         - name: metrics-pusher
           image: {{ .ROKSMetricsImage }}
-{{- if .ROKSMetricsSecurityContext }}
-{{- $securityContext := .ROKSMetricsSecurityContext }}
+{{- if .ROKSMetricsSecurityContextMaster }}
+{{- $securityContext := .ROKSMetricsSecurityContextMaster }}
           securityContext:
-            runAsNonRoot: {{ $securityContext.RunAsNonRoot }}
+            runAsUser: {{ $securityContext.RunAsUser }}
 {{- end }}
           imagePullPolicy: Always
           command:

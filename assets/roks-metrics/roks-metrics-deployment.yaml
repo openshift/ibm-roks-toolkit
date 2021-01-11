@@ -29,8 +29,8 @@ spec:
           effect: NoSchedule
       containers:
       - name: metrics
-{{- if .ROKSMetricsSecurityContext }}
-{{- $securityContext := .ROKSMetricsSecurityContext }}
+{{- if .ROKSMetricsSecurityContextWorker }}
+{{- $securityContext := .ROKSMetricsSecurityContextWorker }}
         securityContext:
           runAsNonRoot: {{ $securityContext.RunAsNonRoot }}
 {{- end }}

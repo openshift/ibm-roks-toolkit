@@ -670,10 +670,10 @@ spec:
 {{ if .ROKSMetricsImage }}
         - name: metrics-pusher
           image: {{ .ROKSMetricsImage }}
-{{- if .ROKSMetricsSecurityContext }}
-{{- $securityContext := .ROKSMetricsSecurityContext }}
+{{- if .ROKSMetricsSecurityContextMaster }}
+{{- $securityContext := .ROKSMetricsSecurityContextMaster }}
           securityContext:
-            runAsNonRoot: {{ $securityContext.RunAsNonRoot }}
+            runAsUser: {{ $securityContext.RunAsUser }}
 {{- end }}
           imagePullPolicy: Always
           command:
@@ -1365,10 +1365,10 @@ spec:
 {{ end }}
 {{- if .ROKSMetricsImage }}
       - name: metrics-pusher
-{{- if .ROKSMetricsSecurityContext }}
-{{- $securityContext := .ROKSMetricsSecurityContext }}
+{{- if .ROKSMetricsSecurityContextMaster }}
+{{- $securityContext := .ROKSMetricsSecurityContextMaster }}
         securityContext:
-          runAsNonRoot: {{ $securityContext.RunAsNonRoot }}
+          runAsUser: {{ $securityContext.RunAsUser }}
 {{- end }}
         image: {{ .ROKSMetricsImage }}
         imagePullPolicy: Always
@@ -3510,8 +3510,8 @@ spec:
           effect: NoSchedule
       containers:
       - name: metrics
-{{- if .ROKSMetricsSecurityContext }}
-{{- $securityContext := .ROKSMetricsSecurityContext }}
+{{- if .ROKSMetricsSecurityContextWorker }}
+{{- $securityContext := .ROKSMetricsSecurityContextWorker }}
         securityContext:
           runAsNonRoot: {{ $securityContext.RunAsNonRoot }}
 {{- end }}
@@ -3586,8 +3586,8 @@ spec:
           effect: NoSchedule
       containers:
       - name: push-gateway
-{{- if .ROKSMetricsSecurityContext }}
-{{- $securityContext := .ROKSMetricsSecurityContext }}
+{{- if .ROKSMetricsSecurityContextWorker }}
+{{- $securityContext := .ROKSMetricsSecurityContextWorker }}
         securityContext:
           runAsNonRoot: {{ $securityContext.RunAsNonRoot }}
 {{- end }}
