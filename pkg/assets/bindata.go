@@ -1486,7 +1486,7 @@ spec:
         secret:
           secretName: kp-wdek-secret
           optional: true
-          defaultMode: 0400
+          defaultMode: 0440
 {{ end }}
 {{ if .PortierisEnabled }}
       - name: portieris-certs
