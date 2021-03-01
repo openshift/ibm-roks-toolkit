@@ -137,6 +137,13 @@ kmsServerResources:
     - resourceLimit:
         - cpu: 200m
           memory: 200Mi
+portierisContainerResources:
+    - resourceRequest:
+        - cpu: 100m
+          memory: 100Mi
+    - resourceLimit:
+        - cpu: 200m
+          memory: 200Mi
 kmsImage: example.image:v1.0.0
 kmsAPIKey: abcdefghijklmnopqrstuvwxyz
 kpInfo: '{"example":"foobar"}'
@@ -158,6 +165,12 @@ apiserverReadinessProbe:
   failureThreshold: 6
   successThreshold: 1
 kmsLivenessProbe:
+  initialDelaySeconds: 120
+  periodSeconds: 300
+  timeoutSeconds: 160
+  failureThreshold: 3
+  successThreshold: 1
+portierisLivenessProbe:
   initialDelaySeconds: 120
   periodSeconds: 300
   timeoutSeconds: 160
@@ -200,3 +213,5 @@ oAuthServerSecurityContext:
   runAsUser: 1000
 clusterConfigOperatorSecurityContext:
   runAsUser: 1000
+portierisEnabled: false
+portierisImage: ''

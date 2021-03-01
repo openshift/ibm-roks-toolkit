@@ -1388,6 +1388,63 @@ spec:
             name: kubeconfig
             readOnly: true
 {{- end }}
+{{ if .PortierisEnabled }}
+      - name: portieris
+        image: {{ .PortierisImage }}
+        imagePullPolicy: IfNotPresent
+        command:
+          - "/portieris"
+        args:
+          - "--kubeconfig=/etc/openshift/kubeconfig/kubeconfig"
+          - "--alsologtostderr"
+          - "-v=4"
+        ports:
+        - containerPort: 8000
+          name: http
+          protocol: TCP
+{{ if .PortierisContainerResources }}
+        resources:{{ range .PortierisContainerResources }}{{ range .ResourceRequest }}
+          requests: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ range .ResourceLimit }}
+          limits: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
+{{ end }}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+{{- if .PortierisLivenessProbe }}
+{{- $probe := .PortierisLivenessProbe }}
+        livenessProbe:
+          httpGet:
+            scheme: {{ or $probe.HttpGet.Scheme "HTTPS" }}
+            port: {{ or $probe.HttpGet.Port 8000 }}
+            path: {{ or $probe.HttpGet.Path "/health/liveness" }}
+          initialDelaySeconds: {{ or $probe.InitialDelaySeconds 10 }}
+          periodSeconds: {{ or $probe.PeriodSeconds 10 }}
+          timeoutSeconds: {{ or $probe.TimeoutSeconds 1 }}
+          failureThreshold: {{ or $probe.FailureThreshold 3 }}
+          successThreshold: {{ or $probe.SuccessThreshold 1 }}
+{{- else }}
+        livenessProbe:
+          httpGet:
+            port: 8000
+            path: "/health/liveness"
+            scheme: HTTPS
+          initialDelaySeconds: 120
+          periodSeconds: 300
+          successThreshold: 1
+          failureThreshold: 3
+          timeoutSeconds: 160
+{{- end }}
+        volumeMounts:
+        - mountPath: /etc/openshift/kubeconfig
+          name: kubeconfig
+          readOnly: true
+        - mountPath: /etc/certs
+          name: portieris-certs
+          readOnly: true
+{{ end }}
       volumes:
       - secret:
           secretName: kube-apiserver
@@ -1403,7 +1460,7 @@ spec:
       - configMap:
           name: kube-apiserver-oauth-metadata
         name: oauth
-{{- if .ROKSMetricsImage }}
+{{- if or .ROKSMetricsImage .PortierisEnabled }}
       - secret:
           secretName: service-network-admin-kubeconfig
         name: kubeconfig
@@ -1424,6 +1481,12 @@ spec:
           secretName: kp-wdek-secret
           optional: true
           defaultMode: 0440
+{{ end }}
+{{ if .PortierisEnabled }}
+      - name: portieris-certs
+        secret:
+          defaultMode: 0640
+          secretName: portieris-certs
 {{ end }}
 `)
 
