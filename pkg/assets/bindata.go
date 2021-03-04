@@ -19,8 +19,10 @@
 // assets/control-plane-operator/cp-operator-configmap.yaml
 // assets/control-plane-operator/cp-operator-deployment.yaml
 // assets/kube-apiserver/config.yaml
+// assets/kube-apiserver/default-audit-policy.yaml
 // assets/kube-apiserver/kube-apiserver-config-configmap.yaml
 // assets/kube-apiserver/kube-apiserver-configmap.yaml
+// assets/kube-apiserver/kube-apiserver-default-audit-policy.yaml
 // assets/kube-apiserver/kube-apiserver-deployment.yaml
 // assets/kube-apiserver/kube-apiserver-oauth-metadata-configmap.yaml
 // assets/kube-apiserver/kube-apiserver-secret.yaml
@@ -35,6 +37,15 @@
 // assets/kube-scheduler/kube-scheduler-config-configmap.yaml
 // assets/kube-scheduler/kube-scheduler-deployment.yaml
 // assets/kube-scheduler/kube-scheduler-secret.yaml
+// assets/oauth-apiserver/audit-policy.yaml
+// assets/oauth-apiserver/oauth-apiserver-auditpolicy.yaml
+// assets/oauth-apiserver/oauth-apiserver-configmap.yaml
+// assets/oauth-apiserver/oauth-apiserver-deployment.yaml
+// assets/oauth-apiserver/oauth-apiserver-secret.yaml
+// assets/oauth-apiserver/oauth-apiserver-service.yaml
+// assets/oauth-apiserver/oauth-apiserver-user-endpoint.yaml
+// assets/oauth-apiserver/oauth-apiserver-user-service.yaml
+// assets/oauth-apiserver/service-template.yaml
 // assets/oauth-openshift/oauth-browser-client.yaml
 // assets/oauth-openshift/oauth-challenging-client.yaml
 // assets/oauth-openshift/oauth-server-config-configmap.yaml
@@ -928,120 +939,195 @@ admission:
         restrictedCIDRs:
         - {{ .PodCIDR }}
         - {{ .ServiceCIDR }}
-aggregatorConfig:
-  proxyClientInfo:
-    certFile: "/etc/kubernetes/secret/proxy-client.crt"
-    keyFile: "/etc/kubernetes/secret/proxy-client.key"
 apiServerArguments:
+  advertise-address:
+  - "{{ .ExternalAPIIPAddress }}"
+  allow-privileged:
+  - 'true'
+  anonymous-auth:
+  - 'true'
+  api-audiences:
+  - https://kubernetes.default.svc
+  audit-log-format:
+  - json
+  audit-log-maxbackup:
+  - '10'
+  audit-log-maxsize:
+  - '100'
+  audit-log-path:
+  - /var/log/kube-apiserver/audit.log
+  audit-policy-file:
+  - /etc/kubernetes/audit/policy.yaml
+{{ if .APIServerAuditEnabled }}
+  audit-webhook-config-file:
+  - /etc/kubernetes/audit/webhook-kubeconfig
+  audit-webhook-mode:
+  - batch
+{{ end }}
+  authorization-mode:
+  - Scope
+  - SystemMasters
+  - RBAC
+  - Node
+  client-ca-file:
+  - /etc/kubernetes/config/serving-ca.crt
+  cloud-provider:
+  - "{{ .CloudProvider }}"
+  enable-admission-plugins:
+  - CertificateApproval
+  - CertificateSigning
+  - CertificateSubjectRestriction
+  - DefaultIngressClass
+  - DefaultStorageClass
+  - DefaultTolerationSeconds
+  - LimitRanger
+  - MutatingAdmissionWebhook
+  - NamespaceLifecycle
+  - NodeRestriction
+  - OwnerReferencesPermissionEnforcement
+  - PersistentVolumeClaimResize
+  - PersistentVolumeLabel
+  - PodNodeSelector
+  - PodTolerationRestriction
+  - Priority
+  - ResourceQuota
+  - RuntimeClass
+  - ServiceAccount
+  - StorageObjectInUseProtection
+  - TaintNodesByCondition
+  - ValidatingAdmissionWebhook
+  - authorization.openshift.io/RestrictSubjectBindings
+  - authorization.openshift.io/ValidateRoleBindingRestriction
+  - config.openshift.io/DenyDeleteClusterConfiguration
+  - config.openshift.io/ValidateAPIServer
+  - config.openshift.io/ValidateAuthentication
+  - config.openshift.io/ValidateConsole
+  - config.openshift.io/ValidateFeatureGate
+  - config.openshift.io/ValidateImage
+  - config.openshift.io/ValidateOAuth
+  - config.openshift.io/ValidateProject
+  - config.openshift.io/ValidateScheduler
+  - image.openshift.io/ImagePolicy
+  - network.openshift.io/ExternalIPRanger
+  - network.openshift.io/RestrictedEndpointsAdmission
+  - quota.openshift.io/ClusterResourceQuota
+  - quota.openshift.io/ValidateClusterResourceQuota
+  - route.openshift.io/IngressAdmission
+  - scheduling.openshift.io/OriginPodNodeEnvironment
+  - security.openshift.io/DefaultSecurityContextConstraints
+  - security.openshift.io/SCCExecRestrictions
+  - security.openshift.io/SecurityContextConstraint
+  - security.openshift.io/ValidateSecurityContextConstraints
   enable-aggregator-routing:
   - 'true'
+  enable-logs-handler:
+  - 'false'
+  enable-swagger-ui:
+  - 'true'
+  endpoint-reconciler-type:
+  - lease
+  etcd-cafile:
+  - /etc/kubernetes/config/etcd-ca.crt
+  etcd-certfile:
+  - /etc/kubernetes/secret/etcd-client.crt
+  etcd-keyfile:
+  - /etc/kubernetes/secret/etcd-client.key
+  etcd-prefix:
+  - kubernetes.io
+  etcd-servers:
+  - https://{{ .EtcdClientName }}:2379
+  event-ttl:
+  - 3h
   feature-gates:
   {{ range $featureGate := .DefaultFeatureGates }}- {{ $featureGate }}
   {{ end }}{{ range $featureGate := .ExtraFeatureGates }}- {{ $featureGate }}
   {{ end }}
+  goaway-chance:
+  - '0'
   http2-max-streams-per-connection:
   - '2000'
+  insecure-port:
+  - '0'
+  kubelet-certificate-authority:
+  - /etc/kubernetes/config/kubelet-client-ca.crt
+  kubelet-client-certificate:
+  - /etc/kubernetes/secret/kubelet-client.crt
+  kubelet-client-key:
+  - /etc/kubernetes/secret/kubelet-client.key
+  kubelet-https:
+  - 'true'
   kubelet-preferred-address-types:
   - InternalIP
+  kubelet-read-only-port:
+  - '0'
+  kubernetes-service-node-port:
+  - '0'
+  max-mutating-requests-inflight:
+  - '1000'
+  max-requests-inflight:
+  - '3000'
+  min-request-timeout:
+  - '3600'
+  proxy-client-cert-file:
+  - /etc/kubernetes/secret/proxy-client.crt
+  proxy-client-key-file:
+  - /etc/kubernetes/secret/proxy-client.key
+  requestheader-allowed-names:
+  - kube-apiserver-proxy
+  - system:kube-apiserver-proxy
+  - system:openshift-aggregator
+  requestheader-client-ca-file:
+  - /etc/kubernetes/config/aggregator-client-ca.crt
+  requestheader-extra-headers-prefix:
+  - X-Remote-Extra-
+  requestheader-group-headers:
+  - X-Remote-Group
+  requestheader-username-headers:
+  - X-Remote-User
+  runtime-config:
+  - flowcontrol.apiserver.k8s.io/v1alpha1=true
+  service-account-issuer:
+  - https://kubernetes.default.svc
+  service-account-lookup:
+  - 'true'
+  service-account-signing-key-file:
+  - /etc/kubernetes/secret/service-account.key
+  service-node-port-range:
+  - 30000-32767
   shutdown-delay-duration:
   - 70s
   storage-backend:
   - etcd3
   storage-media-type:
   - application/vnd.kubernetes.protobuf
-  advertise-address:
-  - "{{ .ExternalAPIIPAddress }}"
-  cloud-provider:
-  - "{{ .CloudProvider }}"
-  service-account-issuer:
-  - https://kubernetes.default.svc
-  service-account-signing-key-file:
-  - /etc/kubernetes/secret/service-account.key
-  api-audiences:
-  - https://kubernetes.default.svc
-  runtime-config:
-  - flowcontrol.apiserver.k8s.io/v1alpha1=true
-auditConfig:
-  auditFilePath: "/var/log/kube-apiserver/audit.log"
-  enabled: true
-  logFormat: json
-  maximumFileSizeMegabytes: 100
-  maximumRetainedFiles: 10
-{{ if .APIServerAuditEnabled }}
-  policyFile: /etc/kubernetes/audit/policy.yaml
-  webHookKubeConfig: /etc/kubernetes/audit/webhook-kubeconfig
-  webHookMode: batch
-{{ else }}
-  policyConfiguration:
-    apiVersion: audit.k8s.io/v1beta1
-    kind: Policy
-    omitStages:
-    - RequestReceived
-    rules:
-    - level: None
-      resources:
-      - group: ''
-        resources:
-        - events
-    - level: None
-      resources:
-      - group: oauth.openshift.io
-        resources:
-        - oauthaccesstokens
-        - oauthauthorizetokens
-    - level: None
-      nonResourceURLs:
-      - "/api*"
-      - "/version"
-      - "/healthz"
-      - "/readyz"
-      userGroups:
-      - system:authenticated
-      - system:unauthenticated
-    - level: Metadata
-      omitStages:
-      - RequestReceived
-{{ end }}
+  tls-cert-file:
+  - /etc/kubernetes/secret/server.crt
+  tls-private-key-file:
+  - /etc/kubernetes/secret/server.key
 authConfig:
   oauthMetadataFile: "/etc/kubernetes/oauth/oauthMetadata.json"
-  requestHeader:
-    clientCA: "/etc/kubernetes/config/aggregator-client-ca.crt"
-    clientCommonNames:
-    - kube-apiserver-proxy
-    - system:kube-apiserver-proxy
-    - system:openshift-aggregator
-    extraHeaderPrefixes:
-    - X-Remote-Extra-
-    groupHeaders:
-    - X-Remote-Group
-    usernameHeaders:
-    - X-Remote-User
-  webhookTokenAuthenticators:
 consolePublicURL: 'https://console-openshift-console.{{ .IngressSubdomain }}'
 corsAllowedOrigins:
 - "//127\\.0\\.0\\.1(:|$)"
 - "//localhost(:|$)"
 imagePolicyConfig:
   internalRegistryHostname: image-registry.openshift-image-registry.svc:5000
-kubeletClientInfo:
-  ca: "/etc/kubernetes/config/kubelet-client-ca.crt"
-  certFile: "/etc/kubernetes/secret/kubelet-client.crt"
-  keyFile: "/etc/kubernetes/secret/kubelet-client.key"
-  port: 10250
 projectConfig:
   defaultNodeSelector: ''
 serviceAccountPublicKeyFiles:
-- "/etc/kubernetes/config/service-account.pub"
-servicesNodePortRange: 30000-32767
+- /etc/kubernetes/config/service-account.pub
 servicesSubnet: {{ .ServiceCIDR }}
 servingInfo:
   bindAddress: 0.0.0.0:{{ .InternalAPIPort }}
   bindNetwork: tcp4
-  clientCA: "/etc/kubernetes/config/serving-ca.crt"
-  certFile: "/etc/kubernetes/secret/server.crt"
-  keyFile: "/etc/kubernetes/secret/server.key"
-  maxRequestsInFlight: 1200
-  requestTimeoutSeconds: 3600
+  cipherSuites:
+  - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+  - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+  - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+  - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+  - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256
+  - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
+  minTLSVersion: VersionTLS12
 {{ if .NamedCerts }}
   namedCertificates:
   {{ range .NamedCerts }}
@@ -1051,16 +1137,6 @@ servingInfo:
     - {{ .NamedCertDomain }}
   {{ end }}
 {{ end }}
-storageConfig:
-  ca: "/etc/kubernetes/config/etcd-ca.crt"
-  certFile: "/etc/kubernetes/secret/etcd-client.crt"
-  keyFile: "/etc/kubernetes/secret/etcd-client.key"
-  urls:
-  - https://{{ .EtcdClientName }}:2379
-userAgentMatchingConfig:
-  defaultRejectionMessage: ''
-  deniedClients:
-  requiredClients:
 `)
 
 func kubeApiserverConfigYamlBytes() ([]byte, error) {
@@ -1074,6 +1150,51 @@ func kubeApiserverConfigYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "kube-apiserver/config.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _kubeApiserverDefaultAuditPolicyYaml = []byte(`apiVersion: audit.k8s.io/v1beta1
+kind: Policy
+omitStages:
+- RequestReceived
+rules:
+- level: None
+  resources:
+  - group: ''
+    resources:
+    - events
+- level: None
+  resources:
+  - group: oauth.openshift.io
+    resources:
+    - oauthaccesstokens
+    - oauthauthorizetokens
+- level: None
+  nonResourceURLs:
+  - "/api*"
+  - "/version"
+  - "/healthz"
+  - "/readyz"
+  userGroups:
+  - system:authenticated
+  - system:unauthenticated
+- level: Metadata
+  omitStages:
+  - RequestReceived
+`)
+
+func kubeApiserverDefaultAuditPolicyYamlBytes() ([]byte, error) {
+	return _kubeApiserverDefaultAuditPolicyYaml, nil
+}
+
+func kubeApiserverDefaultAuditPolicyYaml() (*asset, error) {
+	bytes, err := kubeApiserverDefaultAuditPolicyYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "kube-apiserver/default-audit-policy.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -1130,6 +1251,30 @@ func kubeApiserverKubeApiserverConfigmapYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "kube-apiserver/kube-apiserver-configmap.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _kubeApiserverKubeApiserverDefaultAuditPolicyYaml = []byte(`kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: apiserver-default-audit-cm
+data:
+  policy.yaml: |-
+{{ include "kube-apiserver/default-audit-policy.yaml" 4 }}
+`)
+
+func kubeApiserverKubeApiserverDefaultAuditPolicyYamlBytes() ([]byte, error) {
+	return _kubeApiserverKubeApiserverDefaultAuditPolicyYaml, nil
+}
+
+func kubeApiserverKubeApiserverDefaultAuditPolicyYaml() (*asset, error) {
+	bytes, err := kubeApiserverKubeApiserverDefaultAuditPolicyYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "kube-apiserver/kube-apiserver-default-audit-policy.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -1194,7 +1339,62 @@ spec:
 {{ if .MasterPriorityClass }}
       priorityClassName: {{ .MasterPriorityClass }}
 {{ end }}
+      initContainers:
+      - image: {{ imageFor "cluster-config-operator" }}
+{{- if .ClusterConfigOperatorSecurityContext }}
+{{- $securityContext := .ClusterConfigOperatorSecurityContext }}
+        securityContext:
+          runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
+        imagePullPolicy: IfNotPresent
+        name: config-bootstrap
+        workingDir: /tmp
+        command:
+        - /bin/bash
+        args:
+        - -c
+        - |-
+          cd /tmp
+          mkdir input output
+          /usr/bin/cluster-config-operator render --config-output-file config --asset-input-dir /tmp/input --asset-output-dir /tmp/output
+          cp /tmp/output/manifests/* /work
+        volumeMounts:
+        - mountPath: /work
+          name: bootstrap-manifests
       containers:
+      - image: {{ imageFor "cli" }}
+{{- if .ManifestBootstrapperSecurityContext }}
+{{- $securityContext := .ManifestBootstrapperSecurityContext }}
+        securityContext:
+          runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
+        name: initialize-manifests
+        env:
+        - name: KUBECONFIG
+          value: /var/secrets/localhost-kubeconfig/kubeconfig
+        workingDir: /work
+        command:
+        - /bin/bash
+        args:
+        - -c
+        - |-
+          while true; do
+            if oc apply -f .; then
+              echo "Bootstrap manifests applied successfully."
+              break
+            fi
+            sleep 1
+          done
+          while true; do
+            sleep 1000
+          done
+        volumeMounts:
+        - mountPath: /work
+          name: bootstrap-manifests
+          readOnly: true
+        - mountPath: /var/secrets/localhost-kubeconfig
+          name: localhost-kubeconfig
+          readOnly: true
       - name: kube-apiserver
 {{- if .KubeAPIServerSecurityContext }}
 {{- $securityContext := .KubeAPIServerSecurityContext }}
@@ -1277,10 +1477,8 @@ spec:
           name: oauth
         - mountPath: /var/log/kube-apiserver/
           name: logs
-{{ if .APIServerAuditEnabled }}
         - name: apiserver-cm
           mountPath: /etc/kubernetes/audit/
-{{ end }}
 {{ if .KPInfo }}
         - name: kms-config
           mountPath: /etc/kubernetes/kms-config/
@@ -1452,6 +1650,8 @@ spec:
           readOnly: true
 {{ end }}
       volumes:
+      - name: bootstrap-manifests
+        emptyDir: {}
       - secret:
           secretName: kube-apiserver
         name: secret
@@ -1466,16 +1666,17 @@ spec:
       - configMap:
           name: kube-apiserver-oauth-metadata
         name: oauth
+      - secret:
+          secretName: localhost-admin-kubeconfig
+        name: localhost-kubeconfig
 {{- if or .ROKSMetricsImage .PortierisEnabled }}
       - secret:
           secretName: service-network-admin-kubeconfig
         name: kubeconfig
 {{- end }}
-{{ if .APIServerAuditEnabled }}
       - name: apiserver-cm
         configMap:
-          name: apiserver-audit-cm
-{{ end }}
+          name: {{ if .APIServerAuditEnabled }}apiserver-audit-cm{{ else }}apiserver-default-audit-cm{{ end }}
 {{ if .KPInfo }}
       - name: kms-config
         configMap:
@@ -1842,6 +2043,38 @@ spec:
         args:
         - "--openshift-config=/etc/kubernetes/cmconfig/config.yaml"
         - "--kubeconfig=/etc/kubernetes/secret/kubeconfig"
+        - "--authentication-kubeconfig=/etc/kubernetes/secret/kubeconfig"
+        - "--authorization-kubeconfig=/etc/kubernetes/secret/kubeconfig"
+        - "--allocate-node-cidrs=true"
+        - "--cert-dir=/var/run/kubernetes"
+        - "--cluster-cidr={{ .PodCIDR }}"
+        - "--cluster-signing-cert-file=/etc/kubernetes/secret/cluster-signer.crt"
+        - "--cluster-signing-key-file=/etc/kubernetes/secret/cluster-signer.key"
+        - "--configure-cloud-routes=false"
+        - "--controllers=*"
+        - "--controllers=-ttl"
+        - "--controllers=-bootstrapsigner"
+        - "--controllers=-tokencleaner"
+        - "--enable-dynamic-provisioning=true"
+        - "--flex-volume-plugin-dir=/etc/kubernetes/kubelet-plugins/volume/exec"
+        - "--kube-api-burst=300"
+        - "--kube-api-qps=150"
+        - "--leader-elect-resource-lock=configmaps"
+        - "--leader-elect=true"
+        - "--leader-elect-retry-period=3s"
+        - "--port=0"
+        - "--root-ca-file=/etc/kubernetes/config/root-ca.crt"
+        - "--secure-port=10257"
+        - "--service-account-private-key-file=/etc/kubernetes/secret/service-account.key"
+        - "--service-cluster-ip-range={{ .ServiceCIDR }}"
+        - "--use-service-account-credentials=true"
+        - "--experimental-cluster-signing-duration=26280h"
+{{ range $featureGate := .DefaultFeatureGates }}
+        - "--feature-gates={{ $featureGate }}"
+{{ end }}
+{{ range $featureGate := .ExtraFeatureGates }}
+        - "--feature-gates={{ $featureGate }}"
+{{ end }}
 {{ if .KubeControllerManagerResources }}
         resources:{{ range .KubeControllerManagerResources }}{{ range .ResourceRequest }}
           requests: {{ if .CPU }}
@@ -2134,6 +2367,414 @@ func kubeSchedulerKubeSchedulerSecretYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "kube-scheduler/kube-scheduler-secret.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _oauthApiserverAuditPolicyYaml = []byte(`apiVersion: audit.k8s.io/v1beta1
+kind: Policy
+omitStages:
+- RequestReceived
+rules:
+- level: None
+  resources:
+  - group: ''
+    resources:
+    - events
+- level: None
+  resources:
+  - group: oauth.openshift.io
+    resources:
+    - oauthaccesstokens
+    - oauthauthorizetokens
+- level: None
+  nonResourceURLs:
+  - "/api*"
+  - "/version"
+  - "/healthz"
+  userGroups:
+  - system:authenticated
+  - system:unauthenticated
+- level: Metadata
+  omitStages:
+  - RequestReceived
+`)
+
+func oauthApiserverAuditPolicyYamlBytes() ([]byte, error) {
+	return _oauthApiserverAuditPolicyYaml, nil
+}
+
+func oauthApiserverAuditPolicyYaml() (*asset, error) {
+	bytes, err := oauthApiserverAuditPolicyYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "oauth-apiserver/audit-policy.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _oauthApiserverOauthApiserverAuditpolicyYaml = []byte(`apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: openshift-oauth-apiserver-auditpolicy
+data:
+  policy.yaml: |-
+{{ include "oauth-apiserver/audit-policy.yaml" 4 }}
+`)
+
+func oauthApiserverOauthApiserverAuditpolicyYamlBytes() ([]byte, error) {
+	return _oauthApiserverOauthApiserverAuditpolicyYaml, nil
+}
+
+func oauthApiserverOauthApiserverAuditpolicyYaml() (*asset, error) {
+	bytes, err := oauthApiserverOauthApiserverAuditpolicyYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "oauth-apiserver/oauth-apiserver-auditpolicy.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _oauthApiserverOauthApiserverConfigmapYaml = []byte(`apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: openshift-oauth-apiserver
+data:
+  etcd-ca.crt: |-
+{{ include_pki "root-ca.crt" 4 }}
+  serving-ca.crt: |-
+{{ include_pki "root-ca.crt" 4 }}
+`)
+
+func oauthApiserverOauthApiserverConfigmapYamlBytes() ([]byte, error) {
+	return _oauthApiserverOauthApiserverConfigmapYaml, nil
+}
+
+func oauthApiserverOauthApiserverConfigmapYaml() (*asset, error) {
+	bytes, err := oauthApiserverOauthApiserverConfigmapYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "oauth-apiserver/oauth-apiserver-configmap.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _oauthApiserverOauthApiserverDeploymentYaml = []byte(`kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: openshift-oauth-apiserver
+spec:
+  replicas: {{ .Replicas }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 3
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: openshift-oauth-apiserver
+  progressDeadlineSeconds: 600
+  template:
+    metadata:
+      name: openshift-oauth-apiserver
+      labels:
+        app: openshift-oauth-apiserver
+        clusterID: "{{ .ClusterID }}"
+{{ if .RestartDate }}
+      annotations:
+        openshift.io/restartedAt: "{{ .RestartDate }}"
+{{ end }}
+    spec:
+      tolerations:
+        - key: "multi-az-worker"
+          operator: "Equal"
+          value: "true"
+          effect: NoSchedule
+      affinity:
+        podAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: clusterID
+                      operator: In
+                      values: ["{{ .ClusterID }}"]
+                topologyKey: "kubernetes.io/hostname"
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: ["openshift-oauth-apiserver"]
+              topologyKey: "kubernetes.io/hostname"
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: ["openshift-oauth-apiserver"]
+              topologyKey: "failure-domain.beta.kubernetes.io/zone"
+      automountServiceAccountToken: false
+{{ if .MasterPriorityClass }}
+      priorityClassName: {{ .MasterPriorityClass }}
+{{ end }}
+      containers:
+      - name: oauth-apiserver
+{{- if .OauthAPIServerSecurityContext }}
+{{- $securityContext := .OauthAPIServerSecurityContext }}
+        securityContext:
+          runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
+{{ if .OauthAPIServerResources }}
+        resources:{{ range .OauthAPIServerResources }}{{ range .ResourceRequest }}
+          requests: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ range .ResourceLimit }}
+          limits: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
+{{ end }}
+        readinessProbe:
+          httpGet:
+            path: readyz
+            port: 8443
+            scheme: HTTPS
+          timeoutSeconds: 1
+          periodSeconds: 10
+          successThreshold: 1
+          failureThreshold: 10
+        livenessProbe:
+          httpGet:
+            path: healthz
+            port: 8443
+            scheme: HTTPS
+          initialDelaySeconds: 30
+          timeoutSeconds: 1
+          periodSeconds: 10
+          successThreshold: 1
+          failureThreshold: 3
+        command:
+        - /usr/bin/oauth-apiserver
+        ports:
+        - containerPort: 8443
+          protocol: TCP
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - name: audit-policy
+          mountPath: /var/run/audit
+        - name: secret
+          mountPath: /var/run/secret
+        - name: config
+          mountPath: /var/run/config
+        - name: audit-dir
+          mountPath: /var/log/oauth-apiserver
+        terminationMessagePolicy: FallbackToLogsOnError
+        image: {{ imageFor "oauth-apiserver" }}
+        args:
+        - start
+        - --authentication-kubeconfig=/var/run/secret/kubeconfig
+        - --authorization-kubeconfig=/var/run/secret/kubeconfig
+        - --kubeconfig=/var/run/secret/kubeconfig
+        - --secure-port=8443
+        - --audit-log-path=/var/log/oauth-apiserver/audit.log
+        - --audit-log-format=json
+        - --audit-log-maxsize=100
+        - --audit-log-maxbackup=10
+        - --etcd-cafile=/var/run/config/etcd-ca.crt
+        - --etcd-keyfile=/var/run/secret/etcd-client.key
+        - --etcd-certfile=/var/run/secret/etcd-client.crt
+        - --shutdown-delay-duration=3s
+        - --tls-private-key-file=/var/run/secret/server.key
+        - --tls-cert-file=/var/run/secret/server.crt
+        - --audit-policy-file=/var/run/audit/policy.yaml
+        - --cors-allowed-origins='//127\.0\.0\.1(:|$)'
+        - --cors-allowed-origins='//localhost(:|$)'
+        - --etcd-servers=https://{{ .EtcdClientName }}:2379
+        - --tls-cipher-suites=TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+        - --tls-cipher-suites=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+        - --tls-cipher-suites=TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+        - --tls-cipher-suites=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        - --tls-cipher-suites=TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256
+        - --tls-cipher-suites=TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
+        - --tls-min-version=VersionTLS12
+        - --v=2
+      volumes:
+      - name: audit-policy
+        configMap:
+          name: openshift-oauth-apiserver-auditpolicy
+          defaultMode: 420
+      - name: secret
+        secret:
+          secretName: openshift-oauth-apiserver
+          defaultMode: 420
+      - name: config
+        configMap:
+          name: openshift-oauth-apiserver
+          defaultMode: 420
+      - name: audit-dir
+        emptyDir: {}
+`)
+
+func oauthApiserverOauthApiserverDeploymentYamlBytes() ([]byte, error) {
+	return _oauthApiserverOauthApiserverDeploymentYaml, nil
+}
+
+func oauthApiserverOauthApiserverDeploymentYaml() (*asset, error) {
+	bytes, err := oauthApiserverOauthApiserverDeploymentYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "oauth-apiserver/oauth-apiserver-deployment.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _oauthApiserverOauthApiserverSecretYaml = []byte(`apiVersion: v1
+kind: Secret
+metadata:
+  name: openshift-oauth-apiserver
+data:
+  kubeconfig: {{ pki "internal-admin.kubeconfig" }}
+  server.crt: {{ pki "openshift-apiserver-server.crt" }}
+  server.key: {{ pki "openshift-apiserver-server.key" }}
+  etcd-client.crt: {{ pki "etcd-client.crt" }}
+  etcd-client.key: {{ pki "etcd-client.key" }}
+`)
+
+func oauthApiserverOauthApiserverSecretYamlBytes() ([]byte, error) {
+	return _oauthApiserverOauthApiserverSecretYaml, nil
+}
+
+func oauthApiserverOauthApiserverSecretYaml() (*asset, error) {
+	bytes, err := oauthApiserverOauthApiserverSecretYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "oauth-apiserver/oauth-apiserver-secret.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _oauthApiserverOauthApiserverServiceYaml = []byte(`apiVersion: v1
+kind: Service
+metadata:
+  name: openshift-oauth-apiserver
+spec:
+  clusterIP: {{ .OauthAPIClusterIP }}
+  selector:
+    app: openshift-oauth-apiserver
+  ports:
+  - name: https
+    port: 443
+    targetPort: 8443
+`)
+
+func oauthApiserverOauthApiserverServiceYamlBytes() ([]byte, error) {
+	return _oauthApiserverOauthApiserverServiceYaml, nil
+}
+
+func oauthApiserverOauthApiserverServiceYaml() (*asset, error) {
+	bytes, err := oauthApiserverOauthApiserverServiceYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "oauth-apiserver/oauth-apiserver-service.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _oauthApiserverOauthApiserverUserEndpointYaml = []byte(`apiVersion: v1
+kind: Endpoints
+metadata:
+  name: openshift-oauth-apiserver
+  namespace: default
+subsets:
+- addresses:
+  - ip: {{ .OauthAPIClusterIP }}
+  ports:
+  - name: https
+    port: 443
+    protocol: TCP
+`)
+
+func oauthApiserverOauthApiserverUserEndpointYamlBytes() ([]byte, error) {
+	return _oauthApiserverOauthApiserverUserEndpointYaml, nil
+}
+
+func oauthApiserverOauthApiserverUserEndpointYaml() (*asset, error) {
+	bytes, err := oauthApiserverOauthApiserverUserEndpointYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "oauth-apiserver/oauth-apiserver-user-endpoint.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _oauthApiserverOauthApiserverUserServiceYaml = []byte(`apiVersion: v1
+kind: Service
+metadata:
+  name: openshift-oauth-apiserver
+  namespace: default
+spec:
+  ports:
+  - name: https
+    port: 443
+`)
+
+func oauthApiserverOauthApiserverUserServiceYamlBytes() ([]byte, error) {
+	return _oauthApiserverOauthApiserverUserServiceYaml, nil
+}
+
+func oauthApiserverOauthApiserverUserServiceYaml() (*asset, error) {
+	bytes, err := oauthApiserverOauthApiserverUserServiceYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "oauth-apiserver/oauth-apiserver-user-service.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _oauthApiserverServiceTemplateYaml = []byte(`---
+apiVersion: apiregistration.k8s.io/v1
+kind: APIService
+metadata:
+  name: {{ .APIService }}
+spec:
+  caBundle: {{ .OauthAPIServerCABundle }}
+  group: {{ .APIServiceGroup }}
+  groupPriorityMinimum: 9900
+  service:
+    name: openshift-oauth-apiserver
+    namespace: default
+  version: v1
+  versionPriority: 15
+`)
+
+func oauthApiserverServiceTemplateYamlBytes() ([]byte, error) {
+	return _oauthApiserverServiceTemplateYaml, nil
+}
+
+func oauthApiserverServiceTemplateYaml() (*asset, error) {
+	bytes, err := oauthApiserverServiceTemplateYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "oauth-apiserver/service-template.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -3951,27 +4592,6 @@ spec:
       volumeMounts:
         - mountPath: /work
           name: work
-    - image: {{ imageFor "cluster-config-operator" }}
-{{- if .ClusterConfigOperatorSecurityContext }}
-{{- $securityContext := .ClusterConfigOperatorSecurityContext }}
-      securityContext:
-        runAsUser: {{ $securityContext.RunAsUser }}
-{{- end }}
-      imagePullPolicy: IfNotPresent
-      name: config-operator
-      workingDir: /tmp
-      command:
-        - /bin/bash
-      args:
-        - -c
-        - |-
-          cd /tmp
-          mkdir input output
-          /usr/bin/cluster-config-operator render --config-output-file config --asset-input-dir /tmp/input --asset-output-dir /tmp/output
-          cp /tmp/output/manifests/* /work
-      volumeMounts:
-        - mountPath: /work
-          name: work
   containers:
     - image: {{ imageFor "cli" }}
       imagePullPolicy: IfNotPresent
@@ -4103,8 +4723,10 @@ var _bindata = map[string]func() (*asset, error){
 	"control-plane-operator/cp-operator-configmap.yaml":                                  controlPlaneOperatorCpOperatorConfigmapYaml,
 	"control-plane-operator/cp-operator-deployment.yaml":                                 controlPlaneOperatorCpOperatorDeploymentYaml,
 	"kube-apiserver/config.yaml":                                                         kubeApiserverConfigYaml,
+	"kube-apiserver/default-audit-policy.yaml":                                           kubeApiserverDefaultAuditPolicyYaml,
 	"kube-apiserver/kube-apiserver-config-configmap.yaml":                                kubeApiserverKubeApiserverConfigConfigmapYaml,
 	"kube-apiserver/kube-apiserver-configmap.yaml":                                       kubeApiserverKubeApiserverConfigmapYaml,
+	"kube-apiserver/kube-apiserver-default-audit-policy.yaml":                            kubeApiserverKubeApiserverDefaultAuditPolicyYaml,
 	"kube-apiserver/kube-apiserver-deployment.yaml":                                      kubeApiserverKubeApiserverDeploymentYaml,
 	"kube-apiserver/kube-apiserver-oauth-metadata-configmap.yaml":                        kubeApiserverKubeApiserverOauthMetadataConfigmapYaml,
 	"kube-apiserver/kube-apiserver-secret.yaml":                                          kubeApiserverKubeApiserverSecretYaml,
@@ -4119,6 +4741,15 @@ var _bindata = map[string]func() (*asset, error){
 	"kube-scheduler/kube-scheduler-config-configmap.yaml":                                kubeSchedulerKubeSchedulerConfigConfigmapYaml,
 	"kube-scheduler/kube-scheduler-deployment.yaml":                                      kubeSchedulerKubeSchedulerDeploymentYaml,
 	"kube-scheduler/kube-scheduler-secret.yaml":                                          kubeSchedulerKubeSchedulerSecretYaml,
+	"oauth-apiserver/audit-policy.yaml":                                                  oauthApiserverAuditPolicyYaml,
+	"oauth-apiserver/oauth-apiserver-auditpolicy.yaml":                                   oauthApiserverOauthApiserverAuditpolicyYaml,
+	"oauth-apiserver/oauth-apiserver-configmap.yaml":                                     oauthApiserverOauthApiserverConfigmapYaml,
+	"oauth-apiserver/oauth-apiserver-deployment.yaml":                                    oauthApiserverOauthApiserverDeploymentYaml,
+	"oauth-apiserver/oauth-apiserver-secret.yaml":                                        oauthApiserverOauthApiserverSecretYaml,
+	"oauth-apiserver/oauth-apiserver-service.yaml":                                       oauthApiserverOauthApiserverServiceYaml,
+	"oauth-apiserver/oauth-apiserver-user-endpoint.yaml":                                 oauthApiserverOauthApiserverUserEndpointYaml,
+	"oauth-apiserver/oauth-apiserver-user-service.yaml":                                  oauthApiserverOauthApiserverUserServiceYaml,
+	"oauth-apiserver/service-template.yaml":                                              oauthApiserverServiceTemplateYaml,
 	"oauth-openshift/oauth-browser-client.yaml":                                          oauthOpenshiftOauthBrowserClientYaml,
 	"oauth-openshift/oauth-challenging-client.yaml":                                      oauthOpenshiftOauthChallengingClientYaml,
 	"oauth-openshift/oauth-server-config-configmap.yaml":                                 oauthOpenshiftOauthServerConfigConfigmapYaml,
@@ -4230,8 +4861,10 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	}},
 	"kube-apiserver": {nil, map[string]*bintree{
 		"config.yaml":                                  {kubeApiserverConfigYaml, map[string]*bintree{}},
+		"default-audit-policy.yaml":                    {kubeApiserverDefaultAuditPolicyYaml, map[string]*bintree{}},
 		"kube-apiserver-config-configmap.yaml":         {kubeApiserverKubeApiserverConfigConfigmapYaml, map[string]*bintree{}},
 		"kube-apiserver-configmap.yaml":                {kubeApiserverKubeApiserverConfigmapYaml, map[string]*bintree{}},
+		"kube-apiserver-default-audit-policy.yaml":     {kubeApiserverKubeApiserverDefaultAuditPolicyYaml, map[string]*bintree{}},
 		"kube-apiserver-deployment.yaml":               {kubeApiserverKubeApiserverDeploymentYaml, map[string]*bintree{}},
 		"kube-apiserver-oauth-metadata-configmap.yaml": {kubeApiserverKubeApiserverOauthMetadataConfigmapYaml, map[string]*bintree{}},
 		"kube-apiserver-secret.yaml":                   {kubeApiserverKubeApiserverSecretYaml, map[string]*bintree{}},
@@ -4250,6 +4883,17 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"kube-scheduler-config-configmap.yaml": {kubeSchedulerKubeSchedulerConfigConfigmapYaml, map[string]*bintree{}},
 		"kube-scheduler-deployment.yaml":       {kubeSchedulerKubeSchedulerDeploymentYaml, map[string]*bintree{}},
 		"kube-scheduler-secret.yaml":           {kubeSchedulerKubeSchedulerSecretYaml, map[string]*bintree{}},
+	}},
+	"oauth-apiserver": {nil, map[string]*bintree{
+		"audit-policy.yaml":                  {oauthApiserverAuditPolicyYaml, map[string]*bintree{}},
+		"oauth-apiserver-auditpolicy.yaml":   {oauthApiserverOauthApiserverAuditpolicyYaml, map[string]*bintree{}},
+		"oauth-apiserver-configmap.yaml":     {oauthApiserverOauthApiserverConfigmapYaml, map[string]*bintree{}},
+		"oauth-apiserver-deployment.yaml":    {oauthApiserverOauthApiserverDeploymentYaml, map[string]*bintree{}},
+		"oauth-apiserver-secret.yaml":        {oauthApiserverOauthApiserverSecretYaml, map[string]*bintree{}},
+		"oauth-apiserver-service.yaml":       {oauthApiserverOauthApiserverServiceYaml, map[string]*bintree{}},
+		"oauth-apiserver-user-endpoint.yaml": {oauthApiserverOauthApiserverUserEndpointYaml, map[string]*bintree{}},
+		"oauth-apiserver-user-service.yaml":  {oauthApiserverOauthApiserverUserServiceYaml, map[string]*bintree{}},
+		"service-template.yaml":              {oauthApiserverServiceTemplateYaml, map[string]*bintree{}},
 	}},
 	"oauth-openshift": {nil, map[string]*bintree{
 		"oauth-browser-client.yaml":              {oauthOpenshiftOauthBrowserClientYaml, map[string]*bintree{}},
