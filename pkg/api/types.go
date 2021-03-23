@@ -83,6 +83,7 @@ type ClusterParams struct {
 	SchedulerLivenessProbe                    *Probe `json:"schedulerLivenessProbe,omitempty"`
 	KMSLivenessProbe                          *Probe `json:"kmsLivenessProbe,omitempty"`
 	PortierisLivenessProbe                    *Probe `json:"portierisLivenessProbe,omitempty"`
+	KubeAPIServerVerbosity                    uint   `json:"kubeAPIServerVerbosity"`
 }
 
 type NamedCert struct {

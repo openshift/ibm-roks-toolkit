@@ -226,3 +226,4 @@ oAuthServerSecurityContext:
   runAsUser: 1000
 clusterConfigOperatorSecurityContext:
   runAsUser: 1000
+kubeAPIServerVerbosity: 3
