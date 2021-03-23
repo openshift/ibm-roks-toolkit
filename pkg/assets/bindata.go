@@ -1041,6 +1041,13 @@ servingInfo:
   keyFile: "/etc/kubernetes/secret/server.key"
   maxRequestsInFlight: 1200
   requestTimeoutSeconds: 3600
+  cipherSuites:
+  - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+  - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+  - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+  - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+  - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305
+  - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
 {{ if .NamedCerts }}
   namedCertificates:
   {{ range .NamedCerts }}
@@ -1836,6 +1843,7 @@ spec:
         args:
         - "--openshift-config=/etc/kubernetes/cmconfig/config.yaml"
         - "--kubeconfig=/etc/kubernetes/secret/kubeconfig"
+        - "--tls-cipher-suites=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305"
 {{ if .KubeControllerManagerResources }}
         resources:{{ range .KubeControllerManagerResources }}{{ range .ResourceRequest }}
           requests: {{ if .CPU }}
@@ -2049,6 +2057,7 @@ spec:
         - "--port=0"
         - "--authentication-kubeconfig=/etc/kubernetes/secret/kubeconfig"
         - "--authorization-kubeconfig=/etc/kubernetes/secret/kubeconfig"
+        - "--tls-cipher-suites=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305"
         - "-v=2"
         {{ range $featureGate := .DefaultFeatureGates }}- "--feature-gates={{ $featureGate }}"
         {{ end }}{{ range $featureGate := .ExtraFeatureGates }}- "--feature-gates={{ $featureGate }}"
@@ -2269,22 +2278,12 @@ servingInfo:
   bindNetwork: tcp4
   certFile: /etc/oauth-openshift-secrets/server.crt
   cipherSuites:
-    - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
-    - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305
-    - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
     - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
-    - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+    - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
     - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-    - TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256
-    - TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
-    - TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA
-    - TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
-    - TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
-    - TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA
-    - TLS_RSA_WITH_AES_128_GCM_SHA256
-    - TLS_RSA_WITH_AES_256_GCM_SHA384
-    - TLS_RSA_WITH_AES_128_CBC_SHA
-    - TLS_RSA_WITH_AES_256_CBC_SHA
+    - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+    - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305
+    - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
   keyFile: /etc/oauth-openshift-secrets/server.key
   maxRequestsInFlight: 1000
   minTLSVersion: VersionTLS12
