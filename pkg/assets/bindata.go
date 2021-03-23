@@ -1407,9 +1407,12 @@ spec:
         - kube-apiserver
         args:
         - "--openshift-config=/etc/kubernetes/apiserver-config/config.yaml"
-{{ if .KPInfo }}
+{{- if .KPInfo }}
         - "--encryption-provider-config=/etc/kubernetes/kms-config/config.yaml"
-{{ end }}
+{{- end }}
+{{- if .KubeAPIServerVerbosity }}
+        - "--v={{ .KubeAPIServerVerbosity }}"
+{{- end }}
         workingDir: /var/log/kube-apiserver
 {{- if .ApiserverLivenessProbe }}
 {{- $probe := .ApiserverLivenessProbe }}
