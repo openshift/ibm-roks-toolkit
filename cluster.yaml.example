@@ -215,3 +215,4 @@ clusterConfigOperatorSecurityContext:
   runAsUser: 1000
 portierisEnabled: false
 portierisImage: ''
+kubeAPIServerVerbosity: 3
