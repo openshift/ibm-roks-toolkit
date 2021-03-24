@@ -2669,6 +2669,13 @@ servingInfo:
   certFile: /etc/kubernetes/secret/server.crt
   keyFile: /etc/kubernetes/secret/server.key
   clientCA: /etc/kubernetes/config/serving-ca.crt
+  cipherSuites:
+  - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+  - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+  - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+  - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+  - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305
+  - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
 imagePolicyConfig:
   internalRegistryHostname: image-registry.openshift-image-registry.svc:5000
 projectConfig:
@@ -3175,6 +3182,13 @@ servingInfo:
   certFile: /etc/kubernetes/secret/server.crt
   keyFile: /etc/kubernetes/secret/server.key
   clientCA: /etc/kubernetes/config/serving-ca.crt
+  cipherSuites:
+  - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+  - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+  - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+  - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+  - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305
+  - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
 `)
 
 func openshiftControllerManagerConfigYamlBytes() ([]byte, error) {
