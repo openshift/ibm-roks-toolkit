@@ -73,12 +73,13 @@ type ClusterParams struct {
 	DefaultFeatureGates                       []string
 	PlatformType                              string `json:"platformType"`
 	EndpointPublishingStrategyScope           string `json:"endpointPublishingStrategyScope"`
-	ApiserverLivenessProbe                    *Probe `json:"apiserverLivenessProbe",omitempty`
-	ApiserverReadinessProbe                   *Probe `json:"apiserverReadinessProbe",omitempty`
-	ControllerManagerLivenessProbe            *Probe `json:"controllerManagerLivenessProbe",omitempty`
-	SchedulerLivenessProbe                    *Probe `json:"schedulerLivenessProbe",omitempty`
-	KMSLivenessProbe                          *Probe `json:"kmsLivenessProbe",omitempty`
-	PortierisLivenessProbe                    *Probe `json:"portierisLivenessProbe",omitempty`
+	ApiserverLivenessProbe                    *Probe `json:"apiserverLivenessProbe,omitempty"`
+	ApiserverReadinessProbe                   *Probe `json:"apiserverReadinessProbe,omitempty"`
+	ControllerManagerLivenessProbe            *Probe `json:"controllerManagerLivenessProbe,omitempty"`
+	SchedulerLivenessProbe                    *Probe `json:"schedulerLivenessProbe,omitempty"`
+	KMSLivenessProbe                          *Probe `json:"kmsLivenessProbe,omitempty"`
+	PortierisLivenessProbe                    *Probe `json:"portierisLivenessProbe,omitempty"`
+	KubeAPIServerVerbosity                    uint   `json:"kubeAPIServerVerbosity"`
 }
 
 type NamedCert struct {
