@@ -97,6 +97,7 @@ spec:
       volumes:
       - secret:
           secretName: openshift-apiserver
+          defaultMode: 0640
         name: secret
       - configMap:
           name: openshift-apiserver

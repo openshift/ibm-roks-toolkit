@@ -376,6 +376,7 @@ spec:
         emptyDir: {}
       - secret:
           secretName: kube-apiserver
+          defaultMode: 0640
         name: secret
       - emptyDir: {}
         name: logs
@@ -390,10 +391,12 @@ spec:
         name: oauth
       - secret:
           secretName: localhost-admin-kubeconfig
+          defaultMode: 0640
         name: localhost-kubeconfig
 {{- if or .ROKSMetricsImage .PortierisEnabled }}
       - secret:
           secretName: service-network-admin-kubeconfig
+          defaultMode: 0640
         name: kubeconfig
 {{- end }}
       - name: apiserver-cm
