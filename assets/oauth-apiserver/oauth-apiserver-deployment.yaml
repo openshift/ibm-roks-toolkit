@@ -142,14 +142,14 @@ spec:
       - name: audit-policy
         configMap:
           name: openshift-oauth-apiserver-auditpolicy
-          defaultMode: 420
+          defaultMode: 0640
       - name: secret
         secret:
           secretName: openshift-oauth-apiserver
-          defaultMode: 420
+          defaultMode: 0640
       - name: config
         configMap:
           name: openshift-oauth-apiserver
-          defaultMode: 420
+          defaultMode: 0640
       - name: audit-dir
         emptyDir: {}
