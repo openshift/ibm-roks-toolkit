@@ -89,6 +89,7 @@ spec:
       volumes:
       - secret:
           secretName: openshift-controller-manager
+          defaultMode: 0640
         name: secret
       - configMap:
           name: openshift-controller-manager
