@@ -108,6 +108,7 @@ spec:
       volumes:
       - secret:
           secretName: kube-controller-manager
+          defaultMode: 0640
         name: secret
       - configMap:
           name: kube-controller-manager-config

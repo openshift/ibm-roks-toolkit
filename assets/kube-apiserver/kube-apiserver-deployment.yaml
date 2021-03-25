@@ -321,6 +321,7 @@ spec:
       volumes:
       - secret:
           secretName: kube-apiserver
+          defaultMode: 0640
         name: secret
       - emptyDir: {}
         name: logs
@@ -336,6 +337,7 @@ spec:
 {{- if or .ROKSMetricsImage .PortierisEnabled }}
       - secret:
           secretName: service-network-admin-kubeconfig
+          defaultMode: 0640
         name: kubeconfig
 {{- end }}
 {{ if .APIServerAuditEnabled }}

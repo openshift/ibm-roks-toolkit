@@ -106,11 +106,11 @@ spec:
         name: logs
       - name: oauth-openshift-secrets
         secret:
-          defaultMode: 420
+          defaultMode: 0640
           secretName: oauth-openshift
       - name: oauth-openshift-sessionsecret
         secret:
-          defaultMode: 420
+          defaultMode: 0640
           secretName: oauth-openshift-sessionsecret
       - name: oauth-openshift-config
         configMap:
@@ -120,7 +120,7 @@ spec:
           name: oauth-openshift-config
       - name: v4-0-config-system-ocp-branding-template
         secret:
-          defaultMode: 420
+          defaultMode: 0640
           items:
             - key: login.html
               path: login.html
