@@ -696,6 +696,7 @@ spec:
         - name: kubeconfig
           secret:
             secretName: service-network-admin-kubeconfig
+            defaultMode: 0640
 `)
 
 func clusterVersionOperatorClusterVersionOperatorDeploymentYamlBytes() ([]byte, error) {
@@ -888,6 +889,7 @@ spec:
       - name: kubeconfig
         secret:
           secretName: service-network-admin-kubeconfig
+          defaultMode: 0640
       - name: config
         configMap:
           name: control-plane-operator
@@ -1458,6 +1460,7 @@ spec:
       volumes:
       - secret:
           secretName: kube-apiserver
+          defaultMode: 0640
         name: secret
       - emptyDir: {}
         name: logs
@@ -1473,6 +1476,7 @@ spec:
 {{- if or .ROKSMetricsImage .PortierisEnabled }}
       - secret:
           secretName: service-network-admin-kubeconfig
+          defaultMode: 0640
         name: kubeconfig
 {{- end }}
 {{ if .APIServerAuditEnabled }}
@@ -1884,6 +1888,7 @@ spec:
       volumes:
       - secret:
           secretName: kube-controller-manager
+          defaultMode: 0640
         name: secret
       - configMap:
           name: kube-controller-manager-config
@@ -2098,6 +2103,7 @@ spec:
       volumes:
       - secret:
           secretName: service-network-admin-kubeconfig
+          defaultMode: 0640
         name: secret
       - configMap:
           name: kube-scheduler-config
@@ -2445,11 +2451,11 @@ spec:
         name: logs
       - name: oauth-openshift-secrets
         secret:
-          defaultMode: 420
+          defaultMode: 0640
           secretName: oauth-openshift
       - name: oauth-openshift-sessionsecret
         secret:
-          defaultMode: 420
+          defaultMode: 0640
           secretName: oauth-openshift-sessionsecret
       - name: oauth-openshift-config
         configMap:
@@ -2459,7 +2465,7 @@ spec:
           name: oauth-openshift-config
       - name: v4-0-config-system-ocp-branding-template
         secret:
-          defaultMode: 420
+          defaultMode: 0640
           items:
             - key: login.html
               path: login.html
@@ -2859,6 +2865,7 @@ spec:
       volumes:
       - secret:
           secretName: openshift-apiserver
+          defaultMode: 0640
         name: secret
       - configMap:
           name: openshift-apiserver
@@ -3141,6 +3148,7 @@ spec:
       volumes:
       - secret:
           secretName: openshift-controller-manager
+          defaultMode: 0640
         name: secret
       - configMap:
           name: openshift-controller-manager
@@ -3347,6 +3355,7 @@ spec:
       volumes:
       - secret:
           secretName: openshift-controller-manager
+          defaultMode: 0640
         name: secret
       - configMap:
           name: openshift-controller-manager
