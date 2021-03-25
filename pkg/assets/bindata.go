@@ -708,6 +708,7 @@ spec:
         - name: kubeconfig
           secret:
             secretName: service-network-admin-kubeconfig
+            defaultMode: 0640
 `)
 
 func clusterVersionOperatorClusterVersionOperatorDeploymentYamlBytes() ([]byte, error) {
@@ -900,6 +901,7 @@ spec:
       - name: kubeconfig
         secret:
           secretName: service-network-admin-kubeconfig
+          defaultMode: 0640
       - name: config
         configMap:
           name: control-plane-operator
@@ -1660,6 +1662,7 @@ spec:
         emptyDir: {}
       - secret:
           secretName: kube-apiserver
+          defaultMode: 0640
         name: secret
       - emptyDir: {}
         name: logs
@@ -1674,10 +1677,12 @@ spec:
         name: oauth
       - secret:
           secretName: localhost-admin-kubeconfig
+          defaultMode: 0640
         name: localhost-kubeconfig
 {{- if or .ROKSMetricsImage .PortierisEnabled }}
       - secret:
           secretName: service-network-admin-kubeconfig
+          defaultMode: 0640
         name: kubeconfig
 {{- end }}
       - name: apiserver-cm
@@ -2119,6 +2124,7 @@ spec:
       volumes:
       - secret:
           secretName: kube-controller-manager
+          defaultMode: 0640
         name: secret
       - configMap:
           name: kube-controller-manager-config
@@ -2293,6 +2299,7 @@ spec:
         - "--config=/etc/kubernetes/config/config.yaml"
         - "--cert-dir=/var/run/kubernetes"
         - "--port=0"
+        - "--profiling=false"
         - "--authentication-kubeconfig=/etc/kubernetes/secret/kubeconfig"
         - "--authorization-kubeconfig=/etc/kubernetes/secret/kubeconfig"
         - "--tls-cipher-suites=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,TLS_AES_128_GCM_SHA256,TLS_CHACHA20_POLY1305_SHA256,TLS_AES_256_GCM_SHA384"
@@ -2333,6 +2340,7 @@ spec:
       volumes:
       - secret:
           secretName: service-network-admin-kubeconfig
+          defaultMode: 0640
         name: secret
       - configMap:
           name: kube-scheduler-config
@@ -2617,15 +2625,15 @@ spec:
       - name: audit-policy
         configMap:
           name: openshift-oauth-apiserver-auditpolicy
-          defaultMode: 420
+          defaultMode: 0640
       - name: secret
         secret:
           secretName: openshift-oauth-apiserver
-          defaultMode: 420
+          defaultMode: 0640
       - name: config
         configMap:
           name: openshift-oauth-apiserver
-          defaultMode: 420
+          defaultMode: 0640
       - name: audit-dir
         emptyDir: {}
 `)
@@ -3091,11 +3099,11 @@ spec:
         name: logs
       - name: oauth-openshift-secrets
         secret:
-          defaultMode: 420
+          defaultMode: 0640
           secretName: oauth-openshift
       - name: oauth-openshift-sessionsecret
         secret:
-          defaultMode: 420
+          defaultMode: 0640
           secretName: oauth-openshift-sessionsecret
       - name: oauth-openshift-config
         configMap:
@@ -3105,7 +3113,7 @@ spec:
           name: oauth-openshift-config
       - name: v4-0-config-system-ocp-branding-template
         secret:
-          defaultMode: 420
+          defaultMode: 0640
           items:
             - key: login.html
               path: login.html
@@ -3508,6 +3516,7 @@ spec:
       volumes:
       - secret:
           secretName: openshift-apiserver
+          defaultMode: 0640
         name: secret
       - configMap:
           name: openshift-apiserver
@@ -3790,6 +3799,7 @@ spec:
       volumes:
       - secret:
           secretName: openshift-controller-manager
+          defaultMode: 0640
         name: secret
       - configMap:
           name: openshift-controller-manager
@@ -3999,6 +4009,7 @@ spec:
       volumes:
       - secret:
           secretName: openshift-controller-manager
+          defaultMode: 0640
         name: secret
       - configMap:
           name: openshift-controller-manager
