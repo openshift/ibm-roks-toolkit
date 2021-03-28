@@ -111,6 +111,7 @@ spec:
       volumes:
       - secret:
           secretName: service-network-admin-kubeconfig
+          defaultMode: 0640
         name: secret
       - configMap:
           name: kube-scheduler-config
