@@ -2074,6 +2074,7 @@ spec:
         - "--leader-elect=true"
         - "--leader-elect-retry-period=3s"
         - "--port=0"
+        - "--profiling=false"
         - "--root-ca-file=/etc/kubernetes/config/root-ca.crt"
         - "--secure-port=10257"
         - "--service-account-private-key-file=/etc/kubernetes/secret/service-account.key"
