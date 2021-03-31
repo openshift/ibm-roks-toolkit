@@ -164,6 +164,11 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: openshift-authentication
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openshift-oauth-apiserver
 `)
 
 func clusterBootstrap00000_namespacesNeededForMonitoringYamlBytes() ([]byte, error) {
