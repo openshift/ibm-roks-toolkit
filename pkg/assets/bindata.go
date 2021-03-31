@@ -2620,6 +2620,9 @@ spec:
         - --tls-cipher-suites=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
         - --tls-cipher-suites=TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256
         - --tls-cipher-suites=TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
+        - --tls-cipher-suites=TLS_AES_128_GCM_SHA256
+        - --tls-cipher-suites=TLS_CHACHA20_POLY1305_SHA256
+        - --tls-cipher-suites=TLS_AES_256_GCM_SHA384
         - --tls-min-version=VersionTLS12
         - --v=2
       volumes:
@@ -3850,11 +3853,8 @@ servingInfo:
   - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
   - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
   - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
-  - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
-  - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256
-  - TLS_AES_128_GCM_SHA256
-  - TLS_CHACHA20_POLY1305_SHA256
-  - TLS_AES_256_GCM_SHA384
+  - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305
+  - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
 `)
 
 func openshiftControllerManagerConfigYamlBytes() ([]byte, error) {
