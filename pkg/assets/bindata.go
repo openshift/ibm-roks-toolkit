@@ -1441,7 +1441,7 @@ spec:
                   - key: app
                     operator: In
                     values: ["kube-apiserver"]
-              topologyKey: "failure-domain.beta.kubernetes.io/zone"
+              topologyKey: "topology.kubernetes.io/zone"
       automountServiceAccountToken: false
 {{ if .MasterPriorityClass }}
       priorityClassName: {{ .MasterPriorityClass }}
@@ -2137,7 +2137,7 @@ spec:
                   - key: app
                     operator: In
                     values: ["kube-controller-manager"]
-              topologyKey: "failure-domain.beta.kubernetes.io/zone"
+              topologyKey: "topology.kubernetes.io/zone"
       automountServiceAccountToken: false
 {{ if .MasterPriorityClass }}
       priorityClassName: {{ .MasterPriorityClass }}
@@ -2382,7 +2382,7 @@ spec:
                   - key: app
                     operator: In
                     values: ["kube-scheduler"]
-              topologyKey: "failure-domain.beta.kubernetes.io/zone"
+              topologyKey: "topology.kubernetes.io/zone"
       automountServiceAccountToken: false
 {{ if .MasterPriorityClass }}
       priorityClassName: {{ .MasterPriorityClass }}
@@ -2639,7 +2639,7 @@ spec:
                   - key: app
                     operator: In
                     values: ["openshift-oauth-apiserver"]
-              topologyKey: "failure-domain.beta.kubernetes.io/zone"
+              topologyKey: "topology.kubernetes.io/zone"
       automountServiceAccountToken: false
 {{ if .MasterPriorityClass }}
       priorityClassName: {{ .MasterPriorityClass }}
@@ -3150,7 +3150,7 @@ spec:
                 - key: app
                   operator: In
                   values: ["oauth-openshift"]
-              topologyKey: "failure-domain.beta.kubernetes.io/zone"
+              topologyKey: "topology.kubernetes.io/zone"
       automountServiceAccountToken: false
 {{ if .MasterPriorityClass }}
       priorityClassName: {{ .MasterPriorityClass }}
@@ -3576,7 +3576,7 @@ spec:
                   - key: app
                     operator: In
                     values: ["openshift-apiserver"]
-              topologyKey: "failure-domain.beta.kubernetes.io/zone"
+              topologyKey: "topology.kubernetes.io/zone"
       automountServiceAccountToken: false
 {{ if .MasterPriorityClass }}
       priorityClassName: {{ .MasterPriorityClass }}
@@ -3867,7 +3867,7 @@ spec:
                   - key: app
                     operator: In
                     values: ["cluster-policy-controller"]
-              topologyKey: "failure-domain.beta.kubernetes.io/zone"
+              topologyKey: "topology.kubernetes.io/zone"
       automountServiceAccountToken: false
 {{ if .MasterPriorityClass }}
       priorityClassName: {{ .MasterPriorityClass }}
@@ -4075,7 +4075,7 @@ spec:
                   - key: app
                     operator: In
                     values: ["openshift-controller-manager"]
-              topologyKey: "failure-domain.beta.kubernetes.io/zone"
+              topologyKey: "topology.kubernetes.io/zone"
       automountServiceAccountToken: false
 {{ if .MasterPriorityClass }}
       priorityClassName: {{ .MasterPriorityClass }}
