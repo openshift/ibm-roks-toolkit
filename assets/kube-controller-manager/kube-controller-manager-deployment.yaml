@@ -51,7 +51,7 @@ spec:
                   - key: app
                     operator: In
                     values: ["kube-controller-manager"]
-              topologyKey: "failure-domain.beta.kubernetes.io/zone"
+              topologyKey: "topology.kubernetes.io/zone"
       automountServiceAccountToken: false
 {{ if .MasterPriorityClass }}
       priorityClassName: {{ .MasterPriorityClass }}
