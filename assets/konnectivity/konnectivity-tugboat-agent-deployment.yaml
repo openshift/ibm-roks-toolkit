@@ -1,0 +1,84 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: konnectivity-tugboat-agent
+  labels:
+    app: konnectivity-tugboat-agent
+    clusterID: {{ .ClusterID }}
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: konnectivity-tugboat-agent
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: konnectivity-tugboat-agent
+        clusterID: {{ .ClusterID }}
+    spec:
+      automountServiceAccountToken: false
+{{- if .MasterPriorityClass }}
+      priorityClassName: {{ .MasterPriorityClass }}
+{{- end }}
+      containers:
+      - name: konnectivity-tugboat-agent
+{{- if .KonnectivitySecurityContext }}
+{{- $securityContext := .KonnectivitySecurityContext }}
+        securityContext:
+          runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
+        image: {{ imageFor "apiserver-network-proxy" }}
+        imagePullPolicy: IfNotPresent
+        command: ["/bin/proxy-agent"]
+        args: [
+          "--ca-cert=/var/run/secrets/certs/ca.crt",
+          "--proxy-server-host=konnectivity-server-agentnodeport.{{ .Namespace }}.svc",
+          "--proxy-server-port={{ .KonnectivityAgentPort }}",
+          "--health-server-port={{ .KonnectivityAgentHealthPort }}",
+          "--agent-cert=/var/run/secrets/konnectivity-certs/tls.crt",
+          "--agent-key=/var/run/secrets/konnectivity-certs/tls.key",
+          "--agent-identifiers=ipv4={{ .OpenShiftAPIClusterIP }}&ipv4={{ .OauthAPIClusterIP }}",
+          ]
+{{- if .KonnectivityAgentContainerResources }}
+        resources: {{ range .KonnectivityAgentContainerResources }}{{ range .ResourceRequest }}
+          requests: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ range .ResourceLimit }}
+          limits: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
+{{- end }}
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthz
+            port: {{ .KonnectivityAgentHealthPort }}
+            scheme: HTTP
+          initialDelaySeconds: 120
+          periodSeconds: 60
+          successThreshold: 1
+          timeoutSeconds: 30
+        volumeMounts:
+        - mountPath: /var/run/secrets/certs
+          name: kube-apiserver
+        - mountPath: /var/run/secrets/konnectivity-certs
+          name: konnectivity-tugboat-agent
+      tolerations:
+      - key: "multi-az-worker"
+        operator: "Equal"
+        value: "true"
+        effect: NoSchedule
+      volumes:
+      - name: konnectivity-tugboat-agent
+        secret:
+          defaultMode: 416
+          secretName: konnectivity-tugboat-agent
+      - name: kube-apiserver
+        secret:
+          defaultMode: 416
+          secretName: kube-apiserver

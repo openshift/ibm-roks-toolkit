@@ -1,0 +1,8 @@
+kind: Secret
+apiVersion: v1
+metadata:
+  name: konnectivity-server
+data:
+  tls.key: {{ pki "konnectivity-server-key.pem" }}
+  tls.crt: {{ pki "konnectivity-server.pem" }}
+  ca.crt: {{ pki "root-ca.crt" }}

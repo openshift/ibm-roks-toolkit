@@ -1,0 +1,107 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: konnectivity-server
+  labels:
+    app: konnectivity-server
+    clusterID: {{ .ClusterID }}
+spec:
+  selector:
+    matchLabels:
+      app: konnectivity-server
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: konnectivity-server
+        clusterID: {{ .ClusterID }}
+{{- if .RestartDate }}
+      annotations:
+        openshift.io/restartedAt: "{{ .RestartDate }}"
+{{- end }}
+    spec:
+      affinity:
+        podAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: clusterID
+                      operator: In
+                      values: ["{{ .ClusterID }}"]
+                topologyKey: "kubernetes.io/hostname"
+      automountServiceAccountToken: false
+{{- if .MasterPriorityClass }}
+      priorityClassName: {{ .MasterPriorityClass }}
+{{- end }}
+      containers:
+      - name: konnectivity-server
+{{- if .KonnectivitySecurityContext }}
+{{- $securityContext := .KonnectivitySecurityContext }}
+        securityContext:
+          runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
+        image: {{ imageFor "apiserver-network-proxy" }}
+        imagePullPolicy: IfNotPresent
+        command: ["/bin/proxy-server"]
+        args: [
+          "--server-key=/etc/kubernetes/konnectivity-certs/tls.key",
+          "--server-cert=/etc/kubernetes/konnectivity-certs/tls.crt",
+          "--server-ca-cert=/etc/kubernetes/konnectivity-certs/ca.crt",
+          "--cluster-key=/etc/kubernetes/konnectivity-certs/tls.key",
+          "--cluster-cert=/etc/kubernetes/konnectivity-certs/tls.crt",
+          "--cluster-ca-cert=/etc/kubernetes/konnectivity-certs/ca.crt",
+          "--server-port={{ .KonnectivityServerPort }}",
+          "--agent-port={{ .KonnectivityAgentPort }}",
+          "--health-port={{ .KonnectivityServerHealthPort }}",
+          "--admin-port={{ .KonnectivityServerAdminPort }}",
+          "--mode=http-connect",
+          "--proxy-strategies=destHost,defaultRoute",
+          "--cipher-suites={{ .KonnectivityServerCipherSuites }}",
+          "--v=5"
+          ]
+{{- if .KonnectivityServerContainerResources }}
+        resources: {{ range .KonnectivityServerContainerResources }}{{ range .ResourceRequest }}
+          requests: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ range .ResourceLimit }}
+          limits: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
+{{- end }}
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: {{ .KonnectivityServerHealthPort }}
+            scheme: HTTP
+          initialDelaySeconds: 300
+          periodSeconds: 120
+          successThreshold: 1
+          failureThreshold: 3
+          timeoutSeconds: 160
+        ports:
+        - name: server
+          containerPort: {{ .KonnectivityServerPort }}
+        - name: agent
+          containerPort: {{ .KonnectivityAgentPort }}
+        - name: health
+          containerPort: {{ .KonnectivityServerHealthPort }}
+        - name: admin
+          containerPort: {{ .KonnectivityServerAdminPort }}
+        volumeMounts:
+        - mountPath: /etc/kubernetes/konnectivity-certs/
+          name: konnectivity-server
+      tolerations:
+        - key: "multi-az-worker"
+          operator: "Equal"
+          value: "true"
+          effect: NoSchedule
+      volumes:
+      - name: konnectivity-server
+        secret:
+          secretName: konnectivity-server
+          defaultMode: 416
