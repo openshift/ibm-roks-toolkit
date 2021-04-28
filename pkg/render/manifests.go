@@ -12,14 +12,15 @@ import (
 )
 
 // ClusterManifests renders manifests for a hosted control plane cluster
-func ClusterManifests(params *api.ClusterParams, pullSecretFile, outputDir string, externalOauth, includeRegistry bool) error {
+func ClusterManifests(params *api.ClusterParams, pullSecretFile, outputDir string, externalOauth, includeRegistry, konnectivityEnabled bool) error {
 	releaseInfo, err := release.GetReleaseInfo(params.ReleaseImage, params.OriginReleasePrefix, pullSecretFile)
 	if err != nil {
 		return err
 	}
 	includeMetrics := len(params.ROKSMetricsImage) > 0
+	includeKonnectivity := params.KonnectivityEnabled
 	ctx := newClusterManifestContext(releaseInfo.Images, releaseInfo.Versions, params, outputDir)
-	ctx.setupManifests(externalOauth, includeRegistry, includeMetrics)
+	ctx.setupManifests(externalOauth, includeRegistry, includeMetrics, includeKonnectivity)
 	return ctx.renderManifests()
 }
 
@@ -50,7 +51,7 @@ func newClusterManifestContext(images, versions map[string]string, params interf
 	return ctx
 }
 
-func (c *clusterManifestContext) setupManifests(externalOauth, includeRegistry, includeMetrics bool) {
+func (c *clusterManifestContext) setupManifests(externalOauth, includeRegistry, includeMetrics, includeKonnectivity bool) {
 	c.kubeAPIServer()
 	c.kubeControllerManager()
 	c.kubeScheduler()
@@ -68,6 +69,9 @@ func (c *clusterManifestContext) setupManifests(externalOauth, includeRegistry, 
 	}
 	if includeMetrics {
 		c.roksMetrics()
+	}
+	if includeKonnectivity {
+		c.apiserverNetworkProxy()
 	}
 	c.userManifestsBootstrapper()
 	c.controlPlaneOperator()
@@ -231,6 +235,18 @@ func (c *clusterManifestContext) roksMetrics() {
 		"roks-metrics/roks-metrics-push-gateway-deployment.yaml",
 		"roks-metrics/roks-metrics-push-gateway-service.yaml",
 		"roks-metrics/roks-metrics-push-gateway-servicemonitor.yaml",
+	)
+}
+
+func (c *clusterManifestContext) apiserverNetworkProxy() {
+	c.addManifestFiles(
+		"konnectivity/konnectivity-server-deployment.yaml",
+		"konnectivity/konnectivity-server-services.yaml",
+		"konnectivity/konnectivity-tugboat-agent-deployment.yaml",
+		"openshift-apiserver/konnectivity-proxy-configmap.yaml",
+	)
+	c.addUserManifestFiles(
+		"konnectivity/konnectivity-agent.yaml",
 	)
 }
 

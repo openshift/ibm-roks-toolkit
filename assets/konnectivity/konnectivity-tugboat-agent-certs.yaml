@@ -1,0 +1,7 @@
+kind: Secret
+apiVersion: v1
+metadata:
+  name: konnectivity-tugboat-agent
+data:
+  tls.key: {{ pki "konnectivity-agent-key.pem" }}
+  tls.crt: {{ pki "konnectivity-agent.pem" }}

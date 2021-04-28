@@ -79,15 +79,33 @@ type ClusterParams struct {
 	ClusterPolicyControllerSecurityContext    *SecurityContext       `json:"clusterPolicyControllerSecurityContext"`
 	ClusterConfigOperatorSecurityContext      *SecurityContext       `json:"clusterConfigOperatorSecurityContext"`
 	DefaultFeatureGates                       []string
-	PlatformType                              string `json:"platformType"`
-	EndpointPublishingStrategyScope           string `json:"endpointPublishingStrategyScope"`
-	ApiserverLivenessProbe                    *Probe `json:"apiserverLivenessProbe,omitempty"`
-	ApiserverReadinessProbe                   *Probe `json:"apiserverReadinessProbe,omitempty"`
-	ControllerManagerLivenessProbe            *Probe `json:"controllerManagerLivenessProbe,omitempty"`
-	SchedulerLivenessProbe                    *Probe `json:"schedulerLivenessProbe,omitempty"`
-	KMSLivenessProbe                          *Probe `json:"kmsLivenessProbe,omitempty"`
-	PortierisLivenessProbe                    *Probe `json:"portierisLivenessProbe,omitempty"`
-	KubeAPIServerVerbosity                    uint   `json:"kubeAPIServerVerbosity"`
+	PlatformType                              string                 `json:"platformType"`
+	EndpointPublishingStrategyScope           string                 `json:"endpointPublishingStrategyScope"`
+	ApiserverLivenessProbe                    *Probe                 `json:"apiserverLivenessProbe,omitempty"`
+	ApiserverReadinessProbe                   *Probe                 `json:"apiserverReadinessProbe,omitempty"`
+	ControllerManagerLivenessProbe            *Probe                 `json:"controllerManagerLivenessProbe,omitempty"`
+	SchedulerLivenessProbe                    *Probe                 `json:"schedulerLivenessProbe,omitempty"`
+	KMSLivenessProbe                          *Probe                 `json:"kmsLivenessProbe,omitempty"`
+	PortierisLivenessProbe                    *Probe                 `json:"portierisLivenessProbe,omitempty"`
+	KubeAPIServerVerbosity                    uint                   `json:"kubeAPIServerVerbosity"`
+	KonnectivityEnabled                       bool                   `json:"konnectivityEnabled"`
+	KonnectivityServerImage                   string                 `json:"konnectivityServerImage"`
+	KonnectivityServerURL                     string                 `json:"konnectivityServerURL"`
+	KonnectivityAgentImage                    string                 `json:"konnectivityAgentImage"`
+	KonnectivitySecurityContext               *SecurityContext       `json:"konnectivitySecurityContext"`
+	KonnectivityServerContainerResources      []ResourceRequirements `json:"konnectivityServerContainerResources"`
+	KonnectivityAgentContainerResources       []ResourceRequirements `json:"konnectivityAgentContainerResources"`
+	KonnectivityServerPort                    uint                   `json:"konnectivityServerPort"`
+	KonnectivityAgentPort                     uint                   `json:"konnectivityAgentPort"`
+	KonnectivityServerHealthPort              uint                   `json:"konnectivityServerHealthPort"`
+	KonnectivityServerAdminPort               uint                   `json:"konnectivityServerAdminPort"`
+	KonnectivityServerAgentNodePort           uint                   `json:"konnectivityServerAgentNodePort"`
+	KonnectivityAgentHealthPort               uint                   `json:"konnectivityAgentHealthPort"`
+	KonnectivityServerCipherSuites            string                 `json:"konnectivityServerCipherSuites"`
+	OpenshiftHAProxySecurityContext           *SecurityContext       `json:"openshiftHAProxySecurityContext"`
+	OpenshiftHAProxyContainerResources        []ResourceRequirements `json:"openshiftHAProxyContainerResources"`
+	OpenshiftHAProxyImage                     string                 `json:"openshiftHAProxyImage"`
+	OpenshiftHAProxyNoProxyHosts              string                 `json:"openshiftHAProxyNoProxyHosts"`
 }
 
 type NamedCert struct {
