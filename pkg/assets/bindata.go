@@ -1261,7 +1261,7 @@ func kubeApiserverConfigYaml() (*asset, error) {
 	return a, nil
 }
 
-var _kubeApiserverDefaultAuditPolicyYaml = []byte(`apiVersion: audit.k8s.io/v1beta1
+var _kubeApiserverDefaultAuditPolicyYaml = []byte(`apiVersion: audit.k8s.io/v1
 kind: Policy
 omitStages:
 - RequestReceived
@@ -2490,7 +2490,7 @@ func kubeSchedulerKubeSchedulerSecretYaml() (*asset, error) {
 	return a, nil
 }
 
-var _oauthApiserverAuditPolicyYaml = []byte(`apiVersion: audit.k8s.io/v1beta1
+var _oauthApiserverAuditPolicyYaml = []byte(`apiVersion: audit.k8s.io/v1
 kind: Policy
 omitStages:
 - RequestReceived
@@ -3399,7 +3399,7 @@ auditConfig:
   maximumFileSizeMegabytes: 100
   maximumRetainedFiles: 10
   policyConfiguration:
-    apiVersion: audit.k8s.io/v1beta1
+    apiVersion: audit.k8s.io/v1
     kind: Policy
     omitStages:
     - RequestReceived
