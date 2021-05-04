@@ -40,6 +40,7 @@ replace (
 	github.com/apcera/gssapi => github.com/openshift/gssapi v0.0.0-20161010215902-5fb4217df13b
 	github.com/containers/image => github.com/openshift/containers-image v0.0.0-20190130162827-4bc6d24282b1
 	github.com/docker/docker => github.com/docker/docker v1.4.2-0.20191121165722-d1d5f6476656
+	github.com/gogo/protobuf => github.com/gogo/protobuf v1.3.2
 	github.com/golang/glog => github.com/openshift/golang-glog v0.0.0-20190322123450-3c92600d7533
 	github.com/imdario/mergo => github.com/imdario/mergo v0.3.7
 	github.com/jteeuwen/go-bindata => github.com/jteeuwen/go-bindata v3.0.8-0.20151023091102-a0ff2567cfb7+incompatible
