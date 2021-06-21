@@ -55,6 +55,7 @@ spec:
             - "--enable-auto-update=false"
             - "--enable-default-cluster-version=true"
             - "--kubeconfig=/etc/openshift/kubeconfig/kubeconfig"
+            - "--listen="
             - "--v=4"
           terminationMessagePolicy: FallbackToLogsOnError
 {{ if .ClusterVersionOperatorResources }}
