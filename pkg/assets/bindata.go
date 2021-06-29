@@ -4148,6 +4148,7 @@ spec:
     - name: kubeconfig
       secret:
         secretName: service-network-admin-kubeconfig
+        defaultMode: 0640
     - name: work
       emptyDir: {}
 `)
