@@ -99,6 +99,19 @@ func includeFileFunc(params interface{}, rc *renderContext) func(string, int) st
 	}
 }
 
+func pullSecretBase64(file string) func() string {
+	return func() string {
+		if _, err := os.Stat(file); err != nil {
+			panic(err.Error())
+		}
+		b, err := ioutil.ReadFile(file)
+		if err != nil {
+			panic(err.Error())
+		}
+		return base64.StdEncoding.EncodeToString(b)
+	}
+}
+
 func cidrAddress(cidr string) string {
 	ip, _, err := net.ParseCIDR(cidr)
 	if err != nil {
