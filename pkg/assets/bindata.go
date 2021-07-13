@@ -259,6 +259,8 @@ metadata:
 spec:
   cloudConfig:
     name: ""
+  platformSpec:
+    type: {{ .PlatformType }}
 status:
   apiServerInternalURI: https://{{ .ExternalAPIDNSName }}:{{ .ExternalAPIPort }}
   apiServerURL: https://{{ .ExternalAPIDNSName }}:{{ .ExternalAPIPort }}
