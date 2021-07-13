@@ -129,6 +129,9 @@ spec:
 {{- if .KPInfo }}
         - "--encryption-provider-config=/etc/kubernetes/kms-config/config.yaml"
 {{- end }}
+{{- if .KonnectivityEnabled }}
+        - "--egress-selector-config-file=/etc/kubernetes/config/egress-config.yaml"
+{{- end }}
 {{- if .KubeAPIServerVerbosity }}
         - "--v={{ .KubeAPIServerVerbosity }}"
 {{- end }}

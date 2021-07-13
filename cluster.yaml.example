@@ -153,6 +153,13 @@ portierisContainerResources:
     - resourceLimit:
         - cpu: 200m
           memory: 200Mi
+konnectivityServerContainerResources:
+    - resourceRequest:
+        - cpu: 100m
+          memory: 100Mi
+    - resourceLimit:
+        - cpu: 200m
+          memory: 200Mi
 kmsImage: example.image:v1.0.0
 kmsAPIKey: abcdefghijklmnopqrstuvwxyz
 kpInfo: '{"example":"foobar"}'
@@ -226,4 +233,13 @@ oAuthServerSecurityContext:
   runAsUser: 1000
 clusterConfigOperatorSecurityContext:
   runAsUser: 1000
+konnectivityServerSecurityContext:
+  runAsUser: 1000
 kubeAPIServerVerbosity: 3
+konnectivityEnabled: false
+konnectivityServerImage: ''
+konnectivityServerPort: 8090
+konnectivityAgentPort: 8091
+konnectivityServerHealthPort: 8092
+konnectivityServerAdminPort: 8095
+konnectivityServerAgentNodePort: 32321
