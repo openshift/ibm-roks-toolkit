@@ -16,7 +16,9 @@
 // assets/cluster-bootstrap/namespace-security-allocation-controller-clusterrolebinding.yaml
 // assets/cluster-bootstrap/node-bootstrapper-clusterrolebinding.yaml
 // assets/cluster-bootstrap/openshift-install-configmap.yaml
+// assets/cluster-version-operator/cluster-version-operator-configmap.yaml
 // assets/cluster-version-operator/cluster-version-operator-deployment.yaml
+// assets/cluster-version-operator/cluster-version-operator-secret.yaml
 // assets/common/service-network-admin-kubeconfig-secret.yaml
 // assets/control-plane-operator/cp-operator-configmap.yaml
 // assets/control-plane-operator/cp-operator-deployment.yaml
@@ -701,6 +703,30 @@ func clusterBootstrapOpenshiftInstallConfigmapYaml() (*asset, error) {
 	return a, nil
 }
 
+var _clusterVersionOperatorClusterVersionOperatorConfigmapYaml = []byte(`apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-version-operator
+data:
+  initial-ca.crt: |
+{{ include_pki "combined-ca.crt"  4 }}
+`)
+
+func clusterVersionOperatorClusterVersionOperatorConfigmapYamlBytes() ([]byte, error) {
+	return _clusterVersionOperatorClusterVersionOperatorConfigmapYaml, nil
+}
+
+func clusterVersionOperatorClusterVersionOperatorConfigmapYaml() (*asset, error) {
+	bytes, err := clusterVersionOperatorClusterVersionOperatorConfigmapYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "cluster-version-operator/cluster-version-operator-configmap.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _clusterVersionOperatorClusterVersionOperatorDeploymentYaml = []byte(`apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -758,7 +784,9 @@ spec:
             - "--enable-auto-update=false"
             - "--enable-default-cluster-version=true"
             - "--kubeconfig=/etc/openshift/kubeconfig/kubeconfig"
-            - "--listen="
+            - "--listen=127.0.0.1:9099"
+            - "--serving-cert-file=/etc/tls/serving-cert/server.crt"
+            - "--serving-key-file=/etc/tls/serving-cert/server.key"
             - "--v=4"
           terminationMessagePolicy: FallbackToLogsOnError
 {{ if .ClusterVersionOperatorResources }}
@@ -776,6 +804,9 @@ spec:
               readOnly: true
             - mountPath: /etc/openshift/kubeconfig
               name: kubeconfig
+              readOnly: true
+            - mountPath: /etc/tls/serving-cert
+              name: serving-cert
               readOnly: true
           env:
             - name: NODE_NAME
@@ -799,11 +830,15 @@ spec:
             - "--destination-path=/api/v1/namespaces/openshift-roks-metrics/services/push-gateway:http/proxy/metrics/job/cluster-version-operator"
             - "--kubeconfig=/etc/openshift/kubeconfig/kubeconfig"
             - "--frequency=30s"
-            - "--source-url=http://localhost:9099/metrics"
+            - "--source-url=https://localhost:9099/metrics"
+            - "--client-ca-file=/etc/kubernetes/config/initial-ca.crt"
           terminationMessagePolicy: FallbackToLogsOnError
           volumeMounts:
             - mountPath: /etc/openshift/kubeconfig
               name: kubeconfig
+              readOnly: true
+            - mountPath: /etc/kubernetes/config
+              name: config
               readOnly: true
 {{ end }}
       volumes:
@@ -815,6 +850,13 @@ spec:
           secret:
             secretName: service-network-admin-kubeconfig
             defaultMode: 0640
+        - name: serving-cert
+          secret:
+            secretName: cluster-version-operator
+            defaultMode: 0640
+        - name: config
+          configMap:
+            name: cluster-version-operator
 `)
 
 func clusterVersionOperatorClusterVersionOperatorDeploymentYamlBytes() ([]byte, error) {
@@ -828,6 +870,30 @@ func clusterVersionOperatorClusterVersionOperatorDeploymentYaml() (*asset, error
 	}
 
 	info := bindataFileInfo{name: "cluster-version-operator/cluster-version-operator-deployment.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _clusterVersionOperatorClusterVersionOperatorSecretYaml = []byte(`apiVersion: v1
+kind: Secret
+metadata:
+  name: cluster-version-operator
+data:
+  server.crt: {{ pki "cluster-version-operator.crt" }}
+  server.key: {{ pki "cluster-version-operator.key" }}
+`)
+
+func clusterVersionOperatorClusterVersionOperatorSecretYamlBytes() ([]byte, error) {
+	return _clusterVersionOperatorClusterVersionOperatorSecretYaml, nil
+}
+
+func clusterVersionOperatorClusterVersionOperatorSecretYaml() (*asset, error) {
+	bytes, err := clusterVersionOperatorClusterVersionOperatorSecretYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "cluster-version-operator/cluster-version-operator-secret.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -4860,7 +4926,9 @@ var _bindata = map[string]func() (*asset, error){
 	"cluster-bootstrap/namespace-security-allocation-controller-clusterrolebinding.yaml": clusterBootstrapNamespaceSecurityAllocationControllerClusterrolebindingYaml,
 	"cluster-bootstrap/node-bootstrapper-clusterrolebinding.yaml":                        clusterBootstrapNodeBootstrapperClusterrolebindingYaml,
 	"cluster-bootstrap/openshift-install-configmap.yaml":                                 clusterBootstrapOpenshiftInstallConfigmapYaml,
+	"cluster-version-operator/cluster-version-operator-configmap.yaml":                   clusterVersionOperatorClusterVersionOperatorConfigmapYaml,
 	"cluster-version-operator/cluster-version-operator-deployment.yaml":                  clusterVersionOperatorClusterVersionOperatorDeploymentYaml,
+	"cluster-version-operator/cluster-version-operator-secret.yaml":                      clusterVersionOperatorClusterVersionOperatorSecretYaml,
 	"common/service-network-admin-kubeconfig-secret.yaml":                                commonServiceNetworkAdminKubeconfigSecretYaml,
 	"control-plane-operator/cp-operator-configmap.yaml":                                  controlPlaneOperatorCpOperatorConfigmapYaml,
 	"control-plane-operator/cp-operator-deployment.yaml":                                 controlPlaneOperatorCpOperatorDeploymentYaml,
@@ -4994,7 +5062,9 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"openshift-install-configmap.yaml":                                 {clusterBootstrapOpenshiftInstallConfigmapYaml, map[string]*bintree{}},
 	}},
 	"cluster-version-operator": {nil, map[string]*bintree{
+		"cluster-version-operator-configmap.yaml":  {clusterVersionOperatorClusterVersionOperatorConfigmapYaml, map[string]*bintree{}},
 		"cluster-version-operator-deployment.yaml": {clusterVersionOperatorClusterVersionOperatorDeploymentYaml, map[string]*bintree{}},
+		"cluster-version-operator-secret.yaml":     {clusterVersionOperatorClusterVersionOperatorSecretYaml, map[string]*bintree{}},
 	}},
 	"common": {nil, map[string]*bintree{
 		"service-network-admin-kubeconfig-secret.yaml": {commonServiceNetworkAdminKubeconfigSecretYaml, map[string]*bintree{}},
