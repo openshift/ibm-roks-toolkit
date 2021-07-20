@@ -13,10 +13,6 @@ spec:
   replicas: 1
   strategy:
     type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 3
-      maxUnavailable: 1
-  revisionHistoryLimit: 10
   template:
     metadata:
       labels:
@@ -27,6 +23,10 @@ spec:
         openshift.io/restartedAt: "{{ .RestartDate }}"
 {{- end }}
     spec:
+      automountServiceAccountToken: false
+{{ if .MasterPriorityClass }}
+      priorityClassName: {{ .MasterPriorityClass }}
+{{ end }}
       containers:
       - name: konnectivity-server
 {{- if .KonnectivityServerSecurityContext }}
@@ -93,6 +93,8 @@ spec:
       - name: kube-apiserver-secret
         secret:
           secretName: kube-apiserver
+          defaultMode: 0640
       - name: konnectivity-server-secret
         secret:
           secretName: konnectivity-server-secret
+          defaultMode: 0640

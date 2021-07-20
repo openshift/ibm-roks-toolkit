@@ -12,14 +12,15 @@ import (
 )
 
 // RenderClusterManifests renders manifests for a hosted control plane cluster
-func RenderClusterManifests(params *api.ClusterParams, pullSecretFile, outputDir string, externalOauth, includeRegistry, konnectivityEnabled bool) error {
+func RenderClusterManifests(params *api.ClusterParams, pullSecretFile, outputDir string, externalOauth, includeRegistry bool) error {
 	releaseInfo, err := release.GetReleaseInfo(params.ReleaseImage, params.OriginReleasePrefix, pullSecretFile)
 	if err != nil {
 		return err
 	}
 	includeMetrics := len(params.ROKSMetricsImage) > 0
+	includeKonnectivity := params.KonnectivityEnabled
 	ctx := newClusterManifestContext(releaseInfo.Images, releaseInfo.Versions, params, outputDir)
-	ctx.setupManifests(externalOauth, includeRegistry, includeMetrics, konnectivityEnabled)
+	ctx.setupManifests(externalOauth, includeRegistry, includeMetrics, includeKonnectivity)
 	return ctx.renderManifests()
 }
 
@@ -49,7 +50,7 @@ func newClusterManifestContext(images, versions map[string]string, params interf
 	return ctx
 }
 
-func (c *clusterManifestContext) setupManifests(externalOauth, includeRegistry, includeMetrics, konnectivityEnabled bool) {
+func (c *clusterManifestContext) setupManifests(externalOauth, includeRegistry, includeMetrics, includeKonnectivity bool) {
 	c.kubeAPIServer()
 	c.kubeControllerManager()
 	c.kubeScheduler()
@@ -70,7 +71,7 @@ func (c *clusterManifestContext) setupManifests(externalOauth, includeRegistry, 
 	c.userManifestsBootstrapper()
 	c.controlPlaneOperator()
 
-	if konnectivityEnabled {
+	if includeKonnectivity {
 		c.apiserverNetworkProxy()
 	}
 }

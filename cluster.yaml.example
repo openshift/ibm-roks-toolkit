@@ -155,11 +155,11 @@ portierisContainerResources:
           memory: 200Mi
 konnectivityServerContainerResources:
     - resourceRequest:
-        - cpu: 100m
-          memory: 100Mi
+        - cpu: 10m
+          memory: 50Mi
     - resourceLimit:
-        - cpu: 200m
-          memory: 200Mi
+        - cpu: 2000m
+          memory: 1Gi
 kmsImage: example.image:v1.0.0
 kmsAPIKey: abcdefghijklmnopqrstuvwxyz
 kpInfo: '{"example":"foobar"}'
