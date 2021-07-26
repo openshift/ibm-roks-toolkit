@@ -351,7 +351,7 @@ var _clusterBootstrapClusterNetwork01CrdYaml = []byte(`
 # This is the advanced network configuration CRD
 # Only necessary if you need to tweak certain settings.
 # See https://github.com/openshift/cluster-network-operator#configuring
-apiVersion: apiextensions.k8s.io/v1beta1
+apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   name: networks.operator.openshift.io
