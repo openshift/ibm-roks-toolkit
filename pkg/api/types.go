@@ -86,13 +86,17 @@ type ClusterParams struct {
 	KubeAPIServerVerbosity                    uint                   `json:"kubeAPIServerVerbosity"`
 	KonnectivityEnabled                       bool                   `json:"konnectivityEnabled"`
 	KonnectivityServerImage                   string                 `json:"konnectivityServerImage"`
-	KonnectivityServerSecurityContext         *SecurityContext       `json:"konnectivityServerSecurityContext"`
+	KonnectivityServerURL                     string                 `json:"konnectivityServerURL"`
+	KonnectivityAgentImage                    string                 `json:"konnectivityAgentImage"`
+	KonnectivitySecurityContext               *SecurityContext       `json:"konnectivitySecurityContext"`
 	KonnectivityServerContainerResources      []ResourceRequirements `json:"konnectivityServerContainerResources"`
+	KonnectivityAgentContainerResources       []ResourceRequirements `json:"konnectivityAgentContainerResources"`
 	KonnectivityServerPort                    uint                   `json:"konnectivityServerPort"`
 	KonnectivityAgentPort                     uint                   `json:"konnectivityAgentPort"`
 	KonnectivityServerHealthPort              uint                   `json:"konnectivityServerHealthPort"`
 	KonnectivityServerAdminPort               uint                   `json:"konnectivityServerAdminPort"`
 	KonnectivityServerAgentNodePort           uint                   `json:"konnectivityServerAgentNodePort"`
+	KonnectivityAgentHealthPort               uint                   `json:"konnectivityAgentHealthPort"`
 }
 
 type NamedCert struct {

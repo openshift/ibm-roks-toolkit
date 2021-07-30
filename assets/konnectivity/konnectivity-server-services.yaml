@@ -6,6 +6,9 @@ metadata:
   labels:
     app: konnectivity-server
 spec:
+  type: NodePort
+  selector:
+    app: konnectivity-server
   ports:
     - name: konnectivity-agent
       port: {{ .KonnectivityAgentPort }}
@@ -14,9 +17,6 @@ spec:
       nodePort: {{ .KonnectivityServerAgentNodePort }}
 {{- end }}
       protocol: TCP
-  selector:
-    app: konnectivity-server
-  type: NodePort
 ---
 apiVersion: v1
 kind: Service
@@ -25,11 +25,11 @@ metadata:
   labels:
     app: konnectivity-server
 spec:
+  type: ClusterIP
+  selector:
+    app: konnectivity-server
   ports:
     - name: konnectivity-server
       port: {{ .KonnectivityServerPort }}
       targetPort: {{ .KonnectivityServerPort }}
       protocol: TCP
-  selector:
-    app: konnectivity-server
-  type: ClusterIP

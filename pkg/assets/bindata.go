@@ -22,8 +22,13 @@
 // assets/common/service-network-admin-kubeconfig-secret.yaml
 // assets/control-plane-operator/cp-operator-configmap.yaml
 // assets/control-plane-operator/cp-operator-deployment.yaml
+// assets/konnectivity/konnectivity-agent-secret.yaml
+// assets/konnectivity/konnectivity-agent.yaml
 // assets/konnectivity/konnectivity-server-deployment.yaml
+// assets/konnectivity/konnectivity-server-secret.yaml
 // assets/konnectivity/konnectivity-server-services.yaml
+// assets/konnectivity/konnectivity-tugboat-agent-deployment.yaml
+// assets/konnectivity/konnectivity-tugboat-agent-secret.yaml
 // assets/kube-apiserver/config.yaml
 // assets/kube-apiserver/default-audit-policy.yaml
 // assets/kube-apiserver/kube-apiserver-config-configmap.yaml
@@ -1523,6 +1528,137 @@ func controlPlaneOperatorCpOperatorDeploymentYaml() (*asset, error) {
 	return a, nil
 }
 
+var _konnectivityKonnectivityAgentSecretYaml = []byte(`apiVersion: v1
+kind: Secret
+metadata:
+  name: konnectivity-agent
+  namespace: kube-system
+data:
+  konnectivity-agent.pem: {{ pki "konnectivity-agent.pem" }}
+  konnectivity-agent-key.pem: {{ pki "konnectivity-agent-key.pem" }}
+`)
+
+func konnectivityKonnectivityAgentSecretYamlBytes() ([]byte, error) {
+	return _konnectivityKonnectivityAgentSecretYaml, nil
+}
+
+func konnectivityKonnectivityAgentSecretYaml() (*asset, error) {
+	bytes, err := konnectivityKonnectivityAgentSecretYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "konnectivity/konnectivity-agent-secret.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _konnectivityKonnectivityAgentYaml = []byte(`---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: konnectivity-agent
+  namespace: kube-system
+  labels:
+    app: konnectivity-agent
+    kubernetes-dashboard-policy: allow
+    dashboard-metrics-scraper-policy: allow
+    addonmanager.kubernetes.io/mode: Reconcile
+    kubernetes.io/cluster-service: "true"
+spec:
+  selector:
+    matchLabels:
+      app: konnectivity-agent
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 10%
+  template:
+    metadata:
+      labels:
+        app: konnectivity-agent
+        kubernetes-dashboard-policy: allow
+        dashboard-metrics-scraper-policy: allow
+    spec:
+      automountServiceAccountToken: false
+{{- if .MasterPriorityClass }}
+      priorityClassName: {{ .MasterPriorityClass }}
+{{- end }}
+      containers:
+      - name: konnectivity-agent
+        image: {{ .KonnectivityAgentImage }}
+        imagePullPolicy: IfNotPresent
+{{- if .KonnectivitySecurityContext }}
+{{- $securityContext := .KonnectivitySecurityContext }}
+        securityContext:
+          runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
+        command: ["/bin/proxy-agent"]
+        args: [
+          "--ca-cert=/var/run/secrets/certs/ca.crt",
+          "--proxy-server-host={{ .KonnectivityServerURL }}",
+          "--proxy-server-port={{ .KonnectivityServerAgentNodePort }}",
+          "--health-server-port={{ .KonnectivityAgentHealthPort }}",
+          "--agent-cert=/var/run/secrets/konn-certs/konnectivity-agent.pem",
+          "--agent-key=/var/run/secrets/konn-certs/konnectivity-agent-key.pem",
+          "--agent-identifiers=ipv4=$(HOST_IP)&default-route=true"
+          ]
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: {{ .KonnectivityAgentHealthPort }}
+            scheme: HTTP
+          initialDelaySeconds: 120
+          periodSeconds: 60
+          failureThreshold: 3
+          timeoutSeconds: 30
+        env:
+        - name: HOST_IP
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: status.hostIP
+{{- if .KonnectivityAgentContainerResources }}
+        resources: {{ range .KonnectivityAgentContainerResources }}{{ range .ResourceRequest }}
+          requests: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ range .ResourceLimit }}
+          limits: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
+{{- end }}
+        volumeMounts:
+        - mountPath: /var/run/secrets/certs
+          name: kube-root-ca
+        - mountPath: /var/run/secrets/konn-certs
+          name: konnectivity-agent
+      tolerations:
+      - operator: "Exists"
+      volumes:
+      - name: konnectivity-agent
+        secret:
+          secretName: konnectivity-agent
+          defaultMode: 416
+      - name: kube-root-ca
+        configMap:
+          name: kube-root-ca.crt
+          items: []
+`)
+
+func konnectivityKonnectivityAgentYamlBytes() ([]byte, error) {
+	return _konnectivityKonnectivityAgentYaml, nil
+}
+
+func konnectivityKonnectivityAgentYaml() (*asset, error) {
+	bytes, err := konnectivityKonnectivityAgentYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "konnectivity/konnectivity-agent.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _konnectivityKonnectivityServerDeploymentYaml = []byte(`---
 apiVersion: apps/v1
 kind: Deployment
@@ -1538,10 +1674,6 @@ spec:
   replicas: 1
   strategy:
     type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 3
-      maxUnavailable: 1
-  revisionHistoryLimit: 10
   template:
     metadata:
       labels:
@@ -1551,33 +1683,35 @@ spec:
       annotations:
         openshift.io/restartedAt: "{{ .RestartDate }}"
 {{- end }}
-      annotations:
-        prometheus.io/scrape: 'true'
-        prometheus.io/path: '/metrics'
-        prometheus.io/port: "{{ .KonnectivityServerAdminPort }}"
     spec:
+      automountServiceAccountToken: false
+{{- if .MasterPriorityClass }}
+      priorityClassName: {{ .MasterPriorityClass }}
+{{- end }}
       containers:
       - name: konnectivity-server
-{{- if .KonnectivityServerSecurityContext }}
-{{- $securityContext := .KonnectivityServerSecurityContext }}
+{{- if .KonnectivitySecurityContext }}
+{{- $securityContext := .KonnectivitySecurityContext }}
         securityContext:
           runAsUser: {{ $securityContext.RunAsUser }}
 {{- end }}
         image: {{ .KonnectivityServerImage }}
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         command: ["/bin/proxy-server"]
         args: [
-                "--server-key=/etc/kubernetes/konn-certs/konnectivity-server-key.pem",
-                "--server-cert=/etc/kubernetes/konn-certs/konnectivity-server.pem",
-                "--server-ca-cert=/etc/kubernetes/konn-certs/ca.crt",
-                "--cluster-key=/etc/kubernetes/server.key",
-                "--cluster-cert=/etc/kubernetes/server.crt",
-                "--server-port={{ .KonnectivityServerPort }}",
-                "--agent-port={{ .KonnectivityAgentPort }}",
-                "--health-port={{ .KonnectivityServerHealthPort }}",
-                "--admin-port={{ .KonnectivityServerAdminPort }}",
-                "--mode=http-connect"
-              ]
+          "--server-key=/etc/kubernetes/konn-certs/konnectivity-server-key.pem",
+          "--server-cert=/etc/kubernetes/konn-certs/konnectivity-server.pem",
+          "--server-ca-cert=/etc/kubernetes/konn-certs/ca.crt",
+          "--cluster-key=/etc/kubernetes/server.key",
+          "--cluster-cert=/etc/kubernetes/server.crt",
+          "--server-port={{ .KonnectivityServerPort }}",
+          "--agent-port={{ .KonnectivityAgentPort }}",
+          "--health-port={{ .KonnectivityServerHealthPort }}",
+          "--admin-port={{ .KonnectivityServerAdminPort }}",
+          "--mode=http-connect",
+          "--proxy-strategies=destHost,defaultRoute",
+          "--v=5"
+          ]
 {{- if .KonnectivityServerContainerResources }}
         resources: {{ range .KonnectivityServerContainerResources }}{{ range .ResourceRequest }}
           requests: {{ if .CPU }}
@@ -1608,21 +1742,24 @@ spec:
           containerPort: {{ .KonnectivityServerAdminPort }}
         volumeMounts:
         - mountPath: /etc/kubernetes/konn-certs/
-          name: konnectivity-server-secret
+          name: konnectivity-server
         - mountPath: /etc/kubernetes/
-          name: kube-apiserver-secret
+          name: kube-apiserver
       tolerations:
         - key: "multi-az-worker"
           operator: "Equal"
           value: "true"
           effect: NoSchedule
       volumes:
-      - name: kube-apiserver-secret
+      - name: kube-apiserver
         secret:
           secretName: kube-apiserver
-      - name: konnectivity-server-secret
+          defaultMode: 416
+      - name: konnectivity-server
         secret:
-          secretName: konnectivity-server-secret`)
+          secretName: konnectivity-server
+          defaultMode: 416
+`)
 
 func konnectivityKonnectivityServerDeploymentYamlBytes() ([]byte, error) {
 	return _konnectivityKonnectivityServerDeploymentYaml, nil
@@ -1639,14 +1776,41 @@ func konnectivityKonnectivityServerDeploymentYaml() (*asset, error) {
 	return a, nil
 }
 
+var _konnectivityKonnectivityServerSecretYaml = []byte(`kind: Secret
+apiVersion: v1
+metadata:
+  name: konnectivity-server
+data:
+  konnectivity-server-key.pem: {{ pki "konnectivity-server-key.pem" }}
+  konnectivity-server.pem: {{ pki "konnectivity-server.pem" }}
+  ca.crt: {{ pki "root-ca.crt" }}`)
+
+func konnectivityKonnectivityServerSecretYamlBytes() ([]byte, error) {
+	return _konnectivityKonnectivityServerSecretYaml, nil
+}
+
+func konnectivityKonnectivityServerSecretYaml() (*asset, error) {
+	bytes, err := konnectivityKonnectivityServerSecretYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "konnectivity/konnectivity-server-secret.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _konnectivityKonnectivityServerServicesYaml = []byte(`---
 apiVersion: v1
 kind: Service
 metadata:
-  name: konnectivity-server-{{ .ClusterID }}-agent
+  name: konnectivity-server-agent
   labels:
     app: konnectivity-server
 spec:
+  type: NodePort
+  selector:
+    app: konnectivity-server
   ports:
     - name: konnectivity-agent
       port: {{ .KonnectivityAgentPort }}
@@ -1655,9 +1819,6 @@ spec:
       nodePort: {{ .KonnectivityServerAgentNodePort }}
 {{- end }}
       protocol: TCP
-  selector:
-    app: konnectivity-server
-  type: NodePort
 ---
 apiVersion: v1
 kind: Service
@@ -1666,33 +1827,15 @@ metadata:
   labels:
     app: konnectivity-server
 spec:
+  type: ClusterIP
+  selector:
+    app: konnectivity-server
   ports:
     - name: konnectivity-server
       port: {{ .KonnectivityServerPort }}
       targetPort: {{ .KonnectivityServerPort }}
       protocol: TCP
-  selector:
-    app: konnectivity-server
-  type: ClusterIP
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: konnectivity-server-metrics
-  labels:
-    app: konnectivity-server
-  annotations:
-    prometheus.io/probe: 'true'
-    prometheus.io/scrape: 'true'
-    prometheus.io/probepath: 'metrics'
-spec:
-  ports:
-    - name: metrics
-      port: {{ .KonnectivityServerAdminPort }}
-      targetPort: {{ .KonnectivityServerAdminPort }}
-      protocol: TCP
-  selector:
-    app: konnectivity-server`)
+`)
 
 func konnectivityKonnectivityServerServicesYamlBytes() ([]byte, error) {
 	return _konnectivityKonnectivityServerServicesYaml, nil
@@ -1705,6 +1848,130 @@ func konnectivityKonnectivityServerServicesYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "konnectivity/konnectivity-server-services.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _konnectivityKonnectivityTugboatAgentDeploymentYaml = []byte(`---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: konnectivity-tugboat-agent
+  labels:
+    app: konnectivity-tugboat-agent
+    clusterID: {{ .ClusterID }}
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: konnectivity-tugboat-agent
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: konnectivity-tugboat-agent
+        clusterID: {{ .ClusterID }}
+    spec:
+{{- if .MasterPriorityClass }}
+      priorityClassName: {{ .MasterPriorityClass }}
+{{- end }}
+      containers:
+      - name: konnectivity-tugboat-agent
+{{- if .KonnectivitySecurityContext }}
+{{- $securityContext := .KonnectivitySecurityContext }}
+        securityContext:
+          runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
+        image: {{ .KonnectivityAgentImage }}
+        imagePullPolicy: IfNotPresent
+        command: ["/bin/proxy-agent"]
+        args: [
+          "--ca-cert=/var/run/secrets/certs/ca.crt",
+          "--proxy-server-host=konnectivity-server-agent.{{ .Namespace }}.svc",
+          "--proxy-server-port={{ .KonnectivityAgentPort }}",
+          "--health-server-port={{ .KonnectivityAgentHealthPort }}",
+          "--agent-cert=/var/run/secrets/konn-certs/konnectivity-tugboat-agent.pem",
+          "--agent-key=/var/run/secrets/konn-certs/konnectivity-tugboat-agent-key.pem",
+          "--agent-identifiers=ipv4={{ .OpenShiftAPIClusterIP }}&ipv4={{ .OauthAPIClusterIP }}",
+          ]
+{{- if .KonnectivityAgentContainerResources }}
+        resources: {{ range .KonnectivityAgentContainerResources }}{{ range .ResourceRequest }}
+          requests: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ range .ResourceLimit }}
+          limits: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
+{{- end }}
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthz
+            port: {{ .KonnectivityAgentHealthPort }}
+            scheme: HTTP
+          initialDelaySeconds: 120
+          periodSeconds: 60
+          successThreshold: 1
+          timeoutSeconds: 30
+        volumeMounts:
+        - mountPath: /var/run/secrets/certs
+          name: kube-apiserver
+        - mountPath: /var/run/secrets/konn-certs
+          name: konnectivity-tugboat-agent
+      tolerations:
+      - key: "multi-az-worker"
+        operator: "Equal"
+        value: "true"
+        effect: NoSchedule
+      volumes:
+      - name: konnectivity-tugboat-agent
+        secret:
+          defaultMode: 416
+          secretName: konnectivity-tugboat-agent
+      - name: kube-apiserver
+        secret:
+          defaultMode: 416
+          secretName: kube-apiserver
+`)
+
+func konnectivityKonnectivityTugboatAgentDeploymentYamlBytes() ([]byte, error) {
+	return _konnectivityKonnectivityTugboatAgentDeploymentYaml, nil
+}
+
+func konnectivityKonnectivityTugboatAgentDeploymentYaml() (*asset, error) {
+	bytes, err := konnectivityKonnectivityTugboatAgentDeploymentYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "konnectivity/konnectivity-tugboat-agent-deployment.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _konnectivityKonnectivityTugboatAgentSecretYaml = []byte(`kind: Secret
+apiVersion: v1
+metadata:
+  name: konnectivity-tugboat-agent
+data:
+  konnectivity-tugboat-agent-key.pem: {{ pki "konnectivity-tugboat-agent-key.pem" }}
+  konnectivity-tugboat-agent.pem: {{ pki "konnectivity-tugboat-agent.pem" }}
+`)
+
+func konnectivityKonnectivityTugboatAgentSecretYamlBytes() ([]byte, error) {
+	return _konnectivityKonnectivityTugboatAgentSecretYaml, nil
+}
+
+func konnectivityKonnectivityTugboatAgentSecretYaml() (*asset, error) {
+	bytes, err := konnectivityKonnectivityTugboatAgentSecretYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "konnectivity/konnectivity-tugboat-agent-secret.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -2030,6 +2297,21 @@ data:
 {{ include_pki "combined-ca.crt" 4 }}
   etcd-ca.crt: |-
 {{ include_pki "root-ca.crt" 4 }}
+{{- if .KonnectivityEnabled }}
+  egress-config.yaml: |
+      apiVersion: apiserver.k8s.io/v1beta1
+      kind: EgressSelectorConfiguration
+      egressSelections:
+      - name: cluster
+        connection:
+          proxyProtocol: HTTPConnect
+          transport:
+            TCP:
+              URL: https://konnectivity-server.{{ .Namespace }}.svc:{{ .KonnectivityServerPort }}
+              TLSConfig:
+                CABundle: /etc/kubernetes/secret/ca.crt
+                ClientKey: /etc/kubernetes/secret/konnectivity-client-key.pem
+                ClientCert: /etc/kubernetes/secret/konnectivity-client.pem
 `)
 
 func kubeApiserverKubeApiserverConfigmapYamlBytes() ([]byte, error) {
@@ -2551,6 +2833,10 @@ data:
   proxy-client.crt: {{ pki "kube-apiserver-aggregator-proxy-client.crt" }}
   proxy-client.key: {{ pki "kube-apiserver-aggregator-proxy-client.key" }}
   service-account.key: {{ pki "service-account.key" }}
+{{- if .KonnectivityEnabled }}
+  konnectivity-client-key.pem: {{ pki "konnectivity-client-key.pem" }}
+  konnectivity-client.pem: {{ pki "konnectivity-client.pem" }}
+{{- end }}
 `)
 
 func kubeApiserverKubeApiserverSecretYamlBytes() ([]byte, error) {
@@ -5559,8 +5845,13 @@ var _bindata = map[string]func() (*asset, error){
 	"common/service-network-admin-kubeconfig-secret.yaml":                                commonServiceNetworkAdminKubeconfigSecretYaml,
 	"control-plane-operator/cp-operator-configmap.yaml":                                  controlPlaneOperatorCpOperatorConfigmapYaml,
 	"control-plane-operator/cp-operator-deployment.yaml":                                 controlPlaneOperatorCpOperatorDeploymentYaml,
+	"konnectivity/konnectivity-agent-secret.yaml":                                        konnectivityKonnectivityAgentSecretYaml,
+	"konnectivity/konnectivity-agent.yaml":                                               konnectivityKonnectivityAgentYaml,
 	"konnectivity/konnectivity-server-deployment.yaml":                                   konnectivityKonnectivityServerDeploymentYaml,
+	"konnectivity/konnectivity-server-secret.yaml":                                       konnectivityKonnectivityServerSecretYaml,
 	"konnectivity/konnectivity-server-services.yaml":                                     konnectivityKonnectivityServerServicesYaml,
+	"konnectivity/konnectivity-tugboat-agent-deployment.yaml":                            konnectivityKonnectivityTugboatAgentDeploymentYaml,
+	"konnectivity/konnectivity-tugboat-agent-secret.yaml":                                konnectivityKonnectivityTugboatAgentSecretYaml,
 	"kube-apiserver/config.yaml":                                                         kubeApiserverConfigYaml,
 	"kube-apiserver/default-audit-policy.yaml":                                           kubeApiserverDefaultAuditPolicyYaml,
 	"kube-apiserver/kube-apiserver-config-configmap.yaml":                                kubeApiserverKubeApiserverConfigConfigmapYaml,
@@ -5703,8 +5994,13 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"cp-operator-deployment.yaml": {controlPlaneOperatorCpOperatorDeploymentYaml, map[string]*bintree{}},
 	}},
 	"konnectivity": {nil, map[string]*bintree{
-		"konnectivity-server-deployment.yaml": {konnectivityKonnectivityServerDeploymentYaml, map[string]*bintree{}},
-		"konnectivity-server-services.yaml":   {konnectivityKonnectivityServerServicesYaml, map[string]*bintree{}},
+		"konnectivity-agent-secret.yaml":             {konnectivityKonnectivityAgentSecretYaml, map[string]*bintree{}},
+		"konnectivity-agent.yaml":                    {konnectivityKonnectivityAgentYaml, map[string]*bintree{}},
+		"konnectivity-server-deployment.yaml":        {konnectivityKonnectivityServerDeploymentYaml, map[string]*bintree{}},
+		"konnectivity-server-secret.yaml":            {konnectivityKonnectivityServerSecretYaml, map[string]*bintree{}},
+		"konnectivity-server-services.yaml":          {konnectivityKonnectivityServerServicesYaml, map[string]*bintree{}},
+		"konnectivity-tugboat-agent-deployment.yaml": {konnectivityKonnectivityTugboatAgentDeploymentYaml, map[string]*bintree{}},
+		"konnectivity-tugboat-agent-secret.yaml":     {konnectivityKonnectivityTugboatAgentSecretYaml, map[string]*bintree{}},
 	}},
 	"kube-apiserver": {nil, map[string]*bintree{
 		"config.yaml":                                  {kubeApiserverConfigYaml, map[string]*bintree{}},

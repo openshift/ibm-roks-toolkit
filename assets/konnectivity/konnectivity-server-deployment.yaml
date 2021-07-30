@@ -24,13 +24,13 @@ spec:
 {{- end }}
     spec:
       automountServiceAccountToken: false
-{{ if .MasterPriorityClass }}
+{{- if .MasterPriorityClass }}
       priorityClassName: {{ .MasterPriorityClass }}
-{{ end }}
+{{- end }}
       containers:
       - name: konnectivity-server
-{{- if .KonnectivityServerSecurityContext }}
-{{- $securityContext := .KonnectivityServerSecurityContext }}
+{{- if .KonnectivitySecurityContext }}
+{{- $securityContext := .KonnectivitySecurityContext }}
         securityContext:
           runAsUser: {{ $securityContext.RunAsUser }}
 {{- end }}
@@ -38,19 +38,20 @@ spec:
         imagePullPolicy: IfNotPresent
         command: ["/bin/proxy-server"]
         args: [
-                "--server-key=/etc/kubernetes/konn-certs/konnectivity-server-key.pem",
-                "--server-cert=/etc/kubernetes/konn-certs/konnectivity-server.pem",
-                "--server-ca-cert=/etc/kubernetes/konn-certs/ca.crt",
-                "--cluster-key=/etc/kubernetes/server.key",
-                "--cluster-cert=/etc/kubernetes/server.crt",
-                "--server-port={{ .KonnectivityServerPort }}",
-                "--agent-port={{ .KonnectivityAgentPort }}",
-                "--health-port={{ .KonnectivityServerHealthPort }}",
-                "--admin-port={{ .KonnectivityServerAdminPort }}",
-                "--mode=http-connect",
-                "--proxy-strategies=destHost,defaultRoute",
-                "--v=5"
-              ]
+          "--server-key=/etc/kubernetes/konn-certs/konnectivity-server-key.pem",
+          "--server-cert=/etc/kubernetes/konn-certs/konnectivity-server.pem",
+          "--server-ca-cert=/etc/kubernetes/konn-certs/ca.crt",
+          "--cluster-key=/etc/kubernetes/konn-certs/konnectivity-server-key.pem",
+          "--cluster-cert=/etc/kubernetes/konn-certs/konnectivity-server.pem",
+          "--cluster-ca-cert=/etc/kubernetes/konn-certs/ca.crt",
+          "--server-port={{ .KonnectivityServerPort }}",
+          "--agent-port={{ .KonnectivityAgentPort }}",
+          "--health-port={{ .KonnectivityServerHealthPort }}",
+          "--admin-port={{ .KonnectivityServerAdminPort }}",
+          "--mode=http-connect",
+          "--proxy-strategies=destHost,defaultRoute",
+          "--v=5"
+          ]
 {{- if .KonnectivityServerContainerResources }}
         resources: {{ range .KonnectivityServerContainerResources }}{{ range .ResourceRequest }}
           requests: {{ if .CPU }}
@@ -81,20 +82,14 @@ spec:
           containerPort: {{ .KonnectivityServerAdminPort }}
         volumeMounts:
         - mountPath: /etc/kubernetes/konn-certs/
-          name: konnectivity-server-secret
-        - mountPath: /etc/kubernetes/
-          name: kube-apiserver-secret
+          name: konnectivity-server
       tolerations:
         - key: "multi-az-worker"
           operator: "Equal"
           value: "true"
           effect: NoSchedule
       volumes:
-      - name: kube-apiserver-secret
+      - name: konnectivity-server
         secret:
-          secretName: kube-apiserver
-          defaultMode: 0640
-      - name: konnectivity-server-secret
-        secret:
-          secretName: konnectivity-server-secret
-          defaultMode: 0640
+          secretName: konnectivity-server
+          defaultMode: 416

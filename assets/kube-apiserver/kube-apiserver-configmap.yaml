@@ -13,3 +13,18 @@ data:
 {{ include_pki "combined-ca.crt" 4 }}
   etcd-ca.crt: |-
 {{ include_pki "root-ca.crt" 4 }}
+{{- if .KonnectivityEnabled }}
+  egress-config.yaml: |
+      apiVersion: apiserver.k8s.io/v1beta1
+      kind: EgressSelectorConfiguration
+      egressSelections:
+      - name: cluster
+        connection:
+          proxyProtocol: HTTPConnect
+          transport:
+            TCP:
+              URL: https://konnectivity-server.{{ .Namespace }}.svc:{{ .KonnectivityServerPort }}
+              TLSConfig:
+                CABundle: /etc/kubernetes/secret/ca.crt
+                ClientKey: /etc/kubernetes/secret/konnectivity-client-key.pem
+                ClientCert: /etc/kubernetes/secret/konnectivity-client.pem

@@ -1,0 +1,89 @@
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: konnectivity-agent
+  namespace: kube-system
+  labels:
+    app: konnectivity-agent
+    kubernetes-dashboard-policy: allow
+    dashboard-metrics-scraper-policy: allow
+    addonmanager.kubernetes.io/mode: Reconcile
+    kubernetes.io/cluster-service: "true"
+spec:
+  selector:
+    matchLabels:
+      app: konnectivity-agent
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 10%
+  template:
+    metadata:
+      labels:
+        app: konnectivity-agent
+        kubernetes-dashboard-policy: allow
+        dashboard-metrics-scraper-policy: allow
+    spec:
+      automountServiceAccountToken: false
+{{- if .MasterPriorityClass }}
+      priorityClassName: {{ .MasterPriorityClass }}
+{{- end }}
+      containers:
+      - name: konnectivity-agent
+        image: {{ .KonnectivityAgentImage }}
+        imagePullPolicy: IfNotPresent
+{{- if .KonnectivitySecurityContext }}
+{{- $securityContext := .KonnectivitySecurityContext }}
+        securityContext:
+          runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
+        command: ["/bin/proxy-agent"]
+        args: [
+          "--ca-cert=/var/run/secrets/certs/ca.crt",
+          "--proxy-server-host={{ .KonnectivityServerURL }}",
+          "--proxy-server-port={{ .KonnectivityServerAgentNodePort }}",
+          "--health-server-port={{ .KonnectivityAgentHealthPort }}",
+          "--agent-cert=/var/run/secrets/konn-certs/konnectivity-agent.pem",
+          "--agent-key=/var/run/secrets/konn-certs/konnectivity-agent-key.pem",
+          "--agent-identifiers=ipv4=$(HOST_IP)&default-route=true"
+          ]
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: {{ .KonnectivityAgentHealthPort }}
+            scheme: HTTP
+          initialDelaySeconds: 120
+          periodSeconds: 60
+          failureThreshold: 3
+          timeoutSeconds: 30
+        env:
+        - name: HOST_IP
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: status.hostIP
+{{- if .KonnectivityAgentContainerResources }}
+        resources: {{ range .KonnectivityAgentContainerResources }}{{ range .ResourceRequest }}
+          requests: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ range .ResourceLimit }}
+          limits: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
+{{- end }}
+        volumeMounts:
+        - mountPath: /var/run/secrets/certs
+          name: kube-root-ca
+        - mountPath: /var/run/secrets/konn-certs
+          name: konnectivity-agent
+      tolerations:
+      - operator: "Exists"
+      volumes:
+      - name: konnectivity-agent
+        secret:
+          secretName: konnectivity-agent
+          defaultMode: 416
+      - name: kube-root-ca
+        configMap:
+          name: kube-root-ca.crt
+          items: []
