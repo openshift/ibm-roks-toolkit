@@ -39,5 +39,6 @@ func newMetricsPusherCommand() *cobra.Command {
 	flags.StringVar(&metricsPusher.DestinationPath, "destination-path", "", "URL path to use as a destination on the target cluster")
 	flags.StringVar(&metricsPusher.Kubeconfig, "kubeconfig", "", "Kubeconfig file for destination cluster")
 	flags.DurationVar(&metricsPusher.Frequency, "frequency", 30*time.Second, "Frequency with which to push metrics")
+	flags.StringVar(&metricsPusher.Clientca, "client-ca-file", "", "CA certificate for client certificate authentication to the server")
 	return cmd
 }
