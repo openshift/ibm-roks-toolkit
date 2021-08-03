@@ -51,6 +51,7 @@ spec:
             cpu: "10m"
             memory: "50Mi"
       serviceAccountName: roks-metrics 
+      priorityClassName: system-cluster-critical
       volumes:
       - name: serving-cert
         secret:
