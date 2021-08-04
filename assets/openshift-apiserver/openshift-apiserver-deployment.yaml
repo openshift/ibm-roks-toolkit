@@ -57,6 +57,30 @@ spec:
       priorityClassName: {{ .MasterPriorityClass }}
 {{ end }}
       containers:
+{{- if .KonnectivityEnabled }}
+      - name: konnectivity-proxy
+{{- if .OpenshiftHAProxySecurityContext }}
+{{- $securityContext := .OpenshiftAPIServerSecurityContext }}
+        securityContext:
+          runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
+        image: {{ .OpenshiftHAProxyImage }}
+        volumeMounts:
+          - name: "proxy-config"
+            mountPath: /usr/local/etc/haproxy
+          - name: "proxy-secret"
+            mountPath: /etc/secret
+        imagePullPolicy: IfNotPresent
+{{- if .OpenshiftHAProxyContainerResources }}
+        resources:{{ range .OpenshiftHAProxyContainerResources }}{{ range .ResourceRequest }}
+          requests: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ range .ResourceLimit }}
+          limits: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
+{{- end }}
+{{- end }}
       - name: openshift-apiserver
 {{- if .OpenshiftAPIServerSecurityContext }}
 {{- $securityContext := .OpenshiftAPIServerSecurityContext }}
@@ -84,6 +108,15 @@ spec:
             cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
             memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
 {{ end }}
+{{- if .KonnectivityEnabled }}
+        env:
+        - name: "HTTP_PROXY"
+          value: "http://127.0.0.1:10080"
+        - name: "HTTPS_PROXY"
+          value: "http://127.0.0.1:10080"
+        - name: "NO_PROXY"
+          value: "kube-apiserver,etcd"
+{{- end }}
         volumeMounts:
         - mountPath: /etc/kubernetes/secret
           name: secret
@@ -107,3 +140,13 @@ spec:
         name: apiserver-config
       - emptyDir: {}
         name: logs
+{{- if .KonnectivityEnabled }}
+      - configMap:
+          defaultMode: 420
+          name: "konnectivity-proxy"
+        name: "proxy-config"
+      - secret:
+          defaultMode: 420
+          secretName: "konnectivity-proxy"
+        name: "proxy-secret"
+{{- end }}

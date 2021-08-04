@@ -69,6 +69,8 @@
 // assets/oauth-openshift/v4-0-config-system-branding.yaml
 // assets/oauth-openshift/v4-0-config-system-session.json
 // assets/openshift-apiserver/config.yaml
+// assets/openshift-apiserver/konnectivity-proxy-configmap.yaml
+// assets/openshift-apiserver/konnectivity-proxy-secret.yaml
 // assets/openshift-apiserver/openshift-apiserver-config-configmap.yaml
 // assets/openshift-apiserver/openshift-apiserver-configmap.yaml
 // assets/openshift-apiserver/openshift-apiserver-deployment.yaml
@@ -1702,8 +1704,9 @@ spec:
           "--server-key=/etc/kubernetes/konn-certs/konnectivity-server-key.pem",
           "--server-cert=/etc/kubernetes/konn-certs/konnectivity-server.pem",
           "--server-ca-cert=/etc/kubernetes/konn-certs/ca.crt",
-          "--cluster-key=/etc/kubernetes/server.key",
-          "--cluster-cert=/etc/kubernetes/server.crt",
+          "--cluster-key=/etc/kubernetes/konn-certs/konnectivity-server-key.pem",
+          "--cluster-cert=/etc/kubernetes/konn-certs/konnectivity-server.pem",
+          "--cluster-ca-cert=/etc/kubernetes/konn-certs/ca.crt",
           "--server-port={{ .KonnectivityServerPort }}",
           "--agent-port={{ .KonnectivityAgentPort }}",
           "--health-port={{ .KonnectivityServerHealthPort }}",
@@ -1743,18 +1746,12 @@ spec:
         volumeMounts:
         - mountPath: /etc/kubernetes/konn-certs/
           name: konnectivity-server
-        - mountPath: /etc/kubernetes/
-          name: kube-apiserver
       tolerations:
         - key: "multi-az-worker"
           operator: "Equal"
           value: "true"
           effect: NoSchedule
       volumes:
-      - name: kube-apiserver
-        secret:
-          secretName: kube-apiserver
-          defaultMode: 416
       - name: konnectivity-server
         secret:
           secretName: konnectivity-server
@@ -4452,6 +4449,59 @@ func openshiftApiserverConfigYaml() (*asset, error) {
 	return a, nil
 }
 
+var _openshiftApiserverKonnectivityProxyConfigmapYaml = []byte(`apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: konnectivity-proxy
+data:
+  haproxy.cfg: |
+    frontend http-in
+      bind *:10080
+      default_backend be
+    backend be
+      mode http
+      server ks konnectivity-server:8090 ssl verify required ca-file /etc/secret/ca.crt crt /etc/secret/konnectivity-proxy-combined.pem
+`)
+
+func openshiftApiserverKonnectivityProxyConfigmapYamlBytes() ([]byte, error) {
+	return _openshiftApiserverKonnectivityProxyConfigmapYaml, nil
+}
+
+func openshiftApiserverKonnectivityProxyConfigmapYaml() (*asset, error) {
+	bytes, err := openshiftApiserverKonnectivityProxyConfigmapYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "openshift-apiserver/konnectivity-proxy-configmap.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _openshiftApiserverKonnectivityProxySecretYaml = []byte(`kind: Secret
+apiVersion: v1
+metadata:
+  name: konnectivity-proxy
+data:
+  konnectivity-proxy-combined.pem: {{ pki "konnectivity-proxy-combined.pem }}
+  ca.crt: {{ pki "root-ca.crt" }}
+`)
+
+func openshiftApiserverKonnectivityProxySecretYamlBytes() ([]byte, error) {
+	return _openshiftApiserverKonnectivityProxySecretYaml, nil
+}
+
+func openshiftApiserverKonnectivityProxySecretYaml() (*asset, error) {
+	bytes, err := openshiftApiserverKonnectivityProxySecretYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "openshift-apiserver/konnectivity-proxy-secret.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _openshiftApiserverOpenshiftApiserverConfigConfigmapYaml = []byte(`kind: ConfigMap
 apiVersion: v1
 metadata:
@@ -4563,6 +4613,30 @@ spec:
       priorityClassName: {{ .MasterPriorityClass }}
 {{ end }}
       containers:
+{{- if .KonnectivityEnabled }}
+      - name: konnectivity-proxy
+{{- if .OpenshiftHAProxySecurityContext }}
+{{- $securityContext := .OpenshiftAPIServerSecurityContext }}
+        securityContext:
+          runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
+        image: {{ .OpenshiftHAProxyImage }}
+        volumeMounts:
+          - name: "proxy-config"
+            mountPath: /usr/local/etc/haproxy
+          - name: "proxy-secret"
+            mountPath: /etc/secret
+        imagePullPolicy: IfNotPresent
+{{- if .OpenshiftHAProxyContainerResources }}
+        resources:{{ range .OpenshiftHAProxyContainerResources }}{{ range .ResourceRequest }}
+          requests: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ range .ResourceLimit }}
+          limits: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
+{{- end }}
+{{- end }}
       - name: openshift-apiserver
 {{- if .OpenshiftAPIServerSecurityContext }}
 {{- $securityContext := .OpenshiftAPIServerSecurityContext }}
@@ -4590,6 +4664,15 @@ spec:
             cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
             memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
 {{ end }}
+{{- if .KonnectivityEnabled }}
+        env:
+        - name: "HTTP_PROXY"
+          value: "http://127.0.0.1:10080"
+        - name: "HTTPS_PROXY"
+          value: "http://127.0.0.1:10080"
+        - name: "NO_PROXY"
+          value: "kube-apiserver,etcd"
+{{- end }}
         volumeMounts:
         - mountPath: /etc/kubernetes/secret
           name: secret
@@ -4613,6 +4696,16 @@ spec:
         name: apiserver-config
       - emptyDir: {}
         name: logs
+{{- if .KonnectivityEnabled }}
+      - configMap:
+          defaultMode: 420
+          name: "konnectivity-proxy"
+        name: "proxy-config"
+      - secret:
+          defaultMode: 420
+          secretName: "konnectivity-proxy"
+        name: "proxy-secret"
+{{- end }}
 `)
 
 func openshiftApiserverOpenshiftApiserverDeploymentYamlBytes() ([]byte, error) {
@@ -5892,6 +5985,8 @@ var _bindata = map[string]func() (*asset, error){
 	"oauth-openshift/v4-0-config-system-branding.yaml":                                   oauthOpenshiftV40ConfigSystemBrandingYaml,
 	"oauth-openshift/v4-0-config-system-session.json":                                    oauthOpenshiftV40ConfigSystemSessionJson,
 	"openshift-apiserver/config.yaml":                                                    openshiftApiserverConfigYaml,
+	"openshift-apiserver/konnectivity-proxy-configmap.yaml":                              openshiftApiserverKonnectivityProxyConfigmapYaml,
+	"openshift-apiserver/konnectivity-proxy-secret.yaml":                                 openshiftApiserverKonnectivityProxySecretYaml,
 	"openshift-apiserver/openshift-apiserver-config-configmap.yaml":                      openshiftApiserverOpenshiftApiserverConfigConfigmapYaml,
 	"openshift-apiserver/openshift-apiserver-configmap.yaml":                             openshiftApiserverOpenshiftApiserverConfigmapYaml,
 	"openshift-apiserver/openshift-apiserver-deployment.yaml":                            openshiftApiserverOpenshiftApiserverDeploymentYaml,
@@ -6052,7 +6147,9 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"v4-0-config-system-session.json":        {oauthOpenshiftV40ConfigSystemSessionJson, map[string]*bintree{}},
 	}},
 	"openshift-apiserver": {nil, map[string]*bintree{
-		"config.yaml": {openshiftApiserverConfigYaml, map[string]*bintree{}},
+		"config.yaml":                               {openshiftApiserverConfigYaml, map[string]*bintree{}},
+		"konnectivity-proxy-configmap.yaml":         {openshiftApiserverKonnectivityProxyConfigmapYaml, map[string]*bintree{}},
+		"konnectivity-proxy-secret.yaml":            {openshiftApiserverKonnectivityProxySecretYaml, map[string]*bintree{}},
 		"openshift-apiserver-config-configmap.yaml": {openshiftApiserverOpenshiftApiserverConfigConfigmapYaml, map[string]*bintree{}},
 		"openshift-apiserver-configmap.yaml":        {openshiftApiserverOpenshiftApiserverConfigmapYaml, map[string]*bintree{}},
 		"openshift-apiserver-deployment.yaml":       {openshiftApiserverOpenshiftApiserverDeploymentYaml, map[string]*bintree{}},

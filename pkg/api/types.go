@@ -97,6 +97,9 @@ type ClusterParams struct {
 	KonnectivityServerAdminPort               uint                   `json:"konnectivityServerAdminPort"`
 	KonnectivityServerAgentNodePort           uint                   `json:"konnectivityServerAgentNodePort"`
 	KonnectivityAgentHealthPort               uint                   `json:"konnectivityAgentHealthPort"`
+	OpenshiftHAProxySecurityContext           *SecurityContext       `json:"openshiftHAProxySecurityContext"`
+	OpenshiftHAProxyContainerResources        []ResourceRequirements `json:"openshiftHAProxyContainerResources"`
+	OpenshiftHAProxyImage                     string                 `json:"openshiftHAProxyImage"`
 }
 
 type NamedCert struct {
