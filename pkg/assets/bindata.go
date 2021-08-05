@@ -4810,6 +4810,7 @@ spec:
             cpu: "10m"
             memory: "50Mi"
       serviceAccountName: roks-metrics 
+      priorityClassName: system-cluster-critical
       volumes:
       - name: serving-cert
         secret:
@@ -4862,6 +4863,7 @@ spec:
           operator: "Equal"
           value: "true"
           effect: NoSchedule
+      priorityClassName: system-cluster-critical
       containers:
       - name: push-gateway
 {{- if .ROKSMetricsSecurityContextWorker }}
