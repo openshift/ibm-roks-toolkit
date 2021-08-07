@@ -115,7 +115,7 @@ spec:
         - name: "HTTPS_PROXY"
           value: "http://127.0.0.1:10080"
         - name: "NO_PROXY"
-          value: "kube-apiserver,etcd"
+          value: "{{ .OpenshiftHAProxyNoProxyHosts }}"
 {{- end }}
         volumeMounts:
         - mountPath: /etc/kubernetes/secret

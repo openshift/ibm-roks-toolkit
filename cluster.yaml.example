@@ -165,8 +165,15 @@ konnectivityAgentContainerResources:
         - cpu: 40m
           memory: 25Mi
     - resourceLimit:
-        - cpu: 50m
-          memory: 30Mi
+        - cpu: 100m
+          memory: 200Mi
+openshiftHAProxyContainerResources:
+    - resourceRequest:
+        - cpu: 10m
+          memory: 155Mi
+    - resourceLimit:
+        - cpu: 100m
+          memory: 200Mi
 kmsImage: example.image:v1.0.0
 kmsAPIKey: abcdefghijklmnopqrstuvwxyz
 kpInfo: '{"example":"foobar"}'
@@ -242,6 +249,8 @@ clusterConfigOperatorSecurityContext:
   runAsUser: 1000
 konnectivitySecurityContext:
   runAsUser: 1000
+openshiftHAProxySecurityContext:
+  runAsUser: 1000
 kubeAPIServerVerbosity: 3
 konnectivityEnabled: false
 konnectivityServerURL: ''
@@ -253,3 +262,5 @@ konnectivityServerHealthPort: 8092
 konnectivityAgentHealthPort: 8093
 konnectivityServerAdminPort: 8095
 konnectivityServerAgentNodePort: 32321
+openshiftHAProxyNoProxyHosts: "kube-apiserver,etcd,quay.io,registry.redhat.io"
+openshiftHAProxyImage: haproxy

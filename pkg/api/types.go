@@ -100,6 +100,7 @@ type ClusterParams struct {
 	OpenshiftHAProxySecurityContext           *SecurityContext       `json:"openshiftHAProxySecurityContext"`
 	OpenshiftHAProxyContainerResources        []ResourceRequirements `json:"openshiftHAProxyContainerResources"`
 	OpenshiftHAProxyImage                     string                 `json:"openshiftHAProxyImage"`
+	OpenshiftHAProxyNoProxyHosts              string                 `json:"openshiftHAProxyNoProxyHosts"`
 }
 
 type NamedCert struct {
