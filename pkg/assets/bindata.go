@@ -1686,6 +1686,17 @@ spec:
         openshift.io/restartedAt: "{{ .RestartDate }}"
 {{- end }}
     spec:
+      affinity:
+        podAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: clusterID
+                      operator: In
+                      values: ["{{ .ClusterID }}"]
+                topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
 {{- if .MasterPriorityClass }}
       priorityClassName: {{ .MasterPriorityClass }}
