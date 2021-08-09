@@ -2,6 +2,8 @@ package metrics_pusher
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -10,6 +12,7 @@ import (
 
 	"github.com/go-logr/logr"
 
+	knet "k8s.io/apimachinery/pkg/util/net"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -22,6 +25,7 @@ type MetricsPusher struct {
 	SourcePath      string
 	DestinationPath string
 	Kubeconfig      string
+	Clientca        string
 	Frequency       time.Duration
 
 	restClient rest.Interface
@@ -58,7 +62,23 @@ func (p *MetricsPusher) pushMetrics() {
 			return
 		}
 	} else {
-		resp, err := http.Get(p.SourceURL)
+		caCert, err := ioutil.ReadFile(p.Clientca)
+		if err != nil {
+			p.Log.Error(err, "Unable to read CA cert for fetching metrics: Please provide valid CA cert or path")
+			return
+		}
+
+		caCertPool := x509.NewCertPool()
+		caCertPool.AppendCertsFromPEM(caCert)
+
+		tr := knet.SetTransportDefaults(&http.Transport{
+			TLSHandshakeTimeout: 10 * time.Second,
+			TLSClientConfig:     &tls.Config{RootCAs: caCertPool},
+		})
+
+		client := &http.Client{Transport: tr}
+		resp, err := client.Get(p.SourceURL)
+
 		if err != nil {
 			p.Log.Error(err, "failed to fetch metrics from source URL")
 			return
@@ -67,6 +87,7 @@ func (p *MetricsPusher) pushMetrics() {
 			p.Log.Error(fmt.Errorf("Status: %s (%d)", resp.Status, resp.StatusCode), "Unexpected status from source URL")
 			return
 		}
+
 		metricsBody, err = ioutil.ReadAll(resp.Body)
 		if err != nil {
 			p.Log.Error(err, "Failed to read metrics body from source URL")
@@ -86,6 +107,7 @@ func (p *MetricsPusher) pushMetrics() {
 func (p *MetricsPusher) splitPaths() {
 	p.pushPath = strings.Split(p.DestinationPath, "/")
 	p.readPath = strings.Split(p.SourcePath, "/")
+
 }
 
 func (p *MetricsPusher) getRESTClient() (rest.Interface, error) {

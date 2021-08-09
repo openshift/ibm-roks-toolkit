@@ -55,7 +55,9 @@ spec:
             - "--enable-auto-update=false"
             - "--enable-default-cluster-version=true"
             - "--kubeconfig=/etc/openshift/kubeconfig/kubeconfig"
-            - "--listen="
+            - "--listen=127.0.0.1:9099"
+            - "--serving-cert-file=/etc/tls/serving-cert/server.crt"
+            - "--serving-key-file=/etc/tls/serving-cert/server.key"
             - "--v=4"
           terminationMessagePolicy: FallbackToLogsOnError
 {{ if .ClusterVersionOperatorResources }}
@@ -73,6 +75,9 @@ spec:
               readOnly: true
             - mountPath: /etc/openshift/kubeconfig
               name: kubeconfig
+              readOnly: true
+            - mountPath: /etc/tls/serving-cert
+              name: serving-cert
               readOnly: true
           env:
             - name: NODE_NAME
@@ -96,11 +101,15 @@ spec:
             - "--destination-path=/api/v1/namespaces/openshift-roks-metrics/services/push-gateway:http/proxy/metrics/job/cluster-version-operator"
             - "--kubeconfig=/etc/openshift/kubeconfig/kubeconfig"
             - "--frequency=30s"
-            - "--source-url=http://localhost:9099/metrics"
+            - "--source-url=https://localhost:9099/metrics"
+            - "--client-ca-file=/etc/kubernetes/config/initial-ca.crt"
           terminationMessagePolicy: FallbackToLogsOnError
           volumeMounts:
             - mountPath: /etc/openshift/kubeconfig
               name: kubeconfig
+              readOnly: true
+            - mountPath: /etc/kubernetes/config
+              name: config
               readOnly: true
 {{ end }}
       volumes:
@@ -112,3 +121,10 @@ spec:
           secret:
             secretName: service-network-admin-kubeconfig
             defaultMode: 0640
+        - name: serving-cert
+          secret:
+            secretName: cluster-version-operator
+            defaultMode: 0640
+        - name: config
+          configMap:
+            name: cluster-version-operator
