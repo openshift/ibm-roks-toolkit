@@ -22,4 +22,3 @@ This tool was jointly developed by RedHat and IBM.
     - `include-vpn`: If true, includes a VPN server, sidecar and client (default false)
     - `include-registry`: If true, includes a default registry config to deploy into the user cluster (default false)
 * Apply all the generated resources to the cluster `kubectl apply -f output-dir/`
-
