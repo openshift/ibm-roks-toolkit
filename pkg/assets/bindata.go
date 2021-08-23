@@ -664,11 +664,21 @@ metadata:
   name: default
   namespace: openshift-ingress-operator
 spec:
-{{ if .EndpointPublishingStrategyScope }}
-  endpointPublishingStrategy:
-    loadBalancer:
-      scope: {{ .EndpointPublishingStrategyScope }}
-    type: LoadBalancerService
+{{ if or .EndpointPublishingStrategy.Node .EndpointPublishingStrategy.Scope .EndpointPublishingStrategyScope }}
+   endpointPublishingStrategy:
+{{ if .EndpointPublishingStrategy.Node }}
+    nodePort:
+      protocol: TCP
+    type: NodePortService
+{{ else }}
+     loadBalancer:
+{{ if .EndpointPublishingStrategy.Scope }}
+       scope: {{ .EndpointPublishingStrategy.Scope }}
+{{ else }}
+       scope: {{ .EndpointPublishingStrategyScope }}
+{{ end }}
+     type: LoadBalancerService
+{{ end }}
 {{ end }}
   nodePlacement:
     tolerations:
