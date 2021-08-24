@@ -29,11 +29,11 @@ func Setup(cfg *cpoperator.ControlPlaneOperatorConfig) error {
 		return err
 	}
 	configInformers := configinformers.NewSharedInformerFactory(configClient, controllers.DefaultResync)
-	operatorClient := &cmOperatorClient{
-		Client:    cfg.KubeClient(),
-		Namespace: cfg.Namespace(),
-		Logger:    cfg.Logger().WithName("OpenShiftControllerManagerClient"),
-	}
+	operatorClient := newCMOperatorClient(
+		cfg.KubeClient(),
+		cfg.Namespace(),
+		cfg.Logger().WithName("OpenShiftControllerManagerClient"),
+	)
 
 	recorder := events.NewLoggingEventRecorder("openshift-controller-manager-observers")
 	c := configobserver.NewConfigObserver(
