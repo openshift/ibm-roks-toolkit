@@ -6,12 +6,14 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/go-logr/logr"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	kcache "k8s.io/apimachinery/pkg/util/cache"
 	kubeinformers "k8s.io/client-go/informers"
 	kubeclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
@@ -28,6 +30,7 @@ import (
 	"github.com/openshift/library-go/pkg/operator/configobserver"
 	"github.com/openshift/library-go/pkg/operator/events"
 	"github.com/openshift/library-go/pkg/operator/resourcesynccontroller"
+	"github.com/openshift/library-go/pkg/operator/v1helpers"
 
 	"github.com/openshift/ibm-roks-toolkit/pkg/cmd/cpoperator"
 	"github.com/openshift/ibm-roks-toolkit/pkg/controllers"
@@ -41,11 +44,11 @@ func Setup(cfg *cpoperator.ControlPlaneOperatorConfig) error {
 		return err
 	}
 	configInformers := configinformers.NewSharedInformerFactory(configClient, controllers.DefaultResync)
-	operatorClient := &apiServerOperatorClient{
-		Client:    cfg.KubeClient(),
-		Namespace: cfg.Namespace(),
-		Logger:    cfg.Logger().WithName("OpenShiftAPIServerClient"),
-	}
+	operatorClient := newAPIServerOperatorClient(
+		cfg.KubeClient(),
+		cfg.Namespace(),
+		cfg.Logger().WithName("OpenShiftAPIServerClient"),
+	)
 
 	recorder := events.NewLoggingEventRecorder("openshift-apiserver-observers")
 	c := configobserver.NewConfigObserver(
@@ -97,6 +100,17 @@ type apiServerOperatorClient struct {
 	Client    kubeclient.Interface
 	Namespace string
 	Logger    logr.Logger
+
+	configCache *kcache.Expiring
+}
+
+func newAPIServerOperatorClient(c kubeclient.Interface, ns string, logger logr.Logger) v1helpers.OperatorClient {
+	return &apiServerOperatorClient{
+		Client:      c,
+		Namespace:   ns,
+		Logger:      logger,
+		configCache: kcache.NewExpiring(),
+	}
 }
 
 func (c *apiServerOperatorClient) Informer() cache.SharedIndexInformer {
@@ -106,11 +120,25 @@ func (c *apiServerOperatorClient) GetObjectMeta() (meta *metav1.ObjectMeta, err 
 	panic("operator object meta not found")
 }
 
+var defaultExpirationTime = 24 * time.Hour
+
 func (c *apiServerOperatorClient) GetOperatorState() (spec *operatorv1.OperatorSpec, status *operatorv1.OperatorStatus, resourceVersion string, err error) {
 	var cm *corev1.ConfigMap
-	cm, err = c.Client.CoreV1().ConfigMaps(c.Namespace).Get(context.TODO(), apiserverConfigMapName, metav1.GetOptions{})
-	if err != nil {
-		return
+
+	cmObj, ok := c.configCache.Get("config")
+	if !ok || cmObj == nil {
+		cm, err = c.Client.CoreV1().ConfigMaps(c.Namespace).Get(context.TODO(), apiserverConfigMapName, metav1.GetOptions{})
+		if err != nil {
+			return
+		}
+		c.configCache.Set("config", cm, defaultExpirationTime)
+	} else {
+		cm, ok = cmObj.(*corev1.ConfigMap)
+		if !ok {
+			c.configCache.Delete("config")
+			err = fmt.Errorf("unexpected object of type %T in cache", cmObj)
+			return
+		}
 	}
 	configYAML := []byte(cm.Data["config.yaml"])
 	var configJSON []byte
@@ -153,6 +181,7 @@ func (c *apiServerOperatorClient) UpdateOperatorSpec(oldResourceVersion string, 
 	}
 	cm.Data["config.yaml"] = string(configBytes)
 	c.Logger.Info("Updating OpenShift APIServer configmap")
+	c.configCache.Delete("config")
 	_, err = c.Client.CoreV1().ConfigMaps(c.Namespace).Update(ctx, cm, metav1.UpdateOptions{})
 	if err != nil {
 		return
