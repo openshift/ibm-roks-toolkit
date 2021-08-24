@@ -4,11 +4,16 @@ metadata:
   name: default
   namespace: openshift-ingress-operator
 spec:
+{{ if or .EndpointPublishingStrategyScope .EndpointPublishingStrategyNode }}
+   endpointPublishingStrategy:
 {{ if .EndpointPublishingStrategyScope }}
-  endpointPublishingStrategy:
-    loadBalancer:
-      scope: {{ .EndpointPublishingStrategyScope }}
-    type: LoadBalancerService
+     loadBalancer:
+       scope: {{ .EndpointPublishingStrategyScope }}
+     type: LoadBalancerService
+{{ else }}
+    nodePort:
+      protocol: TCP
+    type: NodePortService
 {{ end }}
   nodePlacement:
     tolerations:
