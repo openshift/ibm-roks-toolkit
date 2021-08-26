@@ -23,6 +23,10 @@ spec:
 {{ end }}
     spec:
       tolerations:
+        - key: "dedicated"
+          operator: "Equal"
+          value: "master-{{ .ClusterID }}"
+          effect: NoSchedule
         - key: "multi-az-worker"
           operator: "Equal"
           value: "true"
