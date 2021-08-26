@@ -27,6 +27,10 @@ spec:
           operator: "Equal"
           value: "true"
           effect: NoSchedule
+        - key: "dedicated"
+          operator: "Equal"
+          value: "master-{{ .ClusterID }}"
+          effect: NoSchedule
       affinity:
         podAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
