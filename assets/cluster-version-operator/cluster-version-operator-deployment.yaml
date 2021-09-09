@@ -30,6 +30,10 @@ spec:
                       values: ["{{ .ClusterID }}"]
                 topologyKey: "kubernetes.io/hostname"
       tolerations:
+        - key: "dedicated"
+          operator: "Equal"
+          value: "master-{{ .ClusterID }}"
+          effect: NoSchedule
         - key: "multi-az-worker"
           operator: "Equal"
           value: "true"
