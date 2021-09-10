@@ -731,6 +731,10 @@ spec:
                       values: ["{{ .ClusterID }}"]
                 topologyKey: "kubernetes.io/hostname"
       tolerations:
+        - key: "dedicated"
+          operator: "Equal"
+          value: "master-{{ .ClusterID }}"
+          effect: NoSchedule
         - key: "multi-az-worker"
           operator: "Equal"
           value: "true"
@@ -952,6 +956,10 @@ spec:
                       values: ["{{ .ClusterID }}"]
                 topologyKey: "kubernetes.io/hostname"
       tolerations:
+        - key: "dedicated"
+          operator: "Equal"
+          value: "master-{{ .ClusterID }}"
+          effect: NoSchedule
         - key: "multi-az-worker"
           operator: "Equal"
           value: "true"
@@ -1414,6 +1422,10 @@ spec:
 {{ end }}
     spec:
       tolerations:
+        - key: "dedicated"
+          operator: "Equal"
+          value: "master-{{ .ClusterID }}"
+          effect: NoSchedule
         - key: "multi-az-worker"
           operator: "Equal"
           value: "true"
@@ -2110,6 +2122,10 @@ spec:
 {{ end }}
     spec:
       tolerations:
+        - key: "dedicated"
+          operator: "Equal"
+          value: "master-{{ .ClusterID }}"
+          effect: NoSchedule
         - key: "multi-az-worker"
           operator: "Equal"
           value: "true"
@@ -2355,6 +2371,10 @@ spec:
 {{ end }}
     spec:
       tolerations:
+        - key: "dedicated"
+          operator: "Equal"
+          value: "master-{{ .ClusterID }}"
+          effect: NoSchedule
         - key: "multi-az-worker"
           operator: "Equal"
           value: "true"
@@ -2612,6 +2632,10 @@ spec:
 {{ end }}
     spec:
       tolerations:
+        - key: "dedicated"
+          operator: "Equal"
+          value: "master-{{ .ClusterID }}"
+          effect: NoSchedule
         - key: "multi-az-worker"
           operator: "Equal"
           value: "true"
@@ -3123,6 +3147,10 @@ spec:
 {{ end }}
     spec:
       tolerations:
+      - key: "dedicated"
+        operator: "Equal"
+        value: "master-{{ .ClusterID }}"
+        effect: NoSchedule
       - key: "multi-az-worker"
         operator: "Equal"
         value: "true"
@@ -3549,6 +3577,10 @@ spec:
 {{ end }}
     spec:
       tolerations:
+        - key: "dedicated"
+          operator: "Equal"
+          value: "master-{{ .ClusterID }}"
+          effect: NoSchedule
         - key: "multi-az-worker"
           operator: "Equal"
           value: "true"
@@ -3844,6 +3876,10 @@ spec:
           operator: "Equal"
           value: "true"
           effect: NoSchedule
+        - key: "dedicated"
+          operator: "Equal"
+          value: "master-{{ .ClusterID }}"
+          effect: NoSchedule
       affinity:
         podAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -4048,6 +4084,10 @@ spec:
 {{ end }}
     spec:
       tolerations:
+        - key: "dedicated"
+          operator: "Equal"
+          value: "master-{{ .ClusterID }}"
+          effect: NoSchedule
         - key: "multi-az-worker"
           operator: "Equal"
           value: "true"
@@ -4698,6 +4738,10 @@ metadata:
   name: manifests-bootstrapper
 spec:
   tolerations:
+    - key: "dedicated"
+      operator: "Equal"
+      value: "master-{{ .ClusterID }}"
+      effect: NoSchedule
     - key: "multi-az-worker"
       operator: "Equal"
       value: "true"
