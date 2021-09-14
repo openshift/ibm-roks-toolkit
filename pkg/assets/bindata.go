@@ -2927,10 +2927,11 @@ func oauthApiserverServiceTemplateYaml() (*asset, error) {
 }
 
 var _oauthOpenshiftOauthBrowserClientYaml = []byte(`apiVersion: v1
-kind: ConfigMap
+kind: Secret
 metadata:
   name: user-manifest-openshift-browser-client
-data:
+type: Opaque
+stringData:
   data: |
     apiVersion: oauth.openshift.io/v1
     grantMethod: auto
@@ -4792,6 +4793,7 @@ spec:
           for name in $(oc get cm | grep '^user-manifest-' | awk '{ print $1 }'); do
              oc get cm ${name} -o jsonpath='{ .data.data }' > "${name}.yaml"
           done
+          oc get secret user-manifest-openshift-browser-client -ojsonpath='{ .data.data }' | base64 -d > "user-manifest-openshift-browser-client.yaml"
           export KUBECONFIG=/etc/openshift/kubeconfig
           oc apply -f $(pwd)
           # Replace the global certs configmap here because it's too large to oc apply
