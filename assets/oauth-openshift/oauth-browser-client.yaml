@@ -1,8 +1,9 @@
 apiVersion: v1
-kind: ConfigMap
+kind: Secret
 metadata:
   name: user-manifest-openshift-browser-client
-data:
+type: Opaque
+stringData:
   data: |
     apiVersion: oauth.openshift.io/v1
     grantMethod: auto
