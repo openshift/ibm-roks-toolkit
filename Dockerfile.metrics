@@ -1,4 +1,4 @@
-FROM openshift/origin-release:golang-1.15 as builder
+FROM openshift/origin-release:golang-1.16 as builder
 RUN mkdir -p /go/src/github.com/openshift/ibm-roks-toolkit
 ENV PUSHGATEWAY_VERSION="1.3.0"
 WORKDIR /go/src/github.com/openshift/ibm-roks-toolkit
