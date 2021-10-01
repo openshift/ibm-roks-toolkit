@@ -62,22 +62,28 @@ func (p *MetricsPusher) pushMetrics() {
 			return
 		}
 	} else {
-		caCert, err := ioutil.ReadFile(p.Clientca)
-		if err != nil {
-			p.Log.Error(err, "Unable to read CA cert for fetching metrics: Please provide valid CA cert or path")
-			return
+		var resp *http.Response
+		var err error
+		if p.Clientca != "" {
+			caCert, err := ioutil.ReadFile(p.Clientca)
+			if err != nil {
+				p.Log.Error(err, "Unable to read CA cert for fetching metrics: Please provide valid CA cert or path")
+				return
+			}
+
+			caCertPool := x509.NewCertPool()
+			caCertPool.AppendCertsFromPEM(caCert)
+
+			tr := knet.SetTransportDefaults(&http.Transport{
+				TLSHandshakeTimeout: 10 * time.Second,
+				TLSClientConfig:     &tls.Config{RootCAs: caCertPool},
+			})
+
+			client := &http.Client{Transport: tr}
+			resp, err = client.Get(p.SourceURL)
+		} else {
+			resp, err = http.Get(p.SourceURL)
 		}
-
-		caCertPool := x509.NewCertPool()
-		caCertPool.AppendCertsFromPEM(caCert)
-
-		tr := knet.SetTransportDefaults(&http.Transport{
-			TLSHandshakeTimeout: 10 * time.Second,
-			TLSClientConfig:     &tls.Config{RootCAs: caCertPool},
-		})
-
-		client := &http.Client{Transport: tr}
-		resp, err := client.Get(p.SourceURL)
 
 		if err != nil {
 			p.Log.Error(err, "failed to fetch metrics from source URL")
