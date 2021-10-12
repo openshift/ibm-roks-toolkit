@@ -2007,8 +2007,6 @@ apiServerArguments:
   - /etc/kubernetes/secret/kubelet-client.crt
   kubelet-client-key:
   - /etc/kubernetes/secret/kubelet-client.key
-  kubelet-https:
-  - 'true'
   kubelet-preferred-address-types:
   - InternalIP
   kubelet-read-only-port:
