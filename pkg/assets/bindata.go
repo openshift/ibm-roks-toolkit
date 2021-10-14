@@ -2851,11 +2851,11 @@ extendedArguments:
   leader-elect:
   - 'true'
   leader-elect-lease-duration:
-  - 60s
+  - 107s
   leader-elect-renew-deadline:
-  - 15s
+  - 60s
   leader-elect-retry-period:
-  - 3s
+  - 15s
   port:
   - '0'
   root-ca-file:
@@ -3147,9 +3147,9 @@ clientConnection:
   kubeconfig: "/etc/kubernetes/secret/kubeconfig"
 leaderElection:
   leaderElect: true
-  leaseDuration: 60s
-  renewDeadline: 15s
-  retryPeriod: 3s
+  leaseDuration: 107s
+  renewDeadline: 60s
+  retryPeriod: 15s
 `)
 
 func kubeSchedulerConfigYamlBytes() ([]byte, error) {
