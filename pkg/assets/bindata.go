@@ -2846,16 +2846,6 @@ extendedArguments:
   - '300'
   kube-api-qps:
   - '150'
-  leader-elect-resource-lock:
-  - configmaps
-  leader-elect:
-  - 'true'
-  leader-elect-lease-duration:
-  - 60s
-  leader-elect-renew-deadline:
-  - 15s
-  leader-elect-retry-period:
-  - 3s
   port:
   - '0'
   root-ca-file:
@@ -3033,6 +3023,8 @@ spec:
         - "--kube-api-qps=150"
         - "--leader-elect-resource-lock=configmaps"
         - "--leader-elect=true"
+        - "--leader-elect-lease-duration=60s"
+        - "--leader-elect-renew-deadline=15s"
         - "--leader-elect-retry-period=3s"
         - "--port=0"
         - "--profiling=false"
