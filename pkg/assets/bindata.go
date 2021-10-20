@@ -4761,6 +4761,7 @@ spec:
         - "start"
         - "--config=/etc/kubernetes/cmconfig/config.yaml"
         - "--kubeconfig=/etc/kubernetes/secret/kubeconfig"
+        - "--namespace=master-{{ .ClusterID }}"
 {{ if .ClusterPolicyControllerResources }}
         resources:{{ range .ClusterPolicyControllerResources }}{{ range .ResourceRequest }}
           requests: {{ if .CPU }}
