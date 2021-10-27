@@ -74,7 +74,10 @@ spec:
         - "start"
         - "--config=/etc/kubernetes/cmconfig/config.yaml"
         - "--kubeconfig=/etc/kubernetes/secret/kubeconfig"
-        - "--namespace=master-{{ .ClusterID }}"
+        - "--namespace=openshift-kube-controller-manager"
+        env:
+        - name: POD_NAMESPACE
+          value: openshift-kube-controller-manager
 {{ if .ClusterPolicyControllerResources }}
         resources:{{ range .ClusterPolicyControllerResources }}{{ range .ResourceRequest }}
           requests: {{ if .CPU }}
