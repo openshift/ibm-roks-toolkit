@@ -1542,6 +1542,41 @@ spec:
 {{ if .MasterPriorityClass }}
       priorityClassName: {{ .MasterPriorityClass }}
 {{ end }}
+      initContainers:
+        - name: prepare-payload
+          image: {{ .ReleaseImage }}
+          imagePullPolicy: Always
+{{- if .ClusterVersionOperatorSecurityContext }}
+{{- $securityContext := .ClusterVersionOperatorSecurityContext }}
+          securityContext:
+            runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
+          command:
+            - /bin/bash
+          args:
+            - -c
+            - -|
+              cp -R /manifests /var/payload/
+              cp -R /release-manifests /var/payload/
+
+              # TODO(jonesbr): This InitContainer can be removed once the annotiation is removed from these files
+              # These PRs and their cherry-picks to be merged
+              # - https://github.com/openshift/cluster-authentication-operator/pull/496
+              # - https://github.com/openshift/cloud-credential-operator/pull/398
+              rm /var/payload/release-manifests/0000_50_cloud-credential-operator_01-operator-config.yaml
+              rm /var/payload/release-manifests/0000_50_cluster-authentication-operator_02_config.cr.yaml
+{{ if .ClusterVersionOperatorResources }}
+          resources:{{ range .ClusterVersionOperatorResources }}{{ range .ResourceRequest }}
+            requests: {{ if .CPU }}
+              cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+              memory: {{ .Memory }}{{ end }}{{ end }}{{ range .ResourceLimit }}
+            limits: {{ if .CPU }}
+              cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+              memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
+{{ end }}
+          volumeMounts:
+            - mountPath: /var/payload
+              name: payload
       containers:
         - name: cluster-version-operator
           image: {{ .ReleaseImage }}
@@ -1583,13 +1618,17 @@ spec:
             - mountPath: /etc/tls/serving-cert
               name: serving-cert
               readOnly: true
+            - mountPath: /var/payload
+              name: payload
           env:
             - name: NODE_NAME
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
-            - name: EXCLUDE_MANIFESTS
-              value: internal-openshift-hosted
+            - name: CLUSTER_PROFILE
+              value: ibm-cloud-managed
+            - name: PAYLOAD_OVERRIDE
+              value: /var/payload
 {{ if .ROKSMetricsImage }}
         - name: metrics-pusher
           image: {{ .ROKSMetricsImage }}
@@ -1632,6 +1671,8 @@ spec:
         - name: config
           configMap:
             name: cluster-version-operator
+        - name: payload
+          emptyDir: {}
 `)
 
 func clusterVersionOperatorClusterVersionOperatorDeploymentYamlBytes() ([]byte, error) {
