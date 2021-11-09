@@ -1555,7 +1555,7 @@ spec:
             - /bin/bash
           args:
             - -c
-            - -|
+            - |-
               cp -R /manifests /var/payload/
               cp -R /release-manifests /var/payload/
 
