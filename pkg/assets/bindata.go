@@ -1554,15 +1554,15 @@ spec:
           command:
             - /bin/bash
           args:
-            - -c
+            - "-c"
             - |-
               cp -R /manifests /var/payload/
               cp -R /release-manifests /var/payload/
 
               # TODO(jonesbr): This InitContainer can be removed once the annotiation is removed from these files
               # These PRs and their cherry-picks to be merged
-              # - https://github.com/openshift/cluster-authentication-operator/pull/496
-              # - https://github.com/openshift/cloud-credential-operator/pull/398
+              # https://github.com/openshift/cluster-authentication-operator/pull/496
+              # https://github.com/openshift/cloud-credential-operator/pull/398
               rm /var/payload/release-manifests/0000_50_cloud-credential-operator_01-operator-config.yaml
               rm /var/payload/release-manifests/0000_50_cluster-authentication-operator_02_config.cr.yaml
 {{ if .ClusterVersionOperatorResources }}
