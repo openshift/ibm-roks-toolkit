@@ -1519,6 +1519,15 @@ spec:
 {{ end }}
     spec:
       affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: dedicated
+                operator: In
+                values:
+                - master-{{ .ClusterID }}
         podAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
             - weight: 100
@@ -1826,6 +1835,15 @@ spec:
 {{ end }}
     spec:
       affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: dedicated
+                operator: In
+                values:
+                - master-{{ .ClusterID }}
         podAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
             - weight: 100
@@ -2310,6 +2328,15 @@ spec:
           value: "true"
           effect: NoSchedule
       affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: dedicated
+                operator: In
+                values:
+                - master-{{ .ClusterID }}
         podAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
             - weight: 100
@@ -2954,6 +2981,15 @@ spec:
           value: "true"
           effect: NoSchedule
       affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: dedicated
+                operator: In
+                values:
+                - master-{{ .ClusterID }}
         podAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
             - weight: 100
@@ -3208,6 +3244,15 @@ spec:
           value: "true"
           effect: NoSchedule
       affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: dedicated
+                operator: In
+                values:
+                - master-{{ .ClusterID }}
         podAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
             - weight: 100
@@ -3469,6 +3514,15 @@ spec:
           value: "true"
           effect: NoSchedule
       affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: dedicated
+                operator: In
+                values:
+                - master-{{ .ClusterID }}
         podAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
             - weight: 100
@@ -3985,6 +4039,15 @@ spec:
         value: "true"
         effect: NoSchedule
       affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: dedicated
+                operator: In
+                values:
+                - master-{{ .ClusterID }}
         podAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
             - weight: 100
@@ -4415,6 +4478,15 @@ spec:
           value: "true"
           effect: NoSchedule
       affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: dedicated
+                operator: In
+                values:
+                - master-{{ .ClusterID }}
         podAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
             - weight: 100
@@ -4710,6 +4782,15 @@ spec:
           value: "master-{{ .ClusterID }}"
           effect: NoSchedule
       affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: dedicated
+                operator: In
+                values:
+                - master-{{ .ClusterID }}
         podAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
             - weight: 100
@@ -4926,6 +5007,15 @@ spec:
           value: "true"
           effect: NoSchedule
       affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: dedicated
+                operator: In
+                values:
+                - master-{{ .ClusterID }}
         podAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
             - weight: 100
@@ -5572,6 +5662,16 @@ kind: Pod
 metadata:
   name: manifests-bootstrapper
 spec:
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        preference:
+          matchExpressions:
+          - key: dedicated
+            operator: In
+            values:
+            - master-{{ .ClusterID }}
   tolerations:
     - key: "dedicated"
       operator: "Equal"
