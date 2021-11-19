@@ -21,6 +21,16 @@ kind: Pod
 metadata:
   name: manifests-bootstrapper
 spec:
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        preference:
+          matchExpressions:
+          - key: dedicated
+            operator: In
+            values:
+            - master-{{ .ClusterID }}
   tolerations:
     - key: "dedicated"
       operator: "Equal"

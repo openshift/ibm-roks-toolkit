@@ -32,6 +32,15 @@ spec:
           value: "master-{{ .ClusterID }}"
           effect: NoSchedule
       affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: dedicated
+                operator: In
+                values:
+                - master-{{ .ClusterID }}
         podAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
             - weight: 100
