@@ -251,7 +251,7 @@ type ControlPlaneClusterOperatorSyncer struct {
 	Versions map[string]string
 }
 
-func (r *ControlPlaneClusterOperatorSyncer) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+func (r *ControlPlaneClusterOperatorSyncer) Reconcile(_ context.Context, req ctrl.Request) (ctrl.Result, error) {
 	if err := r.ensureClusterOperatorsExist(); err != nil {
 		return ctrl.Result{}, err
 	}

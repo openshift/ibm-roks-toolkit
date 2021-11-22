@@ -99,7 +99,7 @@ func TestReconcile(t *testing.T) {
 
 			var reconcileErr error
 			err := wait.Poll(1*time.Second, 5*time.Second, func() (bool, error) {
-				_, err := r.Reconcile(request)
+				_, err := r.Reconcile(context.Background(), request)
 				if err != nil {
 					reconcileErr = err
 					return false, nil

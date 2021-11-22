@@ -18,16 +18,10 @@ package logs
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/go-logr/logr"
-	json "k8s.io/component-base/logs/json"
 )
-
-const (
-	jsonLogFormat = "json"
-)
-
-var logRegistry = NewLogFormatRegistry()
 
 // LogFormatRegistry store klog format registry
 type LogFormatRegistry struct {
@@ -84,21 +78,17 @@ func (lfr *LogFormatRegistry) Delete(name string) error {
 	return nil
 }
 
-// List names of registered log formats
+// List names of registered log formats (sorted)
 func (lfr *LogFormatRegistry) List() []string {
 	formats := make([]string, 0, len(lfr.registry))
 	for f := range lfr.registry {
 		formats = append(formats, f)
 	}
+	sort.Strings(formats)
 	return formats
 }
 
 // Freeze freezes the log format registry
 func (lfr *LogFormatRegistry) Freeze() {
 	lfr.frozen = true
-}
-func init() {
-	// Text format is default klog format
-	logRegistry.Register(defaultLogFormat, nil)
-	logRegistry.Register(jsonLogFormat, json.JSONLogger)
 }
