@@ -71,7 +71,7 @@ func TestReconcile(t *testing.T) {
 				},
 			}
 
-			_, err := r.Reconcile(request)
+			_, err := r.Reconcile(context.Background(), request)
 			if err != nil {
 				t.Fatal(err)
 			}

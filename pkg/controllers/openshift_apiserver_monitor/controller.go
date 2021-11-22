@@ -21,7 +21,7 @@ type OpenshiftAPIServerMonitor struct {
 	Log        logr.Logger
 }
 
-func (m *OpenshiftAPIServerMonitor) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+func (m *OpenshiftAPIServerMonitor) Reconcile(_ context.Context, req ctrl.Request) (ctrl.Result, error) {
 	if req.Name != roleBindingRestrictionsCRD {
 		return ctrl.Result{}, nil
 	}
