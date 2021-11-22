@@ -2659,9 +2659,9 @@ spec:
 {{- $probe := .ApiserverLivenessProbe }}
         livenessProbe:
           httpGet:
-            scheme: {{ or $probe.HttpGet.Scheme "HTTPS" }}
-            port: {{ or $probe.HttpGet.Port .InternalAPIPort }}
-            path: {{ or $probe.HttpGet.Path "livez?exclude=etcd" }}
+            scheme: {{ or $probe.HTTPGet.Scheme "HTTPS" }}
+            port: {{ or $probe.HTTPGet.Port .InternalAPIPort }}
+            path: {{ or $probe.HTTPGet.Path "livez?exclude=etcd" }}
           initialDelaySeconds: {{ or $probe.InitialDelaySeconds 10 }}
           periodSeconds: {{ or $probe.PeriodSeconds 10 }}
           timeoutSeconds: {{ or $probe.TimeoutSeconds 1 }}
@@ -2684,9 +2684,9 @@ spec:
 {{- $probe := .ApiserverReadinessProbe }}
         readinessProbe:
           httpGet:
-            scheme: {{ or $probe.HttpGet.Scheme "HTTPS" }}
-            port: {{ or $probe.HttpGet.Port .InternalAPIPort }}
-            path: {{ or $probe.HttpGet.Path "readyz" }}
+            scheme: {{ or $probe.HTTPGet.Scheme "HTTPS" }}
+            port: {{ or $probe.HTTPGet.Port .InternalAPIPort }}
+            path: {{ or $probe.HTTPGet.Path "readyz" }}
           initialDelaySeconds: {{ or $probe.InitialDelaySeconds 10 }}
           periodSeconds: {{ or $probe.PeriodSeconds 10 }}
           timeoutSeconds: {{ or $probe.TimeoutSeconds 1 }}
@@ -2751,9 +2751,9 @@ spec:
 {{- $probe := .KMSLivenessProbe }}
         livenessProbe:
           httpGet:
-            scheme: {{ or $probe.HttpGet.Scheme "HTTP" }}
-            port: {{ or $probe.HttpGet.Port 8081 }}
-            path: {{ or $probe.HttpGet.Path "healthz/liveness" }}
+            scheme: {{ or $probe.HTTPGet.Scheme "HTTP" }}
+            port: {{ or $probe.HTTPGet.Port 8081 }}
+            path: {{ or $probe.HTTPGet.Path "healthz/liveness" }}
           initialDelaySeconds: {{ or $probe.InitialDelaySeconds 10 }}
           periodSeconds: {{ or $probe.PeriodSeconds 10 }}
           timeoutSeconds: {{ or $probe.TimeoutSeconds 1 }}
@@ -2865,9 +2865,9 @@ spec:
 {{- $probe := .PortierisLivenessProbe }}
         livenessProbe:
           httpGet:
-            scheme: {{ or $probe.HttpGet.Scheme "HTTPS" }}
-            port: {{ or $probe.HttpGet.Port 8000 }}
-            path: {{ or $probe.HttpGet.Path "/health/liveness" }}
+            scheme: {{ or $probe.HTTPGet.Scheme "HTTPS" }}
+            port: {{ or $probe.HTTPGet.Port 8000 }}
+            path: {{ or $probe.HTTPGet.Path "/health/liveness" }}
           initialDelaySeconds: {{ or $probe.InitialDelaySeconds 10 }}
           periodSeconds: {{ or $probe.PeriodSeconds 10 }}
           timeoutSeconds: {{ or $probe.TimeoutSeconds 1 }}
@@ -3296,9 +3296,9 @@ spec:
 {{- $probe := .ControllerManagerLivenessProbe }}
         livenessProbe:
           httpGet:
-            scheme: {{ or $probe.HttpGet.Scheme "HTTPS" }}
-            port: {{ or $probe.HttpGet.Port 10257 }}
-            path: {{ or $probe.HttpGet.Path "healthz" }}
+            scheme: {{ or $probe.HTTPGet.Scheme "HTTPS" }}
+            port: {{ or $probe.HTTPGet.Port 10257 }}
+            path: {{ or $probe.HTTPGet.Path "healthz" }}
           initialDelaySeconds: {{ or $probe.InitialDelaySeconds 10 }}
           periodSeconds: {{ or $probe.PeriodSeconds 10 }}
           timeoutSeconds: {{ or $probe.TimeoutSeconds 1 }}
@@ -3532,9 +3532,9 @@ spec:
 {{- $probe := .SchedulerLivenessProbe }}
         livenessProbe:
           httpGet:
-            scheme: {{ or $probe.HttpGet.Scheme "HTTPS" }}
-            port: {{ or $probe.HttpGet.Port 10259 }}
-            path: {{ or $probe.HttpGet.Path "healthz" }}
+            scheme: {{ or $probe.HTTPGet.Scheme "HTTPS" }}
+            port: {{ or $probe.HTTPGet.Port 10259 }}
+            path: {{ or $probe.HTTPGet.Path "healthz" }}
           initialDelaySeconds: {{ or $probe.InitialDelaySeconds 10 }}
           periodSeconds: {{ or $probe.PeriodSeconds 10 }}
           timeoutSeconds: {{ or $probe.TimeoutSeconds 1 }}

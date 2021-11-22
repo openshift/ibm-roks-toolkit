@@ -11,7 +11,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	"github.com/openshift/ibm-roks-toolkit/pkg/metrics_pusher"
+	"github.com/openshift/ibm-roks-toolkit/pkg/metricspusher"
 )
 
 func main() {
@@ -22,7 +22,7 @@ func main() {
 
 func newMetricsPusherCommand() *cobra.Command {
 
-	metricsPusher := metrics_pusher.MetricsPusher{}
+	metricsPusher := metricspusher.MetricsPusher{}
 	cmd := &cobra.Command{
 		Use:          "metrics-pusher",
 		Short:        "Pushes metrics to a given endpoint inside a cluster",

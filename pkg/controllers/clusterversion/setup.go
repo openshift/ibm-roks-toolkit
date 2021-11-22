@@ -26,7 +26,7 @@ func Setup(cfg *cpoperator.ControlPlaneOperatorConfig) error {
 		return nil
 	}))
 	clusterVersions := informerFactory.Config().V1().ClusterVersions()
-	reconciler := &ClusterVersionReconciler{
+	reconciler := &Reconciler{
 		Client: openshiftClient,
 		Lister: clusterVersions.Lister(),
 		Log:    cfg.Logger().WithName("ClusterVersion"),

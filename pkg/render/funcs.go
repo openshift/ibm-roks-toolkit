@@ -6,19 +6,10 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
 	"net"
-	"os"
-	"path/filepath"
 	"strings"
 	"unicode"
 )
-
-func includeVPNFunc(includeVPN bool) func() bool {
-	return func() bool {
-		return includeVPN
-	}
-}
 
 func imageFunc(images map[string]string) func(string) string {
 	return func(imageName string) string {
@@ -29,50 +20,6 @@ func imageFunc(images map[string]string) func(string) string {
 func versionFunc(versions map[string]string) func(string) string {
 	return func(component string) string {
 		return versions[component]
-	}
-}
-
-func pkiFunc(pkiDir string) func(string) string {
-	return func(fileName string) string {
-		file := filepath.Join(pkiDir, fileName)
-		if _, err := os.Stat(file); err != nil {
-			panic(err.Error())
-		}
-		b, err := ioutil.ReadFile(file)
-		if err != nil {
-			panic(err.Error())
-		}
-		return base64.StdEncoding.EncodeToString(b)
-	}
-}
-
-func includePKIFunc(pkiDir string) func(string, int) string {
-	return func(fileName string, indent int) string {
-		file := filepath.Join(pkiDir, fileName)
-		if _, err := os.Stat(file); err != nil {
-			panic(err.Error())
-		}
-		b, err := ioutil.ReadFile(file)
-		if err != nil {
-			panic(err.Error())
-		}
-		input := bytes.NewBuffer(b)
-		output := &bytes.Buffer{}
-		scanner := bufio.NewScanner(input)
-		for scanner.Scan() {
-			fmt.Fprintf(output, "%s%s\n", strings.Repeat(" ", indent), scanner.Text())
-		}
-		return output.String()
-	}
-}
-
-func base64Func(params interface{}, rc *renderContext) func(string) string {
-	return func(fileName string) string {
-		result, err := rc.substituteParams(params, fileName)
-		if err != nil {
-			panic(err.Error())
-		}
-		return base64.StdEncoding.EncodeToString([]byte(result))
 	}
 }
 

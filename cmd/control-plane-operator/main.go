@@ -18,10 +18,10 @@ import (
 	"github.com/openshift/ibm-roks-toolkit/pkg/controllers/clusterversion"
 	"github.com/openshift/ibm-roks-toolkit/pkg/controllers/cmca"
 	"github.com/openshift/ibm-roks-toolkit/pkg/controllers/infrastatus"
-	"github.com/openshift/ibm-roks-toolkit/pkg/controllers/kubelet_serving_ca"
-	"github.com/openshift/ibm-roks-toolkit/pkg/controllers/openshift_apiserver"
-	"github.com/openshift/ibm-roks-toolkit/pkg/controllers/openshift_apiserver_monitor"
-	"github.com/openshift/ibm-roks-toolkit/pkg/controllers/openshift_controller_manager"
+	"github.com/openshift/ibm-roks-toolkit/pkg/controllers/kubeletservingca"
+	"github.com/openshift/ibm-roks-toolkit/pkg/controllers/openshiftapiserver"
+	"github.com/openshift/ibm-roks-toolkit/pkg/controllers/openshiftapiservermonitor"
+	"github.com/openshift/ibm-roks-toolkit/pkg/controllers/openshiftcontrollermanager"
 )
 
 const (
@@ -41,10 +41,10 @@ var controllerFuncs = map[string]cpoperator.ControllerSetupFunc{
 	"controller-manager-ca":        cmca.Setup,
 	"cluster-operator":             clusteroperator.Setup,
 	"cluster-version":              clusterversion.Setup,
-	"kubelet-serving-ca":           kubelet_serving_ca.Setup,
-	"openshift-apiserver":          openshift_apiserver.Setup,
-	"openshift-controller-manager": openshift_controller_manager.Setup,
-	"openshift-apiserver-monitor":  openshift_apiserver_monitor.Setup,
+	"kubelet-serving-ca":           kubeletservingca.Setup,
+	"openshift-apiserver":          openshiftapiserver.Setup,
+	"openshift-controller-manager": openshiftcontrollermanager.Setup,
+	"openshift-apiserver-monitor":  openshiftapiservermonitor.Setup,
 	"infrastatus":                  infrastatus.Setup,
 }
 
