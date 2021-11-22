@@ -25,7 +25,7 @@ type KubeletServingCASyncer struct {
 	InitialCA    string
 }
 
-func (s *KubeletServingCASyncer) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+func (s *KubeletServingCASyncer) Reconcile(_ context.Context, req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
 	targetConfigMap, err := s.TargetClient.CoreV1().ConfigMaps("openshift-config-managed").Get(ctx, "kubelet-serving-ca", metav1.GetOptions{})
 	if err != nil && !errors.IsNotFound(err) {
