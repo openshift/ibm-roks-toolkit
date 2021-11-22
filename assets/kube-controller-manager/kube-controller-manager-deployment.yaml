@@ -132,9 +132,9 @@ spec:
 {{- $probe := .ControllerManagerLivenessProbe }}
         livenessProbe:
           httpGet:
-            scheme: {{ or $probe.HttpGet.Scheme "HTTPS" }}
-            port: {{ or $probe.HttpGet.Port 10257 }}
-            path: {{ or $probe.HttpGet.Path "healthz" }}
+            scheme: {{ or $probe.HTTPGet.Scheme "HTTPS" }}
+            port: {{ or $probe.HTTPGet.Port 10257 }}
+            path: {{ or $probe.HTTPGet.Path "healthz" }}
           initialDelaySeconds: {{ or $probe.InitialDelaySeconds 10 }}
           periodSeconds: {{ or $probe.PeriodSeconds 10 }}
           timeoutSeconds: {{ or $probe.TimeoutSeconds 1 }}

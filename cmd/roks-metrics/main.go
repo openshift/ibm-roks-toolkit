@@ -21,7 +21,7 @@ func main() {
 }
 
 func newMetricsServerCommand() *cobra.Command {
-	metricsServer := metrics.MetricsServer{}
+	metricsServer := metrics.Server{}
 	cmd := &cobra.Command{
 		Use:          "roks-metrics",
 		Short:        "Metrics server for ROKS clusters",

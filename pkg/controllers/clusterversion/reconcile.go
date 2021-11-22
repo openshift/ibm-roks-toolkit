@@ -13,13 +13,13 @@ import (
 	configlister "github.com/openshift/client-go/config/listers/config/v1"
 )
 
-type ClusterVersionReconciler struct {
+type Reconciler struct {
 	Client configclient.Interface
 	Lister configlister.ClusterVersionLister
 	Log    logr.Logger
 }
 
-func (r *ClusterVersionReconciler) Reconcile(_ context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *Reconciler) Reconcile(_ context.Context, req ctrl.Request) (ctrl.Result, error) {
 	clusterVersion, err := r.Lister.Get(req.Name)
 	if err != nil {
 		return ctrl.Result{}, fmt.Errorf("cannot fetch cluster version %s: %v", req.Name, err)

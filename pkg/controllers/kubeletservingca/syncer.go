@@ -1,4 +1,4 @@
-package kubelet_serving_ca
+package kubeletservingca
 
 import (
 	"context"
@@ -16,16 +16,13 @@ import (
 // syncInterval is the amount of time to use between checks
 var syncInterval = 20 * time.Minute
 
-// controlPlaneOperatorConfig is the name of the source configmap on the management cluster
-const controlPlaneOperatorConfig = "control-plane-operator"
-
-type KubeletServingCASyncer struct {
+type Syncer struct {
 	TargetClient kubeclient.Interface
 	Log          logr.Logger
 	InitialCA    string
 }
 
-func (s *KubeletServingCASyncer) Reconcile(_ context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (s *Syncer) Reconcile(_ context.Context, req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
 	targetConfigMap, err := s.TargetClient.CoreV1().ConfigMaps("openshift-config-managed").Get(ctx, "kubelet-serving-ca", metav1.GetOptions{})
 	if err != nil && !errors.IsNotFound(err) {
@@ -52,7 +49,7 @@ func result(err error) (ctrl.Result, error) {
 	return ctrl.Result{RequeueAfter: syncInterval}, nil
 }
 
-func (s *KubeletServingCASyncer) expectedConfigMap() *corev1.ConfigMap {
+func (s *Syncer) expectedConfigMap() *corev1.ConfigMap {
 	cm := &corev1.ConfigMap{}
 	cm.Name = "kubelet-serving-ca"
 	cm.Namespace = "openshift-config-managed"

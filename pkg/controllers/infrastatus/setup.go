@@ -44,7 +44,7 @@ func Setup(cfg *cpoperator.ControlPlaneOperatorConfig) error {
 	}
 	sourceInfrastructure := infrastructureObj.(*configv1.Infrastructure)
 
-	reconciler := &InfraStatusReconciler{
+	reconciler := &Reconciler{
 		Source:     sourceInfrastructure,
 		Client:     cfg.TargetConfigClient(),
 		KubeClient: cfg.TargetKubeClient(),

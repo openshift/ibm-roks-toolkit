@@ -1,4 +1,4 @@
-package metrics_pusher
+package metricspusher
 
 import (
 	"context"
@@ -65,7 +65,8 @@ func (p *MetricsPusher) pushMetrics() {
 		var resp *http.Response
 		var err error
 		if p.Clientca != "" {
-			caCert, err := ioutil.ReadFile(p.Clientca)
+			var caCert []byte
+			caCert, err = ioutil.ReadFile(p.Clientca)
 			if err != nil {
 				p.Log.Error(err, "Unable to read CA cert for fetching metrics: Please provide valid CA cert or path")
 				return

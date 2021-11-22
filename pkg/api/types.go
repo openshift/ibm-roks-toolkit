@@ -91,14 +91,14 @@ type NamedCert struct {
 	NamedCertDomain string `json:"namedCertDomain"`
 }
 
-type HttpGetAction struct {
+type HTTPGetAction struct {
 	Path   string `json:"path"`
 	Port   uint   `json:"port"`
 	Scheme string `json:"scheme"`
 }
 
 type Probe struct {
-	HttpGet             HttpGetAction `json:"httpGet"`
+	HTTPGet             HTTPGetAction `json:"httpGet"`
 	InitialDelaySeconds uint          `json:"initialDelaySeconds"`
 	PeriodSeconds       uint          `json:"periodSeconds"`
 	TimeoutSeconds      uint          `json:"timeoutSeconds"`
