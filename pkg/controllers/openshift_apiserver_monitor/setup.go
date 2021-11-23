@@ -37,8 +37,8 @@ func Setup(cfg *cpoperator.ControlPlaneOperatorConfig) error {
 		controllers.DefaultResync,
 		cache.Indexers{},
 	)
-	cfg.Manager().Add(manager.RunnableFunc(func(stopCh <-chan struct{}) error {
-		crdInformer.Run(stopCh)
+	cfg.Manager().Add(manager.RunnableFunc(func(ctx context.Context) error {
+		crdInformer.Run(ctx.Done())
 		return nil
 	}))
 	reconciler := &OpenshiftAPIServerMonitor{
