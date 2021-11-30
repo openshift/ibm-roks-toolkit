@@ -56,7 +56,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"sync"
 	"time"
 
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -188,15 +187,13 @@ type LeaderElector struct {
 	// clock is wrapper around time to allow for less flaky testing
 	clock clock.Clock
 
-	// used to lock the observedRecord
-	observedRecordLock sync.Mutex
-
 	metrics leaderMetricsAdapter
+
+	// name is the name of the resource lock for debugging
+	name string
 }
 
-// Run starts the leader election loop. Run will not return
-// before leader election loop is stopped by ctx or it has
-// stopped holding the leader lease
+// Run starts the leader election loop
 func (le *LeaderElector) Run(ctx context.Context) {
 	defer runtime.HandleCrash()
 	defer func() {
@@ -213,8 +210,7 @@ func (le *LeaderElector) Run(ctx context.Context) {
 }
 
 // RunOrDie starts a client with the provided config or panics if the config
-// fails to validate. RunOrDie blocks until leader election loop is
-// stopped by ctx or it has stopped holding the leader lease
+// fails to validate.
 func RunOrDie(ctx context.Context, lec LeaderElectionConfig) {
 	le, err := NewLeaderElector(lec)
 	if err != nil {
@@ -228,14 +224,13 @@ func RunOrDie(ctx context.Context, lec LeaderElectionConfig) {
 
 // GetLeader returns the identity of the last observed leader or returns the empty string if
 // no leader has yet been observed.
-// This function is for informational purposes. (e.g. monitoring, logs, etc.)
 func (le *LeaderElector) GetLeader() string {
-	return le.getObservedRecord().HolderIdentity
+	return le.observedRecord.HolderIdentity
 }
 
 // IsLeader returns true if the last observed leader was this client else returns false.
 func (le *LeaderElector) IsLeader() bool {
-	return le.getObservedRecord().HolderIdentity == le.config.Lock.Identity()
+	return le.observedRecord.HolderIdentity == le.config.Lock.Identity()
 }
 
 // acquire loops calling tryAcquireOrRenew and returns true immediately when tryAcquireOrRenew succeeds.
@@ -245,7 +240,7 @@ func (le *LeaderElector) acquire(ctx context.Context) bool {
 	defer cancel()
 	succeeded := false
 	desc := le.config.Lock.Describe()
-	klog.Infof("attempting to acquire leader lease %v...", desc)
+	klog.Infof("attempting to acquire leader lease  %v...", desc)
 	wait.JitterUntil(func() {
 		succeeded = le.tryAcquireOrRenew(ctx)
 		le.maybeReportTransition()
@@ -295,19 +290,15 @@ func (le *LeaderElector) release() bool {
 	if !le.IsLeader() {
 		return true
 	}
-	now := metav1.Now()
 	leaderElectionRecord := rl.LeaderElectionRecord{
-		LeaderTransitions:    le.observedRecord.LeaderTransitions,
-		LeaseDurationSeconds: 1,
-		RenewTime:            now,
-		AcquireTime:          now,
+		LeaderTransitions: le.observedRecord.LeaderTransitions,
 	}
 	if err := le.config.Lock.Update(context.TODO(), leaderElectionRecord); err != nil {
 		klog.Errorf("Failed to release lock: %v", err)
 		return false
 	}
-
-	le.setObservedRecord(&leaderElectionRecord)
+	le.observedRecord = leaderElectionRecord
+	le.observedTime = le.clock.Now()
 	return true
 }
 
@@ -334,17 +325,16 @@ func (le *LeaderElector) tryAcquireOrRenew(ctx context.Context) bool {
 			klog.Errorf("error initially creating leader election record: %v", err)
 			return false
 		}
-
-		le.setObservedRecord(&leaderElectionRecord)
-
+		le.observedRecord = leaderElectionRecord
+		le.observedTime = le.clock.Now()
 		return true
 	}
 
 	// 2. Record obtained, check the Identity & Time
 	if !bytes.Equal(le.observedRawRecord, oldLeaderElectionRawRecord) {
-		le.setObservedRecord(oldLeaderElectionRecord)
-
+		le.observedRecord = *oldLeaderElectionRecord
 		le.observedRawRecord = oldLeaderElectionRawRecord
+		le.observedTime = le.clock.Now()
 	}
 	if len(oldLeaderElectionRecord.HolderIdentity) > 0 &&
 		le.observedTime.Add(le.config.LeaseDuration).After(now.Time) &&
@@ -368,7 +358,8 @@ func (le *LeaderElector) tryAcquireOrRenew(ctx context.Context) bool {
 		return false
 	}
 
-	le.setObservedRecord(&leaderElectionRecord)
+	le.observedRecord = leaderElectionRecord
+	le.observedTime = le.clock.Now()
 	return true
 }
 
@@ -396,23 +387,4 @@ func (le *LeaderElector) Check(maxTolerableExpiredLease time.Duration) error {
 	}
 
 	return nil
-}
-
-// setObservedRecord will set a new observedRecord and update observedTime to the current time.
-// Protect critical sections with lock.
-func (le *LeaderElector) setObservedRecord(observedRecord *rl.LeaderElectionRecord) {
-	le.observedRecordLock.Lock()
-	defer le.observedRecordLock.Unlock()
-
-	le.observedRecord = *observedRecord
-	le.observedTime = le.clock.Now()
-}
-
-// getObservedRecord returns observersRecord.
-// Protect critical sections with lock.
-func (le *LeaderElector) getObservedRecord() rl.LeaderElectionRecord {
-	le.observedRecordLock.Lock()
-	defer le.observedRecordLock.Unlock()
-
-	return le.observedRecord
 }

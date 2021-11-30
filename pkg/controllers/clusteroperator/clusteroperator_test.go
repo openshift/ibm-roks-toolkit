@@ -69,7 +69,7 @@ var _ = BeforeSuite(func() {
 	By("Starting the manager")
 	go func() {
 		defer GinkgoRecover()
-		Expect(cpoConfig.Start(ctx)).To(Succeed())
+		Expect(cpoConfig.Start(doneMgr)).To(Succeed())
 	}()
 
 }, 60)

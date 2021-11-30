@@ -23,8 +23,9 @@ import (
 	"sort"
 	"strings"
 
-	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/klog/v2"
+
+	"k8s.io/apimachinery/pkg/util/sets"
 )
 
 // DockerKeyring tracks a set of docker registry credentials, maintaining a
@@ -157,10 +158,9 @@ func isDefaultRegistryMatch(image string) bool {
 	return !strings.ContainsAny(parts[0], ".:")
 }
 
-// ParseSchemelessURL parses a schemeless url and returns a url.URL
 // url.Parse require a scheme, but ours don't have schemes.  Adding a
 // scheme to make url.Parse happy, then clear out the resulting scheme.
-func ParseSchemelessURL(schemelessURL string) (*url.URL, error) {
+func parseSchemelessURL(schemelessURL string) (*url.URL, error) {
 	parsed, err := url.Parse("https://" + schemelessURL)
 	if err != nil {
 		return nil, err
@@ -170,8 +170,8 @@ func ParseSchemelessURL(schemelessURL string) (*url.URL, error) {
 	return parsed, nil
 }
 
-// SplitURL splits the host name into parts, as well as the port
-func SplitURL(url *url.URL) (parts []string, port string) {
+// split the host name into parts, as well as the port
+func splitURL(url *url.URL) (parts []string, port string) {
 	host, port, err := net.SplitHostPort(url.Host)
 	if err != nil {
 		// could not parse port
@@ -180,20 +180,20 @@ func SplitURL(url *url.URL) (parts []string, port string) {
 	return strings.Split(host, "."), port
 }
 
-// URLsMatchStr is wrapper for URLsMatch, operating on strings instead of URLs.
-func URLsMatchStr(glob string, target string) (bool, error) {
-	globURL, err := ParseSchemelessURL(glob)
+// overloaded version of urlsMatch, operating on strings instead of URLs.
+func urlsMatchStr(glob string, target string) (bool, error) {
+	globURL, err := parseSchemelessURL(glob)
 	if err != nil {
 		return false, err
 	}
-	targetURL, err := ParseSchemelessURL(target)
+	targetURL, err := parseSchemelessURL(target)
 	if err != nil {
 		return false, err
 	}
-	return URLsMatch(globURL, targetURL)
+	return urlsMatch(globURL, targetURL)
 }
 
-// URLsMatch checks whether the given target url matches the glob url, which may have
+// check whether the given target url matches the glob url, which may have
 // glob wild cards in the host name.
 //
 // Examples:
@@ -201,9 +201,9 @@ func URLsMatchStr(glob string, target string) (bool, error) {
 //    globURL=*.docker.io, targetURL=not.right.io   => no match
 //
 // Note that we don't support wildcards in ports and paths yet.
-func URLsMatch(globURL *url.URL, targetURL *url.URL) (bool, error) {
-	globURLParts, globPort := SplitURL(globURL)
-	targetURLParts, targetPort := SplitURL(targetURL)
+func urlsMatch(globURL *url.URL, targetURL *url.URL) (bool, error) {
+	globURLParts, globPort := splitURL(globURL)
+	targetURLParts, targetPort := splitURL(targetURL)
 	if globPort != targetPort {
 		// port doesn't match
 		return false, nil
@@ -240,7 +240,7 @@ func (dk *BasicDockerKeyring) Lookup(image string) ([]AuthConfig, bool) {
 	for _, k := range dk.index {
 		// both k and image are schemeless URLs because even though schemes are allowed
 		// in the credential configurations, we remove them in Add.
-		if matched, _ := URLsMatchStr(k, image); matched {
+		if matched, _ := urlsMatchStr(k, image); matched {
 			ret = append(ret, dk.creds[k]...)
 		}
 	}

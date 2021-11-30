@@ -21,23 +21,19 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"math"
-	"math/rand"
 	"sort"
 	"sync"
 	"time"
 
+	"github.com/pkg/errors"
+
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	apitypes "k8s.io/apimachinery/pkg/types"
-	"k8s.io/apimachinery/pkg/util/clock"
-	utilerrors "k8s.io/apimachinery/pkg/util/errors"
-	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
-	"k8s.io/apimachinery/pkg/util/sets"
+	apierrors "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/apimachinery/pkg/util/wait"
 	fcboot "k8s.io/apiserver/pkg/apis/flowcontrol/bootstrap"
 	"k8s.io/apiserver/pkg/authentication/user"
@@ -46,17 +42,15 @@ import (
 	fq "k8s.io/apiserver/pkg/util/flowcontrol/fairqueuing"
 	fcfmt "k8s.io/apiserver/pkg/util/flowcontrol/format"
 	"k8s.io/apiserver/pkg/util/flowcontrol/metrics"
-	fcrequest "k8s.io/apiserver/pkg/util/flowcontrol/request"
+	kubeinformers "k8s.io/client-go/informers"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/util/workqueue"
 	"k8s.io/klog/v2"
 
-	flowcontrol "k8s.io/api/flowcontrol/v1beta1"
-	flowcontrolclient "k8s.io/client-go/kubernetes/typed/flowcontrol/v1beta1"
-	flowcontrollister "k8s.io/client-go/listers/flowcontrol/v1beta1"
+	fctypesv1a1 "k8s.io/api/flowcontrol/v1alpha1"
+	fcclientv1a1 "k8s.io/client-go/kubernetes/typed/flowcontrol/v1alpha1"
+	fclistersv1a1 "k8s.io/client-go/listers/flowcontrol/v1alpha1"
 )
-
-const timeFmt = "2006-01-02T15:04:05.999"
 
 // This file contains a simple local (to the apiserver) controller
 // that digests API Priority and Fairness config objects (FlowSchema
@@ -67,15 +61,7 @@ const timeFmt = "2006-01-02T15:04:05.999"
 // undesired becomes completely unused, all the config objects are
 // read and processed as a whole.
 
-// The funcs in this package follow the naming convention that the suffix
-// "Locked" means the relevant mutex must be locked at the start of each
-// call and will be locked upon return.  For a configController, the
-// suffix "ReadLocked" stipulates a read lock while just "Locked"
-// stipulates a full lock.  Absence of either suffix means that either
-// (a) the lock must NOT be held at call time and will not be held
-// upon return or (b) locking is irrelevant.
-
-// StartFunction begins the process of handling a request.  If the
+// StartFunction begins the process of handlig a request.  If the
 // request gets queued then this function uses the given hashValue as
 // the source of entropy as it shuffle-shards the request into a
 // queue.  The descr1 and descr2 values play no role in the logic but
@@ -90,7 +76,6 @@ type StartFunction func(ctx context.Context, hashValue uint64) (execute bool, af
 type RequestDigest struct {
 	RequestInfo *request.RequestInfo
 	User        user.Info
-	Width       fcrequest.Width
 }
 
 // `*configController` maintains eventual consistency with the API
@@ -99,30 +84,20 @@ type RequestDigest struct {
 // this type and cfgMeal follow the convention that the suffix
 // "Locked" means that the caller must hold the configController lock.
 type configController struct {
-	name             string // varies in tests of fighting controllers
-	clock            clock.PassiveClock
 	queueSetFactory  fq.QueueSetFactory
 	obsPairGenerator metrics.TimedObserverPairGenerator
-
-	// How this controller appears in an ObjectMeta ManagedFieldsEntry.Manager
-	asFieldManager string
-
-	// Given a boolean indicating whether a FlowSchema's referenced
-	// PriorityLevelConfig exists, return a boolean indicating whether
-	// the reference is dangling
-	foundToDangling func(bool) bool
 
 	// configQueue holds `(interface{})(0)` when the configuration
 	// objects need to be reprocessed.
 	configQueue workqueue.RateLimitingInterface
 
-	plLister         flowcontrollister.PriorityLevelConfigurationLister
+	plLister         fclistersv1a1.PriorityLevelConfigurationLister
 	plInformerSynced cache.InformerSynced
 
-	fsLister         flowcontrollister.FlowSchemaLister
+	fsLister         fclistersv1a1.FlowSchemaLister
 	fsInformerSynced cache.InformerSynced
 
-	flowcontrolClient flowcontrolclient.FlowcontrolV1beta1Interface
+	flowcontrolClient fcclientv1a1.FlowcontrolV1alpha1Interface
 
 	// serverConcurrencyLimit is the limit on the server's total
 	// number of non-exempt requests being served at once.  This comes
@@ -132,25 +107,10 @@ type configController struct {
 	// requestWaitLimit comes from server configuration.
 	requestWaitLimit time.Duration
 
-	// watchTracker implements the necessary WatchTracker interface.
-	WatchTracker
-
-	// the most recent update attempts, ordered by increasing age.
-	// Consumer trims to keep only the last minute's worth of entries.
-	// The controller uses this to limit itself to at most six updates
-	// to a given FlowSchema in any minute.
-	// This may only be accessed from the one and only worker goroutine.
-	mostRecentUpdates []updateAttempt
-
 	// This must be locked while accessing flowSchemas or
-	// priorityLevelStates.  A lock for writing is needed
-	// for writing to any of the following:
-	// - the flowSchemas field
-	// - the slice held in the flowSchemas field
-	// - the priorityLevelStates field
-	// - the map held in the priorityLevelStates field
-	// - any field of a priorityLevelState held in that map
-	lock sync.RWMutex
+	// priorityLevelStates.  It is the lock involved in
+	// LockingWriteMultiple.
+	lock sync.Mutex
 
 	// flowSchemas holds the flow schema objects, sorted by increasing
 	// numerical (decreasing logical) matching precedence.  Every
@@ -163,16 +123,11 @@ type configController struct {
 	priorityLevelStates map[string]*priorityLevelState
 }
 
-type updateAttempt struct {
-	timeUpdated  time.Time
-	updatedItems sets.String // FlowSchema names
-}
-
 // priorityLevelState holds the state specific to a priority level.
 type priorityLevelState struct {
 	// the API object or prototype prescribing this level.  Nothing
 	// reached through this pointer is mutable.
-	pl *flowcontrol.PriorityLevelConfiguration
+	pl *fctypesv1a1.PriorityLevelConfiguration
 
 	// qsCompleter holds the QueueSetCompleter derived from `config`
 	// and `queues` if config is not exempt, nil otherwise.
@@ -196,27 +151,34 @@ type priorityLevelState struct {
 }
 
 // NewTestableController is extra flexible to facilitate testing
-func newTestableController(config TestableConfig) *configController {
+func newTestableController(
+	informerFactory kubeinformers.SharedInformerFactory,
+	flowcontrolClient fcclientv1a1.FlowcontrolV1alpha1Interface,
+	serverConcurrencyLimit int,
+	requestWaitLimit time.Duration,
+	obsPairGenerator metrics.TimedObserverPairGenerator,
+	queueSetFactory fq.QueueSetFactory,
+) *configController {
 	cfgCtlr := &configController{
-		name:                   config.Name,
-		clock:                  config.Clock,
-		queueSetFactory:        config.QueueSetFactory,
-		obsPairGenerator:       config.ObsPairGenerator,
-		asFieldManager:         config.AsFieldManager,
-		foundToDangling:        config.FoundToDangling,
-		serverConcurrencyLimit: config.ServerConcurrencyLimit,
-		requestWaitLimit:       config.RequestWaitLimit,
-		flowcontrolClient:      config.FlowcontrolClient,
+		queueSetFactory:        queueSetFactory,
+		obsPairGenerator:       obsPairGenerator,
+		serverConcurrencyLimit: serverConcurrencyLimit,
+		requestWaitLimit:       requestWaitLimit,
+		flowcontrolClient:      flowcontrolClient,
 		priorityLevelStates:    make(map[string]*priorityLevelState),
-		WatchTracker:           NewWatchTracker(),
 	}
-	klog.V(2).Infof("NewTestableController %q with serverConcurrencyLimit=%d, requestWaitLimit=%s, name=%s, asFieldManager=%q", cfgCtlr.name, cfgCtlr.serverConcurrencyLimit, cfgCtlr.requestWaitLimit, cfgCtlr.name, cfgCtlr.asFieldManager)
-	// Start with longish delay because conflicts will be between
-	// different processes, so take some time to go away.
-	cfgCtlr.configQueue = workqueue.NewNamedRateLimitingQueue(workqueue.NewItemExponentialFailureRateLimiter(200*time.Millisecond, 8*time.Hour), "priority_and_fairness_config_queue")
+	klog.V(2).Infof("NewTestableController with serverConcurrencyLimit=%d, requestWaitLimit=%s", serverConcurrencyLimit, requestWaitLimit)
+	cfgCtlr.initializeConfigController(informerFactory)
 	// ensure the data structure reflects the mandatory config
 	cfgCtlr.lockAndDigestConfigObjects(nil, nil)
-	fci := config.InformerFactory.Flowcontrol().V1beta1()
+	return cfgCtlr
+}
+
+// initializeConfigController sets up the controller that processes
+// config API objects.
+func (cfgCtlr *configController) initializeConfigController(informerFactory kubeinformers.SharedInformerFactory) {
+	cfgCtlr.configQueue = workqueue.NewNamedRateLimitingQueue(workqueue.NewItemExponentialFailureRateLimiter(200*time.Millisecond, 8*time.Hour), "priority_and_fairness_config_queue")
+	fci := informerFactory.Flowcontrol().V1alpha1()
 	pli := fci.PriorityLevelConfigurations()
 	fsi := fci.FlowSchemas()
 	cfgCtlr.plLister = pli.Lister()
@@ -225,113 +187,63 @@ func newTestableController(config TestableConfig) *configController {
 	cfgCtlr.fsInformerSynced = fsi.Informer().HasSynced
 	pli.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
-			pl := obj.(*flowcontrol.PriorityLevelConfiguration)
-			klog.V(7).Infof("Triggered API priority and fairness config reloading in %s due to creation of PLC %s", cfgCtlr.name, pl.Name)
+			pl := obj.(*fctypesv1a1.PriorityLevelConfiguration)
+			klog.V(7).Infof("Triggered API priority and fairness config reloading due to creation of PLC %s", pl.Name)
 			cfgCtlr.configQueue.Add(0)
 		},
 		UpdateFunc: func(oldObj, newObj interface{}) {
-			newPL := newObj.(*flowcontrol.PriorityLevelConfiguration)
-			oldPL := oldObj.(*flowcontrol.PriorityLevelConfiguration)
+			newPL := newObj.(*fctypesv1a1.PriorityLevelConfiguration)
+			oldPL := oldObj.(*fctypesv1a1.PriorityLevelConfiguration)
 			if !apiequality.Semantic.DeepEqual(oldPL.Spec, newPL.Spec) {
-				klog.V(7).Infof("Triggered API priority and fairness config reloading in %s due to spec update of PLC %s", cfgCtlr.name, newPL.Name)
+				klog.V(7).Infof("Triggered API priority and fairness config reloading due to spec update of PLC %s", newPL.Name)
 				cfgCtlr.configQueue.Add(0)
-			} else {
-				klog.V(7).Infof("No trigger API priority and fairness config reloading in %s due to spec non-change of PLC %s", cfgCtlr.name, newPL.Name)
 			}
 		},
 		DeleteFunc: func(obj interface{}) {
 			name, _ := cache.DeletionHandlingMetaNamespaceKeyFunc(obj)
-			klog.V(7).Infof("Triggered API priority and fairness config reloading in %s due to deletion of PLC %s", cfgCtlr.name, name)
+			klog.V(7).Infof("Triggered API priority and fairness config reloading due to deletion of PLC %s", name)
 			cfgCtlr.configQueue.Add(0)
 
 		}})
 	fsi.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
-			fs := obj.(*flowcontrol.FlowSchema)
-			klog.V(7).Infof("Triggered API priority and fairness config reloading in %s due to creation of FS %s", cfgCtlr.name, fs.Name)
+			fs := obj.(*fctypesv1a1.FlowSchema)
+			klog.V(7).Infof("Triggered API priority and fairness config reloading due to creation of FS %s", fs.Name)
 			cfgCtlr.configQueue.Add(0)
 		},
 		UpdateFunc: func(oldObj, newObj interface{}) {
-			newFS := newObj.(*flowcontrol.FlowSchema)
-			oldFS := oldObj.(*flowcontrol.FlowSchema)
-			// Changes to either Spec or Status are relevant.  The
-			// concern is that we might, in some future release, want
-			// different behavior than is implemented now. One of the
-			// hardest questions is how does an operator roll out the
-			// new release in a cluster with multiple kube-apiservers
-			// --- in a way that works no matter what servers crash
-			// and restart when. If this handler reacts only to
-			// changes in Spec then we have a scenario in which the
-			// rollout leaves the old Status in place. The scenario
-			// ends with this subsequence: deploy the last new server
-			// before deleting the last old server, and in between
-			// those two operations the last old server crashes and
-			// recovers. The chosen solution is making this controller
-			// insist on maintaining the particular state that it
-			// establishes.
-			if !(apiequality.Semantic.DeepEqual(oldFS.Spec, newFS.Spec) &&
-				apiequality.Semantic.DeepEqual(oldFS.Status, newFS.Status)) {
-				klog.V(7).Infof("Triggered API priority and fairness config reloading in %s due to spec and/or status update of FS %s", cfgCtlr.name, newFS.Name)
+			newFS := newObj.(*fctypesv1a1.FlowSchema)
+			oldFS := oldObj.(*fctypesv1a1.FlowSchema)
+			if !apiequality.Semantic.DeepEqual(oldFS.Spec, newFS.Spec) {
+				klog.V(7).Infof("Triggered API priority and fairness config reloading due to spec update of FS %s", newFS.Name)
 				cfgCtlr.configQueue.Add(0)
-			} else {
-				klog.V(7).Infof("No trigger of API priority and fairness config reloading in %s due to spec and status non-change of FS %s", cfgCtlr.name, newFS.Name)
 			}
 		},
 		DeleteFunc: func(obj interface{}) {
 			name, _ := cache.DeletionHandlingMetaNamespaceKeyFunc(obj)
-			klog.V(7).Infof("Triggered API priority and fairness config reloading in %s due to deletion of FS %s", cfgCtlr.name, name)
+			klog.V(7).Infof("Triggered API priority and fairness config reloading due to deletion of FS %s", name)
 			cfgCtlr.configQueue.Add(0)
 
 		}})
-	return cfgCtlr
-}
-
-// MaintainObservations keeps the observers from
-// metrics.PriorityLevelConcurrencyObserverPairGenerator from falling
-// too far behind
-func (cfgCtlr *configController) MaintainObservations(stopCh <-chan struct{}) {
-	wait.Until(cfgCtlr.updateObservations, 10*time.Second, stopCh)
-}
-
-func (cfgCtlr *configController) updateObservations() {
-	cfgCtlr.lock.RLock()
-	defer cfgCtlr.lock.RUnlock()
-	for _, plc := range cfgCtlr.priorityLevelStates {
-		if plc.queues != nil {
-			plc.queues.UpdateObservations()
-		}
-	}
 }
 
 func (cfgCtlr *configController) Run(stopCh <-chan struct{}) error {
-	defer utilruntime.HandleCrash()
-
-	// Let the config worker stop when we are done
 	defer cfgCtlr.configQueue.ShutDown()
-
 	klog.Info("Starting API Priority and Fairness config controller")
 	if ok := cache.WaitForCacheSync(stopCh, cfgCtlr.plInformerSynced, cfgCtlr.fsInformerSynced); !ok {
 		return fmt.Errorf("Never achieved initial sync")
 	}
-
 	klog.Info("Running API Priority and Fairness config worker")
-	go wait.Until(cfgCtlr.runWorker, time.Second, stopCh)
-
-	<-stopCh
+	wait.Until(cfgCtlr.runWorker, time.Second, stopCh)
 	klog.Info("Shutting down API Priority and Fairness config worker")
 	return nil
 }
 
-// runWorker is the logic of the one and only worker goroutine.  We
-// limit the number to one in order to obviate explicit
-// synchronization around access to `cfgCtlr.mostRecentUpdates`.
 func (cfgCtlr *configController) runWorker() {
 	for cfgCtlr.processNextWorkItem() {
 	}
 }
 
-// processNextWorkItem works on one entry from the work queue.
-// Only invoke this in the one and only worker goroutine.
 func (cfgCtlr *configController) processNextWorkItem() bool {
 	obj, shutdown := cfgCtlr.configQueue.Get()
 	if shutdown {
@@ -340,14 +252,9 @@ func (cfgCtlr *configController) processNextWorkItem() bool {
 
 	func(obj interface{}) {
 		defer cfgCtlr.configQueue.Done(obj)
-		specificDelay, err := cfgCtlr.syncOne(map[string]string{})
-		switch {
-		case err != nil:
-			klog.Error(err)
+		if !cfgCtlr.syncOne() {
 			cfgCtlr.configQueue.AddRateLimited(obj)
-		case specificDelay > 0:
-			cfgCtlr.configQueue.AddAfter(obj, specificDelay)
-		default:
+		} else {
 			cfgCtlr.configQueue.Forget(obj)
 		}
 	}(obj)
@@ -355,22 +262,27 @@ func (cfgCtlr *configController) processNextWorkItem() bool {
 	return true
 }
 
-// syncOne does one full synchronization.  It reads all the API
-// objects that configure API Priority and Fairness and updates the
-// local configController accordingly.
-// Only invoke this in the one and only worker goroutine
-func (cfgCtlr *configController) syncOne(flowSchemaRVs map[string]string) (specificDelay time.Duration, err error) {
-	klog.V(5).Infof("%s syncOne at %s", cfgCtlr.name, cfgCtlr.clock.Now().Format(timeFmt))
+// syncOne attempts to sync all the API Priority and Fairness config
+// objects.  It either succeeds and returns `true` or logs an error
+// and returns `false`.
+func (cfgCtlr *configController) syncOne() bool {
 	all := labels.Everything()
 	newPLs, err := cfgCtlr.plLister.List(all)
 	if err != nil {
-		return 0, fmt.Errorf("unable to list PriorityLevelConfiguration objects: %w", err)
+		klog.Errorf("Unable to list PriorityLevelConfiguration objects: %s", err.Error())
+		return false
 	}
 	newFSs, err := cfgCtlr.fsLister.List(all)
 	if err != nil {
-		return 0, fmt.Errorf("unable to list FlowSchema objects: %w", err)
+		klog.Errorf("Unable to list FlowSchema objects: %s", err.Error())
+		return false
 	}
-	return cfgCtlr.digestConfigObjects(newPLs, newFSs, flowSchemaRVs)
+	err = cfgCtlr.digestConfigObjects(newPLs, newFSs)
+	if err == nil {
+		return true
+	}
+	klog.Error(err)
+	return false
 }
 
 // cfgMeal is the data involved in the process of digesting the API
@@ -401,91 +313,37 @@ type cfgMeal struct {
 	fsStatusUpdates []fsStatusUpdate
 }
 
-// A buffered set of status updates for FlowSchemas
+// A buffered set of status updates for a FlowSchema
 type fsStatusUpdate struct {
-	flowSchema *flowcontrol.FlowSchema
-	condition  flowcontrol.FlowSchemaCondition
-	oldValue   flowcontrol.FlowSchemaCondition
+	flowSchema *fctypesv1a1.FlowSchema
+	condition  fctypesv1a1.FlowSchemaCondition
+	oldValue   fctypesv1a1.FlowSchemaCondition
 }
 
 // digestConfigObjects is given all the API objects that configure
 // cfgCtlr and writes its consequent new configState.
-// Only invoke this in the one and only worker goroutine
-func (cfgCtlr *configController) digestConfigObjects(newPLs []*flowcontrol.PriorityLevelConfiguration, newFSs []*flowcontrol.FlowSchema, flowSchemaRVs map[string]string) (time.Duration, error) {
+func (cfgCtlr *configController) digestConfigObjects(newPLs []*fctypesv1a1.PriorityLevelConfiguration, newFSs []*fctypesv1a1.FlowSchema) error {
 	fsStatusUpdates := cfgCtlr.lockAndDigestConfigObjects(newPLs, newFSs)
 	var errs []error
-	currResult := updateAttempt{
-		timeUpdated:  cfgCtlr.clock.Now(),
-		updatedItems: sets.String{},
-	}
-	var suggestedDelay time.Duration
 	for _, fsu := range fsStatusUpdates {
-		// if we should skip this name, indicate we will need a delay, but continue with other entries
-		if cfgCtlr.shouldDelayUpdate(fsu.flowSchema.Name) {
-			if suggestedDelay == 0 {
-				suggestedDelay = time.Duration(30+rand.Intn(45)) * time.Second
-			}
-			continue
-		}
-
-		// if we are going to issue an update, be sure we track every name we update so we know if we update it too often.
-		currResult.updatedItems.Insert(fsu.flowSchema.Name)
-
 		enc, err := json.Marshal(fsu.condition)
 		if err != nil {
 			// should never happen because these conditions are created here and well formed
 			panic(fmt.Sprintf("Failed to json.Marshall(%#+v): %s", fsu.condition, err.Error()))
 		}
-		klog.V(4).Infof("%s writing Condition %s to FlowSchema %s, which had ResourceVersion=%s, because its previous value was %s", cfgCtlr.name, string(enc), fsu.flowSchema.Name, fsu.flowSchema.ResourceVersion, fcfmt.Fmt(fsu.oldValue))
-		fsIfc := cfgCtlr.flowcontrolClient.FlowSchemas()
-		patchBytes := []byte(fmt.Sprintf(`{"status": {"conditions": [ %s ] } }`, string(enc)))
-		patchOptions := metav1.PatchOptions{FieldManager: cfgCtlr.asFieldManager}
-		patchedFlowSchema, err := fsIfc.Patch(context.TODO(), fsu.flowSchema.Name, apitypes.StrategicMergePatchType, patchBytes, patchOptions, "status")
-		if err == nil {
-			key, _ := cache.MetaNamespaceKeyFunc(patchedFlowSchema)
-			flowSchemaRVs[key] = patchedFlowSchema.ResourceVersion
-		} else if apierrors.IsNotFound(err) {
-			// This object has been deleted.  A notification is coming
-			// and nothing more needs to be done here.
-			klog.V(5).Infof("%s at %s: attempted update of concurrently deleted FlowSchema %s; nothing more needs to be done", cfgCtlr.name, cfgCtlr.clock.Now().Format(timeFmt), fsu.flowSchema.Name)
-		} else {
-			errs = append(errs, fmt.Errorf("failed to set a status.condition for FlowSchema %s: %w", fsu.flowSchema.Name, err))
+		klog.V(4).Infof("Writing Condition %s to FlowSchema %s because its previous value was %s", string(enc), fsu.flowSchema.Name, fcfmt.Fmt(fsu.oldValue))
+		_, err = cfgCtlr.flowcontrolClient.FlowSchemas().Patch(context.TODO(), fsu.flowSchema.Name, apitypes.StrategicMergePatchType, []byte(fmt.Sprintf(`{"status": {"conditions": [ %s ] } }`, string(enc))), metav1.PatchOptions{FieldManager: "api-priority-and-fairness-config-consumer-v1"}, "status")
+		if err != nil {
+			errs = append(errs, errors.Wrap(err, fmt.Sprintf("failed to set a status.condition for FlowSchema %s", fsu.flowSchema.Name)))
 		}
 	}
-	cfgCtlr.addUpdateResult(currResult)
-
-	return suggestedDelay, utilerrors.NewAggregate(errs)
-}
-
-// shouldDelayUpdate checks to see if a flowschema has been updated too often and returns true if a delay is needed.
-// Only invoke this in the one and only worker goroutine
-func (cfgCtlr *configController) shouldDelayUpdate(flowSchemaName string) bool {
-	numUpdatesInPastMinute := 0
-	oneMinuteAgo := cfgCtlr.clock.Now().Add(-1 * time.Minute)
-	for idx, update := range cfgCtlr.mostRecentUpdates {
-		if oneMinuteAgo.After(update.timeUpdated) {
-			// this and the remaining items are no longer relevant
-			cfgCtlr.mostRecentUpdates = cfgCtlr.mostRecentUpdates[:idx]
-			return false
-		}
-		if update.updatedItems.Has(flowSchemaName) {
-			numUpdatesInPastMinute++
-			if numUpdatesInPastMinute > 5 {
-				return true
-			}
-		}
+	if len(errs) == 0 {
+		return nil
 	}
-	return false
+	return apierrors.NewAggregate(errs)
 }
 
-// addUpdateResult adds the result. It isn't a ring buffer because
-// this is small and rate limited.
-// Only invoke this in the one and only worker goroutine
-func (cfgCtlr *configController) addUpdateResult(result updateAttempt) {
-	cfgCtlr.mostRecentUpdates = append([]updateAttempt{result}, cfgCtlr.mostRecentUpdates...)
-}
-
-func (cfgCtlr *configController) lockAndDigestConfigObjects(newPLs []*flowcontrol.PriorityLevelConfiguration, newFSs []*flowcontrol.FlowSchema) []fsStatusUpdate {
+func (cfgCtlr *configController) lockAndDigestConfigObjects(newPLs []*fctypesv1a1.PriorityLevelConfiguration, newFSs []*fctypesv1a1.FlowSchema) []fsStatusUpdate {
 	cfgCtlr.lock.Lock()
 	defer cfgCtlr.lock.Unlock()
 	meal := cfgMeal{
@@ -515,7 +373,7 @@ func (cfgCtlr *configController) lockAndDigestConfigObjects(newPLs []*flowcontro
 
 // Digest the new set of PriorityLevelConfiguration objects.
 // Pretend broken ones do not exist.
-func (meal *cfgMeal) digestNewPLsLocked(newPLs []*flowcontrol.PriorityLevelConfiguration) {
+func (meal *cfgMeal) digestNewPLsLocked(newPLs []*fctypesv1a1.PriorityLevelConfiguration) {
 	for _, pl := range newPLs {
 		state := meal.cfgCtlr.priorityLevelStates[pl.Name]
 		if state == nil {
@@ -536,8 +394,8 @@ func (meal *cfgMeal) digestNewPLsLocked(newPLs []*flowcontrol.PriorityLevelConfi
 		if state.pl.Spec.Limited != nil {
 			meal.shareSum += float64(state.pl.Spec.Limited.AssuredConcurrencyShares)
 		}
-		meal.haveExemptPL = meal.haveExemptPL || pl.Name == flowcontrol.PriorityLevelConfigurationNameExempt
-		meal.haveCatchAllPL = meal.haveCatchAllPL || pl.Name == flowcontrol.PriorityLevelConfigurationNameCatchAll
+		meal.haveExemptPL = meal.haveExemptPL || pl.Name == fctypesv1a1.PriorityLevelConfigurationNameExempt
+		meal.haveCatchAllPL = meal.haveCatchAllPL || pl.Name == fctypesv1a1.PriorityLevelConfigurationNameCatchAll
 	}
 }
 
@@ -548,9 +406,9 @@ func (meal *cfgMeal) digestNewPLsLocked(newPLs []*flowcontrol.PriorityLevelConfi
 // reflect this.  This function also adds any missing mandatory
 // FlowSchema objects.  The given objects must all have distinct
 // names.
-func (meal *cfgMeal) digestFlowSchemasLocked(newFSs []*flowcontrol.FlowSchema) {
+func (meal *cfgMeal) digestFlowSchemasLocked(newFSs []*fctypesv1a1.FlowSchema) {
 	fsSeq := make(apihelpers.FlowSchemaSequence, 0, len(newFSs))
-	fsMap := make(map[string]*flowcontrol.FlowSchema, len(newFSs))
+	fsMap := make(map[string]*fctypesv1a1.FlowSchema, len(newFSs))
 	var haveExemptFS, haveCatchAllFS bool
 	for i, fs := range newFSs {
 		otherFS := fsMap[fs.Name]
@@ -566,15 +424,15 @@ func (meal *cfgMeal) digestFlowSchemasLocked(newFSs []*flowcontrol.FlowSchema) {
 		//
 		// TODO: consider not even trying if server is not handling
 		// requests yet.
-		meal.presyncFlowSchemaStatus(fs, meal.cfgCtlr.foundToDangling(goodPriorityRef), fs.Spec.PriorityLevelConfiguration.Name)
+		meal.presyncFlowSchemaStatus(fs, !goodPriorityRef, fs.Spec.PriorityLevelConfiguration.Name)
 
 		if !goodPriorityRef {
 			klog.V(6).Infof("Ignoring FlowSchema %s because of bad priority level reference %q", fs.Name, fs.Spec.PriorityLevelConfiguration.Name)
 			continue
 		}
 		fsSeq = append(fsSeq, newFSs[i])
-		haveExemptFS = haveExemptFS || fs.Name == flowcontrol.FlowSchemaNameExempt
-		haveCatchAllFS = haveCatchAllFS || fs.Name == flowcontrol.FlowSchemaNameCatchAll
+		haveExemptFS = haveExemptFS || fs.Name == fctypesv1a1.FlowSchemaNameExempt
+		haveCatchAllFS = haveCatchAllFS || fs.Name == fctypesv1a1.FlowSchemaNameCatchAll
 	}
 	// sort into the order to be used for matching
 	sort.Sort(fsSeq)
@@ -606,7 +464,7 @@ func (meal *cfgMeal) processOldPLsLocked() {
 			// Still desired and already updated
 			continue
 		}
-		if plName == flowcontrol.PriorityLevelConfigurationNameExempt && !meal.haveExemptPL || plName == flowcontrol.PriorityLevelConfigurationNameCatchAll && !meal.haveCatchAllPL {
+		if plName == fctypesv1a1.PriorityLevelConfigurationNameExempt && !meal.haveExemptPL || plName == fctypesv1a1.PriorityLevelConfigurationNameCatchAll && !meal.haveCatchAllPL {
 			// BTW, we know the Spec has not changed because the
 			// mandatory objects have immutable Specs
 			klog.V(3).Infof("Retaining mandatory priority level %q despite lack of API object", plName)
@@ -638,8 +496,8 @@ func (meal *cfgMeal) processOldPLsLocked() {
 			// regular way.
 			meal.shareSum += float64(plState.pl.Spec.Limited.AssuredConcurrencyShares)
 		}
-		meal.haveExemptPL = meal.haveExemptPL || plName == flowcontrol.PriorityLevelConfigurationNameExempt
-		meal.haveCatchAllPL = meal.haveCatchAllPL || plName == flowcontrol.PriorityLevelConfigurationNameCatchAll
+		meal.haveExemptPL = meal.haveExemptPL || plName == fctypesv1a1.PriorityLevelConfigurationNameExempt
+		meal.haveCatchAllPL = meal.haveCatchAllPL || plName == fctypesv1a1.PriorityLevelConfigurationNameCatchAll
 		meal.newPLStates[plName] = plState
 	}
 }
@@ -673,18 +531,18 @@ func (meal *cfgMeal) finishQueueSetReconfigsLocked() {
 // given priority level configuration.  Returns nil if that config
 // does not call for limiting.  Returns nil and an error if the given
 // object is malformed in a way that is a problem for this package.
-func queueSetCompleterForPL(qsf fq.QueueSetFactory, queues fq.QueueSet, pl *flowcontrol.PriorityLevelConfiguration, requestWaitLimit time.Duration, intPair metrics.TimedObserverPair) (fq.QueueSetCompleter, error) {
-	if (pl.Spec.Type == flowcontrol.PriorityLevelEnablementExempt) != (pl.Spec.Limited == nil) {
+func queueSetCompleterForPL(qsf fq.QueueSetFactory, queues fq.QueueSet, pl *fctypesv1a1.PriorityLevelConfiguration, requestWaitLimit time.Duration, intPair metrics.TimedObserverPair) (fq.QueueSetCompleter, error) {
+	if (pl.Spec.Type == fctypesv1a1.PriorityLevelEnablementExempt) != (pl.Spec.Limited == nil) {
 		return nil, errors.New("broken union structure at the top")
 	}
-	if (pl.Spec.Type == flowcontrol.PriorityLevelEnablementExempt) != (pl.Name == flowcontrol.PriorityLevelConfigurationNameExempt) {
+	if (pl.Spec.Type == fctypesv1a1.PriorityLevelEnablementExempt) != (pl.Name == fctypesv1a1.PriorityLevelConfigurationNameExempt) {
 		// This package does not attempt to cope with a priority level dynamically switching between exempt and not.
 		return nil, errors.New("non-alignment between name and type")
 	}
 	if pl.Spec.Limited == nil {
 		return nil, nil
 	}
-	if (pl.Spec.Limited.LimitResponse.Type == flowcontrol.LimitResponseTypeReject) != (pl.Spec.Limited.LimitResponse.Queuing == nil) {
+	if (pl.Spec.Limited.LimitResponse.Type == fctypesv1a1.LimitResponseTypeReject) != (pl.Spec.Limited.LimitResponse.Queuing == nil) {
 		return nil, errors.New("broken union structure for limit response")
 	}
 	qcAPI := pl.Spec.Limited.LimitResponse.Queuing
@@ -705,22 +563,22 @@ func queueSetCompleterForPL(qsf fq.QueueSetFactory, queues fq.QueueSet, pl *flow
 		qsc, err = qsf.BeginConstruction(qcQS, intPair)
 	}
 	if err != nil {
-		err = fmt.Errorf("priority level %q has QueuingConfiguration %#+v, which is invalid: %w", pl.Name, qcAPI, err)
+		err = errors.Wrap(err, fmt.Sprintf("priority level %q has QueuingConfiguration %#+v, which is invalid", pl.Name, qcAPI))
 	}
 	return qsc, err
 }
 
-func (meal *cfgMeal) presyncFlowSchemaStatus(fs *flowcontrol.FlowSchema, isDangling bool, plName string) {
-	danglingCondition := apihelpers.GetFlowSchemaConditionByType(fs, flowcontrol.FlowSchemaConditionDangling)
+func (meal *cfgMeal) presyncFlowSchemaStatus(fs *fctypesv1a1.FlowSchema, isDangling bool, plName string) {
+	danglingCondition := apihelpers.GetFlowSchemaConditionByType(fs, fctypesv1a1.FlowSchemaConditionDangling)
 	if danglingCondition == nil {
-		danglingCondition = &flowcontrol.FlowSchemaCondition{
-			Type: flowcontrol.FlowSchemaConditionDangling,
+		danglingCondition = &fctypesv1a1.FlowSchemaCondition{
+			Type: fctypesv1a1.FlowSchemaConditionDangling,
 		}
 	}
-	desiredStatus := flowcontrol.ConditionFalse
+	desiredStatus := fctypesv1a1.ConditionFalse
 	var desiredReason, desiredMessage string
 	if isDangling {
-		desiredStatus = flowcontrol.ConditionTrue
+		desiredStatus = fctypesv1a1.ConditionTrue
 		desiredReason = "NotFound"
 		desiredMessage = fmt.Sprintf("This FlowSchema references the PriorityLevelConfiguration object named %q but there is no such object", plName)
 	} else {
@@ -730,13 +588,12 @@ func (meal *cfgMeal) presyncFlowSchemaStatus(fs *flowcontrol.FlowSchema, isDangl
 	if danglingCondition.Status == desiredStatus && danglingCondition.Reason == desiredReason && danglingCondition.Message == desiredMessage {
 		return
 	}
-	now := meal.cfgCtlr.clock.Now()
 	meal.fsStatusUpdates = append(meal.fsStatusUpdates, fsStatusUpdate{
 		flowSchema: fs,
-		condition: flowcontrol.FlowSchemaCondition{
-			Type:               flowcontrol.FlowSchemaConditionDangling,
+		condition: fctypesv1a1.FlowSchemaCondition{
+			Type:               fctypesv1a1.FlowSchemaConditionDangling,
 			Status:             desiredStatus,
-			LastTransitionTime: metav1.NewTime(now),
+			LastTransitionTime: metav1.Now(),
 			Reason:             desiredReason,
 			Message:            desiredMessage,
 		},
@@ -745,7 +602,7 @@ func (meal *cfgMeal) presyncFlowSchemaStatus(fs *flowcontrol.FlowSchema, isDangl
 
 // imaginePL adds a priority level based on one of the mandatory ones
 // that does not actually exist (right now) as a real API object.
-func (meal *cfgMeal) imaginePL(proto *flowcontrol.PriorityLevelConfiguration, requestWaitLimit time.Duration) {
+func (meal *cfgMeal) imaginePL(proto *fctypesv1a1.PriorityLevelConfiguration, requestWaitLimit time.Duration) {
 	klog.V(3).Infof("No %s PriorityLevelConfiguration found, imagining one", proto.Name)
 	obsPair := meal.cfgCtlr.obsPairGenerator.Generate(1, 1, []string{proto.Name})
 	qsCompleter, err := queueSetCompleterForPL(meal.cfgCtlr.queueSetFactory, nil, proto, requestWaitLimit, obsPair)
@@ -762,6 +619,7 @@ func (meal *cfgMeal) imaginePL(proto *flowcontrol.PriorityLevelConfiguration, re
 	if proto.Spec.Limited != nil {
 		meal.shareSum += float64(proto.Spec.Limited.AssuredConcurrencyShares)
 	}
+	return
 }
 
 type immediateRequest struct{}
@@ -776,65 +634,54 @@ func (immediateRequest) Finish(execute func()) bool {
 // The returned bool indicates whether the request is exempt from
 // limitation.  The startWaitingTime is when the request started
 // waiting in its queue, or `Time{}` if this did not happen.
-func (cfgCtlr *configController) startRequest(ctx context.Context, rd RequestDigest, queueNoteFn fq.QueueNoteFn) (fs *flowcontrol.FlowSchema, pl *flowcontrol.PriorityLevelConfiguration, isExempt bool, req fq.Request, startWaitingTime time.Time) {
+func (cfgCtlr *configController) startRequest(ctx context.Context, rd RequestDigest, queueNoteFn fq.QueueNoteFn) (fs *fctypesv1a1.FlowSchema, pl *fctypesv1a1.PriorityLevelConfiguration, isExempt bool, req fq.Request, startWaitingTime time.Time) {
 	klog.V(7).Infof("startRequest(%#+v)", rd)
-	cfgCtlr.lock.RLock()
-	defer cfgCtlr.lock.RUnlock()
-	var selectedFlowSchema, catchAllFlowSchema *flowcontrol.FlowSchema
+	cfgCtlr.lock.Lock()
+	defer cfgCtlr.lock.Unlock()
 	for _, fs := range cfgCtlr.flowSchemas {
 		if matchesFlowSchema(rd, fs) {
-			selectedFlowSchema = fs
-			break
+			plName := fs.Spec.PriorityLevelConfiguration.Name
+			plState := cfgCtlr.priorityLevelStates[plName]
+			if plState.pl.Spec.Type == fctypesv1a1.PriorityLevelEnablementExempt {
+				klog.V(7).Infof("startRequest(%#+v) => fsName=%q, distMethod=%#+v, plName=%q, immediate", rd, fs.Name, fs.Spec.DistinguisherMethod, plName)
+				return fs, plState.pl, true, immediateRequest{}, time.Time{}
+			}
+			var numQueues int32
+			if plState.pl.Spec.Limited.LimitResponse.Type == fctypesv1a1.LimitResponseTypeQueue {
+				numQueues = plState.pl.Spec.Limited.LimitResponse.Queuing.Queues
+
+			}
+			var flowDistinguisher string
+			var hashValue uint64
+			if numQueues > 1 {
+				flowDistinguisher = computeFlowDistinguisher(rd, fs.Spec.DistinguisherMethod)
+				hashValue = hashFlowID(fs.Name, flowDistinguisher)
+			}
+			startWaitingTime = time.Now()
+			klog.V(7).Infof("startRequest(%#+v) => fsName=%q, distMethod=%#+v, plName=%q, numQueues=%d", rd, fs.Name, fs.Spec.DistinguisherMethod, plName, numQueues)
+			req, idle := plState.queues.StartRequest(ctx, hashValue, flowDistinguisher, fs.Name, rd.RequestInfo, rd.User, queueNoteFn)
+			if idle {
+				cfgCtlr.maybeReapLocked(plName, plState)
+			}
+			return fs, plState.pl, false, req, startWaitingTime
 		}
-		if fs.Name == flowcontrol.FlowSchemaNameCatchAll {
-			catchAllFlowSchema = fs
+	}
+	// This can never happen because every configState has a
+	// FlowSchema that matches everything.  If somehow control reaches
+	// here, panic with some relevant information.
+	var catchAll *fctypesv1a1.FlowSchema
+	for _, fs := range cfgCtlr.flowSchemas {
+		if fs.Name == fctypesv1a1.FlowSchemaNameCatchAll {
+			catchAll = fs
 		}
 	}
-	if selectedFlowSchema == nil {
-		// This should never happen. If the requestDigest's User is a part of
-		// system:authenticated or system:unauthenticated, the catch-all flow
-		// schema should match it. However, if that invariant somehow fails,
-		// fallback to the catch-all flow schema anyway.
-		if catchAllFlowSchema == nil {
-			// This should absolutely never, ever happen! APF guarantees two
-			// undeletable flow schemas at all times: an exempt flow schema and a
-			// catch-all flow schema.
-			panic(fmt.Sprintf("no fallback catch-all flow schema found for request %#+v and user %#+v", rd.RequestInfo, rd.User))
-		}
-		selectedFlowSchema = catchAllFlowSchema
-		klog.Warningf("no match found for request %#+v and user %#+v; selecting catchAll=%s as fallback flow schema", rd.RequestInfo, rd.User, fcfmt.Fmt(selectedFlowSchema))
-	}
-	plName := selectedFlowSchema.Spec.PriorityLevelConfiguration.Name
-	plState := cfgCtlr.priorityLevelStates[plName]
-	if plState.pl.Spec.Type == flowcontrol.PriorityLevelEnablementExempt {
-		klog.V(7).Infof("startRequest(%#+v) => fsName=%q, distMethod=%#+v, plName=%q, immediate", rd, selectedFlowSchema.Name, selectedFlowSchema.Spec.DistinguisherMethod, plName)
-		return selectedFlowSchema, plState.pl, true, immediateRequest{}, time.Time{}
-	}
-	var numQueues int32
-	if plState.pl.Spec.Limited.LimitResponse.Type == flowcontrol.LimitResponseTypeQueue {
-		numQueues = plState.pl.Spec.Limited.LimitResponse.Queuing.Queues
-	}
-	var flowDistinguisher string
-	var hashValue uint64
-	if numQueues > 1 {
-		flowDistinguisher = computeFlowDistinguisher(rd, selectedFlowSchema.Spec.DistinguisherMethod)
-		hashValue = hashFlowID(selectedFlowSchema.Name, flowDistinguisher)
-	}
-	startWaitingTime = time.Now()
-	klog.V(7).Infof("startRequest(%#+v) => fsName=%q, distMethod=%#+v, plName=%q, numQueues=%d", rd, selectedFlowSchema.Name, selectedFlowSchema.Spec.DistinguisherMethod, plName, numQueues)
-	req, idle := plState.queues.StartRequest(ctx, &rd.Width, hashValue, flowDistinguisher, selectedFlowSchema.Name, rd.RequestInfo, rd.User, queueNoteFn)
-	if idle {
-		cfgCtlr.maybeReapReadLocked(plName, plState)
-	}
-	return selectedFlowSchema, plState.pl, false, req, startWaitingTime
+	panic(fmt.Sprintf("No match; rd=%#+v, catchAll=%s", rd, fcfmt.Fmt(catchAll)))
 }
 
-// maybeReap will remove the last internal traces of the named
-// priority level if it has no more use.  Call this after getting a
-// clue that the given priority level is undesired and idle.
+// Call this after getting a clue that the given priority level is undesired and idle
 func (cfgCtlr *configController) maybeReap(plName string) {
-	cfgCtlr.lock.RLock()
-	defer cfgCtlr.lock.RUnlock()
+	cfgCtlr.lock.Lock()
+	defer cfgCtlr.lock.Unlock()
 	plState := cfgCtlr.priorityLevelStates[plName]
 	if plState == nil {
 		klog.V(7).Infof("plName=%s, plState==nil", plName)
@@ -851,12 +698,9 @@ func (cfgCtlr *configController) maybeReap(plName string) {
 	cfgCtlr.configQueue.Add(0)
 }
 
-// maybeReapLocked requires the cfgCtlr's lock to already be held and
-// will remove the last internal traces of the named priority level if
-// it has no more use.  Call this if both (1) plState.queues is
-// non-nil and reported being idle, and (2) cfgCtlr's lock has not
-// been released since then.
-func (cfgCtlr *configController) maybeReapReadLocked(plName string, plState *priorityLevelState) {
+// Call this if both (1) plState.queues is non-nil and reported being
+// idle, and (2) cfgCtlr's lock has not been released since then.
+func (cfgCtlr *configController) maybeReapLocked(plName string, plState *priorityLevelState) {
 	if !(plState.quiescing && plState.numPending == 0) {
 		return
 	}
@@ -865,14 +709,14 @@ func (cfgCtlr *configController) maybeReapReadLocked(plName string, plState *pri
 }
 
 // computeFlowDistinguisher extracts the flow distinguisher according to the given method
-func computeFlowDistinguisher(rd RequestDigest, method *flowcontrol.FlowDistinguisherMethod) string {
+func computeFlowDistinguisher(rd RequestDigest, method *fctypesv1a1.FlowDistinguisherMethod) string {
 	if method == nil {
 		return ""
 	}
 	switch method.Type {
-	case flowcontrol.FlowDistinguisherMethodByUserType:
+	case fctypesv1a1.FlowDistinguisherMethodByUserType:
 		return rd.User.GetName()
-	case flowcontrol.FlowDistinguisherMethodByNamespaceType:
+	case fctypesv1a1.FlowDistinguisherMethodByNamespaceType:
 		return rd.RequestInfo.Namespace
 	default:
 		// this line shall never reach

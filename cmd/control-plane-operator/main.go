@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -82,7 +81,7 @@ func newControlPlaneOperatorCommand() *cobra.Command {
 			if err := cpo.Complete(); err != nil {
 				return err
 			}
-			return cpo.Run(ctrl.SetupSignalHandler())
+			return cpo.Run()
 		},
 	}
 	flags := cmd.Flags()
@@ -137,7 +136,7 @@ func (o *ControlPlaneOperator) Complete() error {
 	return nil
 }
 
-func (o *ControlPlaneOperator) Run(ctx context.Context) error {
+func (o *ControlPlaneOperator) Run() error {
 	versions := map[string]string{
 		"release":    o.ReleaseVersion,
 		"kubernetes": o.KubernetesVersion,
@@ -150,5 +149,6 @@ func (o *ControlPlaneOperator) Run(ctx context.Context) error {
 		o.Controllers,
 		controllerFuncs,
 	)
-	return cfg.Start(ctx)
+	stopCh := make(chan struct{})
+	return cfg.Start(stopCh)
 }
