@@ -5731,7 +5731,7 @@ spec:
           export KUBECONFIG=/etc/openshift/kubeconfig
           oc apply -f $(pwd)
           # Replace the global certs configmap here because it's too large to oc apply
-          oc create configmap -n openshift-controller-manager openshift-global-ca --from-file ca-bundle.crt=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem --dry-run -o yaml > /tmp/openshift-global-ca
+          oc create configmap -n openshift-controller-manager openshift-global-ca --from-file ca-bundle.crt=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem --dry-run=client -o yaml > /tmp/openshift-global-ca
           oc replace -n openshift-controller-manager -f /tmp/openshift-global-ca --force
       resources:
         requests:
