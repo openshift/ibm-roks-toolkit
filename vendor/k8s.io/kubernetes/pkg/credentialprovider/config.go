@@ -116,15 +116,11 @@ func ReadDockercfgFile(searchPaths []string) (cfg DockerConfig, err error) {
 			klog.V(4).Infof("while trying to read %s: %v", absDockerConfigFileLocation, err)
 			continue
 		}
-		cfg, err := ReadDockerConfigFileFromBytes(contents)
-		if err != nil {
-			klog.V(4).Infof("couldn't get the config from %q contents: %v", absDockerConfigFileLocation, err)
-			continue
+		cfg, err := readDockerConfigFileFromBytes(contents)
+		if err == nil {
+			klog.V(4).Infof("found .dockercfg at %s", absDockerConfigFileLocation)
+			return cfg, nil
 		}
-
-		klog.V(4).Infof("found .dockercfg at %s", absDockerConfigFileLocation)
-		return cfg, nil
-
 	}
 	return nil, fmt.Errorf("couldn't find valid .dockercfg after checking in %v", searchPaths)
 }
@@ -226,16 +222,16 @@ func ReadURL(url string, client *http.Client, header *http.Header) (body []byte,
 // ReadDockerConfigFileFromURL read a docker config file from the given url
 func ReadDockerConfigFileFromURL(url string, client *http.Client, header *http.Header) (cfg DockerConfig, err error) {
 	if contents, err := ReadURL(url, client, header); err == nil {
-		return ReadDockerConfigFileFromBytes(contents)
+		return readDockerConfigFileFromBytes(contents)
 	}
 
 	return nil, err
 }
 
-// ReadDockerConfigFileFromBytes read a docker config file from the given bytes
-func ReadDockerConfigFileFromBytes(contents []byte) (cfg DockerConfig, err error) {
+func readDockerConfigFileFromBytes(contents []byte) (cfg DockerConfig, err error) {
 	if err = json.Unmarshal(contents, &cfg); err != nil {
-		return nil, errors.New("error occurred while trying to unmarshal json")
+		klog.Errorf("while trying to parse blob %q: %v", contents, err)
+		return nil, err
 	}
 	return
 }
@@ -243,7 +239,8 @@ func ReadDockerConfigFileFromBytes(contents []byte) (cfg DockerConfig, err error
 func readDockerConfigJSONFileFromBytes(contents []byte) (cfg DockerConfig, err error) {
 	var cfgJSON DockerConfigJSON
 	if err = json.Unmarshal(contents, &cfgJSON); err != nil {
-		return nil, errors.New("error occurred while trying to unmarshal json")
+		klog.Errorf("while trying to parse blob %q: %v", contents, err)
+		return nil, err
 	}
 	cfg = cfgJSON.Auths
 	return

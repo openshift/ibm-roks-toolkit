@@ -38,7 +38,7 @@ func (OutageEntry) SwaggerDoc() map[string]string {
 }
 
 var map_PodNetworkConnectivityCheck = map[string]string{
-	"":       "PodNetworkConnectivityCheck\n\nCompatibility level 4: No compatibility is provided, the API can change at any point for any reason. These capabilities should not be used by applications needing long term support.",
+	"":       "PodNetworkConnectivityCheck",
 	"spec":   "Spec defines the source and target of the connectivity check",
 	"status": "Status contains the observed status of the connectivity check",
 }
@@ -61,7 +61,7 @@ func (PodNetworkConnectivityCheckCondition) SwaggerDoc() map[string]string {
 }
 
 var map_PodNetworkConnectivityCheckList = map[string]string{
-	"":      "PodNetworkConnectivityCheckList is a collection of PodNetworkConnectivityCheck\n\nCompatibility level 4: No compatibility is provided, the API can change at any point for any reason. These capabilities should not be used by applications needing long term support.",
+	"":      "PodNetworkConnectivityCheckList is a collection of PodNetworkConnectivityCheck",
 	"items": "Items contains the items",
 }
 

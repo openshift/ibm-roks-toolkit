@@ -25,17 +25,12 @@ import (
 	"strings"
 	"time"
 
-	"go.opentelemetry.io/otel/trace"
-
 	corev1 "k8s.io/api/core/v1"
 	utilnet "k8s.io/apimachinery/pkg/util/net"
-	"k8s.io/apiserver/pkg/features"
 	egressselector "k8s.io/apiserver/pkg/server/egressselector"
-	"k8s.io/apiserver/pkg/util/feature"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
-	"k8s.io/component-base/traces"
 )
 
 // AuthenticationInfoResolverWrapper can be used to inject Dial function to the
@@ -46,8 +41,7 @@ type AuthenticationInfoResolverWrapper func(AuthenticationInfoResolver) Authenti
 func NewDefaultAuthenticationInfoResolverWrapper(
 	proxyTransport *http.Transport,
 	egressSelector *egressselector.EgressSelector,
-	kubeapiserverClientConfig *rest.Config,
-	tp *trace.TracerProvider) AuthenticationInfoResolverWrapper {
+	kubeapiserverClientConfig *rest.Config) AuthenticationInfoResolverWrapper {
 
 	webhookAuthResolverWrapper := func(delegate AuthenticationInfoResolver) AuthenticationInfoResolver {
 		return &AuthenticationInfoResolverDelegator{
@@ -59,12 +53,9 @@ func NewDefaultAuthenticationInfoResolverWrapper(
 				if err != nil {
 					return nil, err
 				}
-				if feature.DefaultFeatureGate.Enabled(features.APIServerTracing) {
-					ret.Wrap(traces.WrapperFor(tp))
-				}
 
 				if egressSelector != nil {
-					networkContext := egressselector.ControlPlane.AsNetworkContext()
+					networkContext := egressselector.Master.AsNetworkContext()
 					var egressDialer utilnet.DialFunc
 					egressDialer, err = egressSelector.Lookup(networkContext)
 
@@ -83,9 +74,6 @@ func NewDefaultAuthenticationInfoResolverWrapper(
 				ret, err := delegate.ClientConfigForService(serviceName, serviceNamespace, servicePort)
 				if err != nil {
 					return nil, err
-				}
-				if feature.DefaultFeatureGate.Enabled(features.APIServerTracing) {
-					ret.Wrap(traces.WrapperFor(tp))
 				}
 
 				if egressSelector != nil {

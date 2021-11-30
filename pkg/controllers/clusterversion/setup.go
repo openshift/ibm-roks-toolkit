@@ -1,8 +1,6 @@
 package clusterversion
 
 import (
-	"context"
-
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -21,8 +19,8 @@ func Setup(cfg *cpoperator.ControlPlaneOperatorConfig) error {
 		return err
 	}
 	informerFactory := configinformers.NewSharedInformerFactory(openshiftClient, controllers.DefaultResync)
-	cfg.Manager().Add(manager.RunnableFunc(func(ctx context.Context) error {
-		informerFactory.Start(ctx.Done())
+	cfg.Manager().Add(manager.RunnableFunc(func(stopCh <-chan struct{}) error {
+		informerFactory.Start(stopCh)
 		return nil
 	}))
 	clusterVersions := informerFactory.Config().V1().ClusterVersions()
