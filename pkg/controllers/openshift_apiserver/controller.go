@@ -75,11 +75,16 @@ func Setup(cfg *cpoperator.ControlPlaneOperatorConfig) error {
 		project.ObserveProjectRequestMessage,
 		project.ObserveProjectRequestTemplateName,
 	)
-	cfg.Manager().Add(manager.RunnableFunc(func(ctx context.Context) error {
-		configInformers.Start(ctx.Done())
+	cfg.Manager().Add(manager.RunnableFunc(func(stopCh <-chan struct{}) error {
+		configInformers.Start(stopCh)
 		return nil
 	}))
-	cfg.Manager().Add(manager.RunnableFunc(func(ctx context.Context) error {
+	cfg.Manager().Add(manager.RunnableFunc(func(stopCh <-chan struct{}) error {
+		ctx, cancel := context.WithCancel(context.Background())
+		go func() {
+			<-stopCh
+			cancel()
+		}()
 		c.Run(ctx, 1)
 		return nil
 	}))
