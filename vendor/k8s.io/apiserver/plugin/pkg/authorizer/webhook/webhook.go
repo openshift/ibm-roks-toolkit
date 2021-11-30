@@ -21,8 +21,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"time"
+
+	"k8s.io/klog/v2"
 
 	authorizationv1 "k8s.io/api/authorization/v1"
 	authorizationv1beta1 "k8s.io/api/authorization/v1beta1"
@@ -31,32 +32,24 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/cache"
 	utilnet "k8s.io/apimachinery/pkg/util/net"
-	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/apiserver/pkg/authentication/user"
 	"k8s.io/apiserver/pkg/authorization/authorizer"
 	"k8s.io/apiserver/pkg/util/webhook"
 	"k8s.io/client-go/kubernetes/scheme"
 	authorizationv1client "k8s.io/client-go/kubernetes/typed/authorization/v1"
-	"k8s.io/client-go/rest"
-	"k8s.io/klog/v2"
 )
 
 const (
+	retryBackoff = 500 * time.Millisecond
 	// The maximum length of requester-controlled attributes to allow caching.
 	maxControlledAttrCacheSize = 10000
 )
-
-// DefaultRetryBackoff returns the default backoff parameters for webhook retry.
-func DefaultRetryBackoff() *wait.Backoff {
-	backoff := webhook.DefaultRetryBackoffWithInitialDelay(500 * time.Millisecond)
-	return &backoff
-}
 
 // Ensure Webhook implements the authorizer.Authorizer interface.
 var _ authorizer.Authorizer = (*WebhookAuthorizer)(nil)
 
 type subjectAccessReviewer interface {
-	Create(context.Context, *authorizationv1.SubjectAccessReview, metav1.CreateOptions) (*authorizationv1.SubjectAccessReview, int, error)
+	Create(context.Context, *authorizationv1.SubjectAccessReview, metav1.CreateOptions) (*authorizationv1.SubjectAccessReview, error)
 }
 
 type WebhookAuthorizer struct {
@@ -64,14 +57,13 @@ type WebhookAuthorizer struct {
 	responseCache       *cache.LRUExpireCache
 	authorizedTTL       time.Duration
 	unauthorizedTTL     time.Duration
-	retryBackoff        wait.Backoff
+	initialBackoff      time.Duration
 	decisionOnError     authorizer.Decision
-	metrics             AuthorizerMetrics
 }
 
 // NewFromInterface creates a WebhookAuthorizer using the given subjectAccessReview client
-func NewFromInterface(subjectAccessReview authorizationv1client.AuthorizationV1Interface, authorizedTTL, unauthorizedTTL time.Duration, retryBackoff wait.Backoff, metrics AuthorizerMetrics) (*WebhookAuthorizer, error) {
-	return newWithBackoff(&subjectAccessReviewV1Client{subjectAccessReview.RESTClient()}, authorizedTTL, unauthorizedTTL, retryBackoff, metrics)
+func NewFromInterface(subjectAccessReview authorizationv1client.SubjectAccessReviewInterface, authorizedTTL, unauthorizedTTL time.Duration) (*WebhookAuthorizer, error) {
+	return newWithBackoff(subjectAccessReview, authorizedTTL, unauthorizedTTL, retryBackoff)
 }
 
 // New creates a new WebhookAuthorizer from the provided kubeconfig file.
@@ -93,27 +85,23 @@ func NewFromInterface(subjectAccessReview authorizationv1client.AuthorizationV1I
 //
 // For additional HTTP configuration, refer to the kubeconfig documentation
 // https://kubernetes.io/docs/user-guide/kubeconfig-file/.
-func New(kubeConfigFile string, version string, authorizedTTL, unauthorizedTTL time.Duration, retryBackoff wait.Backoff, customDial utilnet.DialFunc) (*WebhookAuthorizer, error) {
-	subjectAccessReview, err := subjectAccessReviewInterfaceFromKubeconfig(kubeConfigFile, version, retryBackoff, customDial)
+func New(kubeConfigFile string, version string, authorizedTTL, unauthorizedTTL time.Duration, customDial utilnet.DialFunc) (*WebhookAuthorizer, error) {
+	subjectAccessReview, err := subjectAccessReviewInterfaceFromKubeconfig(kubeConfigFile, version, customDial)
 	if err != nil {
 		return nil, err
 	}
-	return newWithBackoff(subjectAccessReview, authorizedTTL, unauthorizedTTL, retryBackoff, AuthorizerMetrics{
-		RecordRequestTotal:   noopMetrics{}.RecordRequestTotal,
-		RecordRequestLatency: noopMetrics{}.RecordRequestLatency,
-	})
+	return newWithBackoff(subjectAccessReview, authorizedTTL, unauthorizedTTL, retryBackoff)
 }
 
 // newWithBackoff allows tests to skip the sleep.
-func newWithBackoff(subjectAccessReview subjectAccessReviewer, authorizedTTL, unauthorizedTTL time.Duration, retryBackoff wait.Backoff, metrics AuthorizerMetrics) (*WebhookAuthorizer, error) {
+func newWithBackoff(subjectAccessReview subjectAccessReviewer, authorizedTTL, unauthorizedTTL, initialBackoff time.Duration) (*WebhookAuthorizer, error) {
 	return &WebhookAuthorizer{
 		subjectAccessReview: subjectAccessReview,
 		responseCache:       cache.NewLRUExpireCache(8192),
 		authorizedTTL:       authorizedTTL,
 		unauthorizedTTL:     unauthorizedTTL,
-		retryBackoff:        retryBackoff,
+		initialBackoff:      initialBackoff,
 		decisionOnError:     authorizer.DecisionNoOpinion,
-		metrics:             metrics,
 	}, nil
 }
 
@@ -198,33 +186,19 @@ func (w *WebhookAuthorizer) Authorize(ctx context.Context, attr authorizer.Attri
 	if entry, ok := w.responseCache.Get(string(key)); ok {
 		r.Status = entry.(authorizationv1.SubjectAccessReviewStatus)
 	} else {
-		var result *authorizationv1.SubjectAccessReview
-		// WithExponentialBackoff will return SAR create error (sarErr) if any.
-		if err := webhook.WithExponentialBackoff(ctx, w.retryBackoff, func() error {
-			var sarErr error
-			var statusCode int
-
-			start := time.Now()
-			result, statusCode, sarErr = w.subjectAccessReview.Create(ctx, r, metav1.CreateOptions{})
-			latency := time.Now().Sub(start)
-
-			if statusCode != 0 {
-				w.metrics.RecordRequestTotal(ctx, strconv.Itoa(statusCode))
-				w.metrics.RecordRequestLatency(ctx, strconv.Itoa(statusCode), latency.Seconds())
-				return sarErr
-			}
-
-			if sarErr != nil {
-				w.metrics.RecordRequestTotal(ctx, "<error>")
-				w.metrics.RecordRequestLatency(ctx, "<error>", latency.Seconds())
-			}
-
-			return sarErr
-		}, webhook.DefaultShouldRetry); err != nil {
+		var (
+			result *authorizationv1.SubjectAccessReview
+			err    error
+		)
+		webhook.WithExponentialBackoff(ctx, w.initialBackoff, func() error {
+			result, err = w.subjectAccessReview.Create(ctx, r, metav1.CreateOptions{})
+			return err
+		}, webhook.DefaultShouldRetry)
+		if err != nil {
+			// An error here indicates bad configuration or an outage. Log for debugging.
 			klog.Errorf("Failed to make webhook authorizer request: %v", err)
 			return w.decisionOnError, "", err
 		}
-
 		r.Status = result.Status
 		if shouldCache(attr) {
 			if r.Status.Allowed {
@@ -272,7 +246,7 @@ func convertToSARExtra(extra map[string][]string) map[string]authorizationv1.Ext
 // subjectAccessReviewInterfaceFromKubeconfig builds a client from the specified kubeconfig file,
 // and returns a SubjectAccessReviewInterface that uses that client. Note that the client submits SubjectAccessReview
 // requests to the exact path specified in the kubeconfig file, so arbitrary non-API servers can be targeted.
-func subjectAccessReviewInterfaceFromKubeconfig(kubeConfigFile string, version string, retryBackoff wait.Backoff, customDial utilnet.DialFunc) (subjectAccessReviewer, error) {
+func subjectAccessReviewInterfaceFromKubeconfig(kubeConfigFile string, version string, customDial utilnet.DialFunc) (subjectAccessReviewer, error) {
 	localScheme := runtime.NewScheme()
 	if err := scheme.AddToScheme(localScheme); err != nil {
 		return nil, err
@@ -284,22 +258,22 @@ func subjectAccessReviewInterfaceFromKubeconfig(kubeConfigFile string, version s
 		if err := localScheme.SetVersionPriority(groupVersions...); err != nil {
 			return nil, err
 		}
-		gw, err := webhook.NewGenericWebhook(localScheme, scheme.Codecs, kubeConfigFile, groupVersions, retryBackoff, customDial)
+		gw, err := webhook.NewGenericWebhook(localScheme, scheme.Codecs, kubeConfigFile, groupVersions, 0, customDial)
 		if err != nil {
 			return nil, err
 		}
-		return &subjectAccessReviewV1ClientGW{gw.RestClient}, nil
+		return &subjectAccessReviewV1Client{gw}, nil
 
 	case authorizationv1beta1.SchemeGroupVersion.Version:
 		groupVersions := []schema.GroupVersion{authorizationv1beta1.SchemeGroupVersion}
 		if err := localScheme.SetVersionPriority(groupVersions...); err != nil {
 			return nil, err
 		}
-		gw, err := webhook.NewGenericWebhook(localScheme, scheme.Codecs, kubeConfigFile, groupVersions, retryBackoff, customDial)
+		gw, err := webhook.NewGenericWebhook(localScheme, scheme.Codecs, kubeConfigFile, groupVersions, 0, customDial)
 		if err != nil {
 			return nil, err
 		}
-		return &subjectAccessReviewV1beta1ClientGW{gw.RestClient}, nil
+		return &subjectAccessReviewV1beta1Client{gw}, nil
 
 	default:
 		return nil, fmt.Errorf(
@@ -312,58 +286,27 @@ func subjectAccessReviewInterfaceFromKubeconfig(kubeConfigFile string, version s
 }
 
 type subjectAccessReviewV1Client struct {
-	client rest.Interface
+	w *webhook.GenericWebhook
 }
 
-func (t *subjectAccessReviewV1Client) Create(ctx context.Context, subjectAccessReview *authorizationv1.SubjectAccessReview, opts metav1.CreateOptions) (result *authorizationv1.SubjectAccessReview, statusCode int, err error) {
-	result = &authorizationv1.SubjectAccessReview{}
-
-	restResult := t.client.Post().
-		Resource("subjectaccessreviews").
-		VersionedParams(&opts, scheme.ParameterCodec).
-		Body(subjectAccessReview).
-		Do(ctx)
-
-	restResult.StatusCode(&statusCode)
-	err = restResult.Into(result)
-	return
-}
-
-// subjectAccessReviewV1ClientGW used by the generic webhook, doesn't specify GVR.
-type subjectAccessReviewV1ClientGW struct {
-	client rest.Interface
-}
-
-func (t *subjectAccessReviewV1ClientGW) Create(ctx context.Context, subjectAccessReview *authorizationv1.SubjectAccessReview, _ metav1.CreateOptions) (*authorizationv1.SubjectAccessReview, int, error) {
-	var statusCode int
+func (t *subjectAccessReviewV1Client) Create(ctx context.Context, subjectAccessReview *authorizationv1.SubjectAccessReview, _ metav1.CreateOptions) (*authorizationv1.SubjectAccessReview, error) {
 	result := &authorizationv1.SubjectAccessReview{}
-
-	restResult := t.client.Post().Body(subjectAccessReview).Do(ctx)
-
-	restResult.StatusCode(&statusCode)
-	err := restResult.Into(result)
-
-	return result, statusCode, err
+	err := t.w.RestClient.Post().Body(subjectAccessReview).Do(ctx).Into(result)
+	return result, err
 }
 
-// subjectAccessReviewV1beta1ClientGW used by the generic webhook, doesn't specify GVR.
-type subjectAccessReviewV1beta1ClientGW struct {
-	client rest.Interface
+type subjectAccessReviewV1beta1Client struct {
+	w *webhook.GenericWebhook
 }
 
-func (t *subjectAccessReviewV1beta1ClientGW) Create(ctx context.Context, subjectAccessReview *authorizationv1.SubjectAccessReview, _ metav1.CreateOptions) (*authorizationv1.SubjectAccessReview, int, error) {
-	var statusCode int
+func (t *subjectAccessReviewV1beta1Client) Create(ctx context.Context, subjectAccessReview *authorizationv1.SubjectAccessReview, _ metav1.CreateOptions) (*authorizationv1.SubjectAccessReview, error) {
 	v1beta1Review := &authorizationv1beta1.SubjectAccessReview{Spec: v1SpecToV1beta1Spec(&subjectAccessReview.Spec)}
 	v1beta1Result := &authorizationv1beta1.SubjectAccessReview{}
-
-	restResult := t.client.Post().Body(v1beta1Review).Do(ctx)
-
-	restResult.StatusCode(&statusCode)
-	err := restResult.Into(v1beta1Result)
+	err := t.w.RestClient.Post().Body(v1beta1Review).Do(ctx).Into(v1beta1Result)
 	if err == nil {
 		subjectAccessReview.Status = v1beta1StatusToV1Status(&v1beta1Result.Status)
 	}
-	return subjectAccessReview, statusCode, err
+	return subjectAccessReview, err
 }
 
 // shouldCache determines whether it is safe to cache the given request attributes. If the

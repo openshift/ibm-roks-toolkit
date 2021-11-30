@@ -13,15 +13,14 @@ reviewers:
   - sttts
   - bparees
 approvers:
-  - bparees
+  - smarterclayton
   - deads2k
   - derekwaynecarr
   - eparis
   - jwforres
   - knobunc
-  - mfojtik
   - sjenning
-  - smarterclayton
+  - mfojtik
   - soltysh
-  - spadgett
   - sttts
+  - bparees
