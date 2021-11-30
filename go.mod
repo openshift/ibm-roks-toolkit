@@ -4,40 +4,13 @@ go 1.16
 
 require (
 	github.com/blang/semver v3.5.1+incompatible
-	github.com/bugsnag/osext v0.0.0-20130617224835-0dd3f918b21b // indirect
-	github.com/checkpoint-restore/go-criu/v4 v4.1.0 // indirect
-	github.com/containerd/btrfs v1.0.0 // indirect
-	github.com/containerd/cgroups v1.0.1 // indirect
-	github.com/containerd/containerd v1.4.12 // indirect
-	github.com/containerd/continuity v0.1.0 // indirect
-	github.com/containerd/fifo v1.0.0 // indirect
-	github.com/containerd/go-cni v1.0.2 // indirect
-	github.com/containerd/go-runc v1.0.0 // indirect
-	github.com/containerd/imgcrypt v1.0.3 // indirect
-	github.com/containerd/typeurl v1.0.2 // indirect
-	github.com/containernetworking/plugins v0.9.1 // indirect
-	github.com/containers/ocicrypt v1.1.1 // indirect
-	github.com/denverdino/aliyungo v0.0.0-20190125010748-a747050bb1ba // indirect
-	github.com/docker/docker v20.10.8+incompatible // indirect
-	github.com/fsouza/go-dockerclient v1.7.3 // indirect
-	github.com/fullsailor/pkcs7 v0.0.0-20190404230743-d7302db945fa // indirect
 	github.com/ghodss/yaml v1.0.0
-	github.com/go-ini/ini v1.25.4 // indirect
 	github.com/go-logr/logr v0.4.0
-	github.com/gogo/googleapis v1.4.0 // indirect
-	github.com/google/uuid v1.2.0
+	github.com/google/uuid v1.1.2
 	github.com/jteeuwen/go-bindata v3.0.8-0.20151023091102-a0ff2567cfb7+incompatible
-	github.com/klauspost/compress v1.11.13 // indirect
-	github.com/marstr/guid v1.1.0 // indirect
-	github.com/mitchellh/osext v0.0.0-20151018003038-5e2d6d41470f // indirect
-	github.com/moby/locker v1.0.1 // indirect
 	github.com/moby/sys/mount v0.3.0 // indirect
-	github.com/moby/sys/symlink v0.1.0 // indirect
-	github.com/moby/term v0.0.0-20210619224110-3f7ff695adc6 // indirect
-	github.com/ncw/swift v1.0.47 // indirect
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.15.0
-	github.com/opencontainers/image-spec v1.0.2 // indirect
 	github.com/openshift/api v0.0.0-20210831091943-07e756545ac1
 	github.com/openshift/client-go v0.0.0-20200827190008-3062137373b5
 	github.com/openshift/cluster-kube-apiserver-operator v0.0.0-alpha.0.0.20200901175228-fa89e5a96600
@@ -46,13 +19,10 @@ require (
 	github.com/openshift/library-go v0.0.0-20200921120329-c803a7b7bb2c
 	github.com/openshift/oc v0.0.0-alpha.0.0.20200930115932-6bfa7f97c8d4
 	github.com/openshift/openshift-controller-manager v0.0.0-alpha.0
-	github.com/pelletier/go-toml v1.8.1 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.11.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.1.3
-	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b // indirect
-	google.golang.org/cloud v0.0.0-20151119220103-975617b05ea8 // indirect
 	k8s.io/api v0.22.3
 	k8s.io/apiextensions-apiserver v0.22.3
 	k8s.io/apimachinery v0.22.3
@@ -60,7 +30,6 @@ require (
 	k8s.io/cli-runtime v0.22.3
 	k8s.io/client-go v0.22.3
 	k8s.io/component-base v0.22.3
-	k8s.io/cri-api v0.20.6 // indirect
 	k8s.io/klog/v2 v2.9.0
 	sigs.k8s.io/controller-runtime v0.10.2
 	sigs.k8s.io/yaml v1.2.0
