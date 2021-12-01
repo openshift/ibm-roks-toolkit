@@ -48,7 +48,7 @@ type ManagedCAObserver struct {
 // Reconcile periodically watches for changes in the CA configmaps and updates
 // the kube-controller-manager-ca configmap in the management cluster with their
 // content.
-func (r *ManagedCAObserver) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+func (r *ManagedCAObserver) Reconcile(_ context.Context, req ctrl.Request) (ctrl.Result, error) {
 	controllerLog := r.Log.WithValues("configmap", req.NamespacedName)
 	ctx := context.Background()
 
