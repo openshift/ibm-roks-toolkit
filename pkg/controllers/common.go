@@ -14,23 +14,6 @@ const (
 	DefaultResync = 10 * time.Hour
 )
 
-// func nameMapper(names []string) handler.ToRequestsFunc {
-// 	nameSet := sets.NewString(names...)
-// 	return func(obj handler.MapObject) []reconcile.Request {
-// 		if !nameSet.Has(obj.Meta.GetName()) {
-// 			return nil
-// 		}
-// 		return []reconcile.Request{
-// 			{
-// 				NamespacedName: types.NamespacedName{
-// 					Namespace: obj.Meta.GetNamespace(),
-// 					Name:      obj.Meta.GetName(),
-// 				},
-// 			},
-// 		}
-// 	}
-// }
-
 func NamedResourceHandler(names ...string) handler.EventHandler {
 
 	nameSet := sets.NewString(names...)
@@ -47,8 +30,4 @@ func NamedResourceHandler(names ...string) handler.EventHandler {
 			},
 		}
 	})
-
-	// return &handler.EnqueueRequestsFromMapFunc{
-	// 	ToRequests: nameMapper(names),
-	// }
 }
