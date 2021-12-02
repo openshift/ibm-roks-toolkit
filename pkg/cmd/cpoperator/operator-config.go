@@ -1,6 +1,7 @@
 package cpoperator
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"time"
@@ -148,8 +149,8 @@ func (c *ControlPlaneOperatorConfig) TargetConfigClient() configclient.Interface
 
 func (c *ControlPlaneOperatorConfig) TargetConfigInformers() configinformers.SharedInformerFactory {
 	informerFactory := configinformers.NewSharedInformerFactory(c.TargetConfigClient(), common.DefaultResync)
-	c.Manager().Add(manager.RunnableFunc(func(stopCh <-chan struct{}) error {
-		informerFactory.Start(stopCh)
+	c.Manager().Add(manager.RunnableFunc(func(ctx context.Context) error {
+		informerFactory.Start(ctx.Done())
 		return nil
 	}))
 	return informerFactory
@@ -167,8 +168,8 @@ func (c *ControlPlaneOperatorConfig) TargetKubeInformersForNamespaceWithInterval
 			c.namespacedInformers = map[string]informers.SharedInformerFactory{}
 		}
 		c.namespacedInformers[namespace] = informer
-		c.Manager().Add(manager.RunnableFunc(func(stopCh <-chan struct{}) error {
-			informer.Start(stopCh)
+		c.Manager().Add(manager.RunnableFunc(func(ctx context.Context) error {
+			informer.Start(ctx.Done())
 			return nil
 		}))
 	}
@@ -199,7 +200,7 @@ func (c *ControlPlaneOperatorConfig) Fatal(err error, msg string) {
 	os.Exit(1)
 }
 
-func (c *ControlPlaneOperatorConfig) Start(stopCh <-chan struct{}) error {
+func (c *ControlPlaneOperatorConfig) Start(ctx context.Context) error {
 	for _, controllerName := range c.controllers {
 		setupFunc, ok := c.controllerFuncs[controllerName]
 		if !ok {
@@ -209,5 +210,5 @@ func (c *ControlPlaneOperatorConfig) Start(stopCh <-chan struct{}) error {
 			return fmt.Errorf("cannot setup controller %s: %v", controllerName, err)
 		}
 	}
-	return c.Manager().Start(stopCh)
+	return c.Manager().Start(ctx)
 }
