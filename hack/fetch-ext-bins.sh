@@ -94,6 +94,7 @@ function setup_envs {
   header_text "setting up env vars"
 
   # Setup env vars
+  export HOME=/tmp/kubebuilder
   export PATH=/tmp/kubebuilder/bin:$PATH
   export TEST_ASSET_KUBECTL=/tmp/kubebuilder/bin/kubectl
   export TEST_ASSET_KUBE_APISERVER=/tmp/kubebuilder/bin/kube-apiserver
