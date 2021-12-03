@@ -18,6 +18,7 @@
 // assets/cluster-bootstrap/namespace-security-allocation-controller-clusterrole.yaml
 // assets/cluster-bootstrap/namespace-security-allocation-controller-clusterrolebinding.yaml
 // assets/cluster-bootstrap/node-bootstrapper-clusterrolebinding.yaml
+// assets/cluster-bootstrap/oauth-serving-cert-configmap.yaml
 // assets/cluster-bootstrap/openshift-install-configmap.yaml
 // assets/cluster-version-operator/cluster-version-operator-configmap.yaml
 // assets/cluster-version-operator/cluster-version-operator-deployment.yaml
@@ -1655,6 +1656,31 @@ func clusterBootstrapNodeBootstrapperClusterrolebindingYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "cluster-bootstrap/node-bootstrapper-clusterrolebinding.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _clusterBootstrapOauthServingCertConfigmapYaml = []byte(`apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: oauth-serving-cert
+  namespace: openshift-config-managed
+data:
+  ca-bundle.crt: |-
+{{ include_pki "root-ca.crt" 4 }}
+`)
+
+func clusterBootstrapOauthServingCertConfigmapYamlBytes() ([]byte, error) {
+	return _clusterBootstrapOauthServingCertConfigmapYaml, nil
+}
+
+func clusterBootstrapOauthServingCertConfigmapYaml() (*asset, error) {
+	bytes, err := clusterBootstrapOauthServingCertConfigmapYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "cluster-bootstrap/oauth-serving-cert-configmap.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -6049,6 +6075,7 @@ var _bindata = map[string]func() (*asset, error){
 	"cluster-bootstrap/namespace-security-allocation-controller-clusterrole.yaml":        clusterBootstrapNamespaceSecurityAllocationControllerClusterroleYaml,
 	"cluster-bootstrap/namespace-security-allocation-controller-clusterrolebinding.yaml": clusterBootstrapNamespaceSecurityAllocationControllerClusterrolebindingYaml,
 	"cluster-bootstrap/node-bootstrapper-clusterrolebinding.yaml":                        clusterBootstrapNodeBootstrapperClusterrolebindingYaml,
+	"cluster-bootstrap/oauth-serving-cert-configmap.yaml":                                clusterBootstrapOauthServingCertConfigmapYaml,
 	"cluster-bootstrap/openshift-install-configmap.yaml":                                 clusterBootstrapOpenshiftInstallConfigmapYaml,
 	"cluster-version-operator/cluster-version-operator-configmap.yaml":                   clusterVersionOperatorClusterVersionOperatorConfigmapYaml,
 	"cluster-version-operator/cluster-version-operator-deployment.yaml":                  clusterVersionOperatorClusterVersionOperatorDeploymentYaml,
@@ -6186,6 +6213,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"namespace-security-allocation-controller-clusterrole.yaml":        {clusterBootstrapNamespaceSecurityAllocationControllerClusterroleYaml, map[string]*bintree{}},
 		"namespace-security-allocation-controller-clusterrolebinding.yaml": {clusterBootstrapNamespaceSecurityAllocationControllerClusterrolebindingYaml, map[string]*bintree{}},
 		"node-bootstrapper-clusterrolebinding.yaml":                        {clusterBootstrapNodeBootstrapperClusterrolebindingYaml, map[string]*bintree{}},
+		"oauth-serving-cert-configmap.yaml":                                {clusterBootstrapOauthServingCertConfigmapYaml, map[string]*bintree{}},
 		"openshift-install-configmap.yaml":                                 {clusterBootstrapOpenshiftInstallConfigmapYaml, map[string]*bintree{}},
 	}},
 	"cluster-version-operator": {nil, map[string]*bintree{
