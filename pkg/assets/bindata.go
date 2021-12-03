@@ -11,6 +11,8 @@
 // assets/cluster-bootstrap/cluster-network-02-config.yaml
 // assets/cluster-bootstrap/cluster-proxy-01-config.yaml
 // assets/cluster-bootstrap/cluster-version-namespace.yaml
+// assets/cluster-bootstrap/csr_approver_clusterrole.yaml
+// assets/cluster-bootstrap/csr_approver_clusterrolebinding.yaml
 // assets/cluster-bootstrap/ingress-to-route-controller-clusterrole.yaml
 // assets/cluster-bootstrap/ingress-to-route-controller-clusterrolebinding.yaml
 // assets/cluster-bootstrap/namespace-security-allocation-controller-clusterrole.yaml
@@ -197,10 +199,12 @@ func clusterBootstrap00000_namespacesNeededForMonitoringYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapApiserverApirequestcountsCrdYaml = []byte(`apiVersion: apiextensions.k8s.io/v1
+var _clusterBootstrapApiserverApirequestcountsCrdYaml = []byte(`# Source: https://github.com/openshift/api/blob/release-4.9/apiserver/v1/apiserver.openshift.io_apirequestcount.yaml
+apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
+    api-approved.openshift.io: https://github.com/openshift/api/pull/897
     include.release.openshift.io/self-managed-high-availability: "true"
     include.release.openshift.io/single-node-developer: "true"
   name: apirequestcounts.apiserver.openshift.io
@@ -213,224 +217,100 @@ spec:
     singular: apirequestcount
   scope: Cluster
   versions:
-  - name: v1
-    served: true
-    storage: true
-    subresources:
-      status: {}
-    additionalPrinterColumns:
-    - name: RemovedInRelease
-      type: string
-      description: Release in which an API will be removed.
-      jsonPath: .status.removedInRelease
-    - name: RequestsInCurrentHour
-      type: integer
-      description: Number of requests in the current hour.
-      jsonPath: .status.currentHour.requestCount
-    - name: RequestsInLast24h
-      type: integer
-      description: Number of requests in the last 24h.
-      jsonPath: .status.requestCount
-    "schema":
-      "openAPIV3Schema":
-        description: APIRequestCount tracks requests made to an API. The instance
-          name must be of the form ` + "`" + `resource.version.group` + "`" + `, matching the resource.
-        type: object
-        required:
-        - spec
-        properties:
-          apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation
-              of an object. Servers should convert recognized schemas to the latest
-              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-            type: string
-          kind:
-            description: 'Kind is a string value representing the REST resource this
-              object represents. Servers may infer this from the endpoint the client
-              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-            type: string
-          metadata:
-            type: object
-          spec:
-            description: spec defines the characteristics of the resource.
-            type: object
-            properties:
-              numberOfUsersToReport:
-                description: numberOfUsersToReport is the number of users to include
-                  in the report. If unspecified or zero, the default is ten.  This
-                  is default is subject to change.
-                type: integer
-                format: int64
-                default: 10
-                maximum: 100
-                minimum: 0
-          status:
-            description: status contains the observed state of the resource.
-            type: object
-            properties:
-              conditions:
-                description: conditions contains details of the current status of
-                  this API Resource.
-                type: array
-                items:
-                  description: "Condition contains details for one aspect of the current
-                    state of this API Resource. --- This struct is intended for direct
-                    use as an array at the field path .status.conditions.  For example,
-                    type FooStatus struct{     // Represents the observations of a
-                    foo's current state.     // Known .status.conditions.type are:
-                    \"Available\", \"Progressing\", and \"Degraded\"     // +patchMergeKey=type
-                    \    // +patchStrategy=merge     // +listType=map     // +listMapKey=type
-                    \    Conditions []metav1.Condition ` + "`" + `json:\"conditions,omitempty\"
-                    patchStrategy:\"merge\" patchMergeKey:\"type\" protobuf:\"bytes,1,rep,name=conditions\"` + "`" + `
-                    \n     // other fields }"
-                  type: object
-                  required:
-                  - lastTransitionTime
-                  - message
-                  - reason
-                  - status
-                  - type
-                  properties:
-                    lastTransitionTime:
-                      description: lastTransitionTime is the last time the condition
-                        transitioned from one status to another. This should be when
-                        the underlying condition changed.  If that is not known, then
-                        using the time when the API field changed is acceptable.
-                      type: string
-                      format: date-time
-                    message:
-                      description: message is a human readable message indicating
-                        details about the transition. This may be an empty string.
-                      type: string
-                      maxLength: 32768
-                    observedGeneration:
-                      description: observedGeneration represents the .metadata.generation
-                        that the condition was set based upon. For instance, if .metadata.generation
-                        is currently 12, but the .status.conditions[x].observedGeneration
-                        is 9, the condition is out of date with respect to the current
-                        state of the instance.
-                      type: integer
-                      format: int64
-                      minimum: 0
-                    reason:
-                      description: reason contains a programmatic identifier indicating
-                        the reason for the condition's last transition. Producers
-                        of specific condition types may define expected values and
-                        meanings for this field, and whether the values are considered
-                        a guaranteed API. The value should be a CamelCase string.
-                        This field may not be empty.
-                      type: string
-                      maxLength: 1024
-                      minLength: 1
-                      pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
-                    status:
-                      description: status of the condition, one of True, False, Unknown.
-                      type: string
-                      enum:
-                      - "True"
-                      - "False"
-                      - Unknown
-                    type:
-                      description: type of condition in CamelCase or in foo.example.com/CamelCase.
-                        --- Many .condition.type values are consistent across resources
-                        like Available, but because arbitrary conditions can be useful
-                        (see .node.status.conditions), the ability to deconflict is
-                        important. The regex it matches is (dns1123SubdomainFmt/)?(qualifiedNameFmt)
-                      type: string
-                      maxLength: 316
-                      pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
-              currentHour:
-                description: currentHour contains request history for the current
-                  hour. This is porcelain to make the API easier to read by humans
-                  seeing if they addressed a problem. This field is reset on the hour.
-                type: object
-                properties:
-                  byNode:
-                    description: byNode contains logs of requests per node.
-                    type: array
-                    maxItems: 512
-                    items:
-                      description: PerNodeAPIRequestLog contains logs of requests
-                        to a certain node.
-                      type: object
-                      properties:
-                        byUser:
-                          description: byUser contains request details by top .spec.numberOfUsersToReport
-                            users. Note that because in the case of an apiserver,
-                            restart the list of top users is determined on a best-effort
-                            basis, the list might be imprecise. In addition, some
-                            system users may be explicitly included in the list.
-                          type: array
-                          maxItems: 500
-                          items:
-                            description: PerUserAPIRequestCount contains logs of a
-                              user's requests.
-                            type: object
-                            properties:
-                              byVerb:
-                                description: byVerb details by verb.
-                                type: array
-                                maxItems: 10
-                                items:
-                                  description: PerVerbAPIRequestCount requestCounts
-                                    requests by API request verb.
-                                  type: object
-                                  properties:
-                                    requestCount:
-                                      description: requestCount of requests for verb.
-                                      type: integer
-                                      format: int64
-                                      minimum: 0
-                                    verb:
-                                      description: verb of API request (get, list,
-                                        create, etc...)
-                                      type: string
-                                      maxLength: 20
-                              requestCount:
-                                description: requestCount of requests by the user
-                                  across all verbs.
-                                type: integer
-                                format: int64
-                                minimum: 0
-                              userAgent:
-                                description: userAgent that made the request. The
-                                  same user often has multiple binaries which connect
-                                  (pods with many containers).  The different binaries
-                                  will have different userAgents, but the same user.  In
-                                  addition, we have userAgents with version information
-                                  embedded and the userName isn't likely to change.
-                                type: string
-                                maxLength: 1024
-                              username:
-                                description: userName that made the request.
-                                type: string
-                                maxLength: 512
-                        nodeName:
-                          description: nodeName where the request are being handled.
-                          type: string
-                          maxLength: 512
-                          minLength: 1
-                        requestCount:
-                          description: requestCount is a sum of all requestCounts
-                            across all users, even those outside of the top 10 users.
-                          type: integer
-                          format: int64
-                          minimum: 0
-                  requestCount:
-                    description: requestCount is a sum of all requestCounts across
-                      nodes.
-                    type: integer
-                    format: int64
-                    minimum: 0
-              last24h:
-                description: last24h contains request history for the last 24 hours,
-                  indexed by the hour, so 12:00AM-12:59 is in index 0, 6am-6:59am
-                  is index 6, etc. The index of the current hour is updated live and
-                  then duplicated into the requestsLastHour field.
-                type: array
-                maxItems: 24
-                items:
-                  description: PerResourceAPIRequestLog logs request for various nodes.
+    - name: v1
+      served: true
+      storage: true
+      subresources:
+        status: {}
+      additionalPrinterColumns:
+        - name: RemovedInRelease
+          type: string
+          description: Release in which an API will be removed.
+          jsonPath: .status.removedInRelease
+        - name: RequestsInCurrentHour
+          type: integer
+          description: Number of requests in the current hour.
+          jsonPath: .status.currentHour.requestCount
+        - name: RequestsInLast24h
+          type: integer
+          description: Number of requests in the last 24h.
+          jsonPath: .status.requestCount
+      "schema":
+        "openAPIV3Schema":
+          description: "APIRequestCount tracks requests made to an API. The instance name must be of the form ` + "`" + `resource.version.group` + "`" + `, matching the resource. \n Compatibility level 1: Stable within a major release for a minimum of 12 months or 3 minor releases (whichever is longer)."
+          type: object
+          required:
+            - spec
+          properties:
+            apiVersion:
+              description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+              type: string
+            kind:
+              description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+              type: string
+            metadata:
+              type: object
+            spec:
+              description: spec defines the characteristics of the resource.
+              type: object
+              properties:
+                numberOfUsersToReport:
+                  description: numberOfUsersToReport is the number of users to include in the report. If unspecified or zero, the default is ten.  This is default is subject to change.
+                  type: integer
+                  format: int64
+                  default: 10
+                  maximum: 100
+                  minimum: 0
+            status:
+              description: status contains the observed state of the resource.
+              type: object
+              properties:
+                conditions:
+                  description: conditions contains details of the current status of this API Resource.
+                  type: array
+                  items:
+                    description: "Condition contains details for one aspect of the current state of this API Resource. --- This struct is intended for direct use as an array at the field path .status.conditions.  For example, type FooStatus struct{     // Represents the observations of a foo's current state.     // Known .status.conditions.type are: \"Available\", \"Progressing\", and \"Degraded\"     // +patchMergeKey=type     // +patchStrategy=merge     // +listType=map     // +listMapKey=type     Conditions []metav1.Condition ` + "`" + `json:\"conditions,omitempty\" patchStrategy:\"merge\" patchMergeKey:\"type\" protobuf:\"bytes,1,rep,name=conditions\"` + "`" + ` \n     // other fields }"
+                    type: object
+                    required:
+                      - lastTransitionTime
+                      - message
+                      - reason
+                      - status
+                      - type
+                    properties:
+                      lastTransitionTime:
+                        description: lastTransitionTime is the last time the condition transitioned from one status to another. This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+                        type: string
+                        format: date-time
+                      message:
+                        description: message is a human readable message indicating details about the transition. This may be an empty string.
+                        type: string
+                        maxLength: 32768
+                      observedGeneration:
+                        description: observedGeneration represents the .metadata.generation that the condition was set based upon. For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date with respect to the current state of the instance.
+                        type: integer
+                        format: int64
+                        minimum: 0
+                      reason:
+                        description: reason contains a programmatic identifier indicating the reason for the condition's last transition. Producers of specific condition types may define expected values and meanings for this field, and whether the values are considered a guaranteed API. The value should be a CamelCase string. This field may not be empty.
+                        type: string
+                        maxLength: 1024
+                        minLength: 1
+                        pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
+                      status:
+                        description: status of the condition, one of True, False, Unknown.
+                        type: string
+                        enum:
+                          - "True"
+                          - "False"
+                          - Unknown
+                      type:
+                        description: type of condition in CamelCase or in foo.example.com/CamelCase. --- Many .condition.type values are consistent across resources like Available, but because arbitrary conditions can be useful (see .node.status.conditions), the ability to deconflict is important. The regex it matches is (dns1123SubdomainFmt/)?(qualifiedNameFmt)
+                        type: string
+                        maxLength: 316
+                        pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                currentHour:
+                  description: currentHour contains request history for the current hour. This is porcelain to make the API easier to read by humans seeing if they addressed a problem. This field is reset on the hour.
                   type: object
                   properties:
                     byNode:
@@ -438,21 +318,15 @@ spec:
                       type: array
                       maxItems: 512
                       items:
-                        description: PerNodeAPIRequestLog contains logs of requests
-                          to a certain node.
+                        description: PerNodeAPIRequestLog contains logs of requests to a certain node.
                         type: object
                         properties:
                           byUser:
-                            description: byUser contains request details by top .spec.numberOfUsersToReport
-                              users. Note that because in the case of an apiserver,
-                              restart the list of top users is determined on a best-effort
-                              basis, the list might be imprecise. In addition, some
-                              system users may be explicitly included in the list.
+                            description: byUser contains request details by top .spec.numberOfUsersToReport users. Note that because in the case of an apiserver, restart the list of top users is determined on a best-effort basis, the list might be imprecise. In addition, some system users may be explicitly included in the list.
                             type: array
                             maxItems: 500
                             items:
-                              description: PerUserAPIRequestCount contains logs of
-                                a user's requests.
+                              description: PerUserAPIRequestCount contains logs of a user's requests.
                               type: object
                               properties:
                                 byVerb:
@@ -460,34 +334,25 @@ spec:
                                   type: array
                                   maxItems: 10
                                   items:
-                                    description: PerVerbAPIRequestCount requestCounts
-                                      requests by API request verb.
+                                    description: PerVerbAPIRequestCount requestCounts requests by API request verb.
                                     type: object
                                     properties:
                                       requestCount:
-                                        description: requestCount of requests for
-                                          verb.
+                                        description: requestCount of requests for verb.
                                         type: integer
                                         format: int64
                                         minimum: 0
                                       verb:
-                                        description: verb of API request (get, list,
-                                          create, etc...)
+                                        description: verb of API request (get, list, create, etc...)
                                         type: string
                                         maxLength: 20
                                 requestCount:
-                                  description: requestCount of requests by the user
-                                    across all verbs.
+                                  description: requestCount of requests by the user across all verbs.
                                   type: integer
                                   format: int64
                                   minimum: 0
                                 userAgent:
-                                  description: userAgent that made the request. The
-                                    same user often has multiple binaries which connect
-                                    (pods with many containers).  The different binaries
-                                    will have different userAgents, but the same user.  In
-                                    addition, we have userAgents with version information
-                                    embedded and the userName isn't likely to change.
+                                  description: userAgent that made the request. The same user often has multiple binaries which connect (pods with many containers).  The different binaries will have different userAgents, but the same user.  In addition, we have userAgents with version information embedded and the userName isn't likely to change.
                                   type: string
                                   maxLength: 1024
                                 username:
@@ -500,29 +365,95 @@ spec:
                             maxLength: 512
                             minLength: 1
                           requestCount:
-                            description: requestCount is a sum of all requestCounts
-                              across all users, even those outside of the top 10 users.
+                            description: requestCount is a sum of all requestCounts across all users, even those outside of the top 10 users.
                             type: integer
                             format: int64
                             minimum: 0
                     requestCount:
-                      description: requestCount is a sum of all requestCounts across
-                        nodes.
+                      description: requestCount is a sum of all requestCounts across nodes.
                       type: integer
                       format: int64
                       minimum: 0
-              removedInRelease:
-                description: removedInRelease is when the API will be removed.
-                type: string
-                maxLength: 64
-                minLength: 0
-                pattern: ^[0-9][0-9]*\.[0-9][0-9]*$
-              requestCount:
-                description: requestCount is a sum of all requestCounts across all
-                  current hours, nodes, and users.
-                type: integer
-                format: int64
-                minimum: 0
+                last24h:
+                  description: last24h contains request history for the last 24 hours, indexed by the hour, so 12:00AM-12:59 is in index 0, 6am-6:59am is index 6, etc. The index of the current hour is updated live and then duplicated into the requestsLastHour field.
+                  type: array
+                  maxItems: 24
+                  items:
+                    description: PerResourceAPIRequestLog logs request for various nodes.
+                    type: object
+                    properties:
+                      byNode:
+                        description: byNode contains logs of requests per node.
+                        type: array
+                        maxItems: 512
+                        items:
+                          description: PerNodeAPIRequestLog contains logs of requests to a certain node.
+                          type: object
+                          properties:
+                            byUser:
+                              description: byUser contains request details by top .spec.numberOfUsersToReport users. Note that because in the case of an apiserver, restart the list of top users is determined on a best-effort basis, the list might be imprecise. In addition, some system users may be explicitly included in the list.
+                              type: array
+                              maxItems: 500
+                              items:
+                                description: PerUserAPIRequestCount contains logs of a user's requests.
+                                type: object
+                                properties:
+                                  byVerb:
+                                    description: byVerb details by verb.
+                                    type: array
+                                    maxItems: 10
+                                    items:
+                                      description: PerVerbAPIRequestCount requestCounts requests by API request verb.
+                                      type: object
+                                      properties:
+                                        requestCount:
+                                          description: requestCount of requests for verb.
+                                          type: integer
+                                          format: int64
+                                          minimum: 0
+                                        verb:
+                                          description: verb of API request (get, list, create, etc...)
+                                          type: string
+                                          maxLength: 20
+                                  requestCount:
+                                    description: requestCount of requests by the user across all verbs.
+                                    type: integer
+                                    format: int64
+                                    minimum: 0
+                                  userAgent:
+                                    description: userAgent that made the request. The same user often has multiple binaries which connect (pods with many containers).  The different binaries will have different userAgents, but the same user.  In addition, we have userAgents with version information embedded and the userName isn't likely to change.
+                                    type: string
+                                    maxLength: 1024
+                                  username:
+                                    description: userName that made the request.
+                                    type: string
+                                    maxLength: 512
+                            nodeName:
+                              description: nodeName where the request are being handled.
+                              type: string
+                              maxLength: 512
+                              minLength: 1
+                            requestCount:
+                              description: requestCount is a sum of all requestCounts across all users, even those outside of the top 10 users.
+                              type: integer
+                              format: int64
+                              minimum: 0
+                      requestCount:
+                        description: requestCount is a sum of all requestCounts across nodes.
+                        type: integer
+                        format: int64
+                        minimum: 0
+                removedInRelease:
+                  description: removedInRelease is when the API will be removed.
+                  type: string
+                  maxLength: 64
+                  minLength: 0
+                  pattern: ^[0-9][0-9]*\.[0-9][0-9]*$
+                requestCount:
+                  description: requestCount is a sum of all requestCounts across all current hours, nodes, and users.
+                  type: integer
+                  format: int64
+                  minimum: 0
 `)
 
 func clusterBootstrapApiserverApirequestcountsCrdYamlBytes() ([]byte, error) {
@@ -694,15 +625,16 @@ func clusterBootstrapClusterIngresscontrollers02ConfigYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapClusterNetwork01CrdYaml = []byte(`
----
+var _clusterBootstrapClusterNetwork01CrdYaml = []byte(`---
 # This is the advanced network configuration CRD
 # Only necessary if you need to tweak certain settings.
 # See https://github.com/openshift/cluster-network-operator#configuring
+# Source: https://github.com/openshift/cluster-network-operator/blob/release-4.9/manifests/0000_70_cluster-network-operator_01_crd.yaml
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
+    api-approved.openshift.io: https://github.com/openshift/api/pull/475
     include.release.openshift.io/ibm-cloud-managed: "true"
     include.release.openshift.io/self-managed-high-availability: "true"
     include.release.openshift.io/single-node-developer: "true"
@@ -719,13 +651,20 @@ spec:
   - name: v1
     schema:
       openAPIV3Schema:
-        description: Network describes the cluster's desired network configuration. It is consumed by the cluster-network-operator.
+        description: "Network describes the cluster's desired network configuration.
+          It is consumed by the cluster-network-operator. \n Compatibility level 1:
+          Stable within a major release for a minimum of 12 months or 3 minor releases
+          (whichever is longer)."
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -733,38 +672,53 @@ spec:
             description: NetworkSpec is the top-level network configuration object.
             properties:
               additionalNetworks:
-                description: additionalNetworks is a list of extra networks to make available to pods when multiple networks are enabled.
+                description: additionalNetworks is a list of extra networks to make
+                  available to pods when multiple networks are enabled.
                 items:
-                  description: AdditionalNetworkDefinition configures an extra network that is available but not created by default. Instead, pods must request them by name. type must be specified, along with exactly one "Config" that matches the type.
+                  description: AdditionalNetworkDefinition configures an extra network
+                    that is available but not created by default. Instead, pods must
+                    request them by name. type must be specified, along with exactly
+                    one "Config" that matches the type.
                   properties:
                     name:
-                      description: name is the name of the network. This will be populated in the resulting CRD This must be unique.
+                      description: name is the name of the network. This will be populated
+                        in the resulting CRD This must be unique.
                       type: string
                     namespace:
-                      description: namespace is the namespace of the network. This will be populated in the resulting CRD If not given the network will be created in the default namespace.
+                      description: namespace is the namespace of the network. This
+                        will be populated in the resulting CRD If not given the network
+                        will be created in the default namespace.
                       type: string
                     rawCNIConfig:
-                      description: rawCNIConfig is the raw CNI configuration json to create in the NetworkAttachmentDefinition CRD
+                      description: rawCNIConfig is the raw CNI configuration json
+                        to create in the NetworkAttachmentDefinition CRD
                       type: string
                     simpleMacvlanConfig:
-                      description: SimpleMacvlanConfig configures the macvlan interface in case of type:NetworkTypeSimpleMacvlan
+                      description: SimpleMacvlanConfig configures the macvlan interface
+                        in case of type:NetworkTypeSimpleMacvlan
                       properties:
                         ipamConfig:
-                          description: IPAMConfig configures IPAM module will be used for IP Address Management (IPAM).
+                          description: IPAMConfig configures IPAM module will be used
+                            for IP Address Management (IPAM).
                           properties:
                             staticIPAMConfig:
-                              description: StaticIPAMConfig configures the static IP address in case of type:IPAMTypeStatic
+                              description: StaticIPAMConfig configures the static
+                                IP address in case of type:IPAMTypeStatic
                               properties:
                                 addresses:
-                                  description: Addresses configures IP address for the interface
+                                  description: Addresses configures IP address for
+                                    the interface
                                   items:
-                                    description: StaticIPAMAddresses provides IP address and Gateway for static IPAM addresses
+                                    description: StaticIPAMAddresses provides IP address
+                                      and Gateway for static IPAM addresses
                                     properties:
                                       address:
-                                        description: Address is the IP address in CIDR format
+                                        description: Address is the IP address in
+                                          CIDR format
                                         type: string
                                       gateway:
-                                        description: Gateway is IP inside of subnet to designate as the gateway
+                                        description: Gateway is IP inside of subnet
+                                          to designate as the gateway
                                         type: string
                                     type: object
                                   type: array
@@ -772,58 +726,80 @@ spec:
                                   description: DNS configures DNS for the interface
                                   properties:
                                     domain:
-                                      description: Domain configures the domainname the local domain used for short hostname lookups
+                                      description: Domain configures the domainname
+                                        the local domain used for short hostname lookups
                                       type: string
                                     nameservers:
-                                      description: Nameservers points DNS servers for IP lookup
+                                      description: Nameservers points DNS servers
+                                        for IP lookup
                                       items:
                                         type: string
                                       type: array
                                     search:
-                                      description: Search configures priority ordered search domains for short hostname lookups
+                                      description: Search configures priority ordered
+                                        search domains for short hostname lookups
                                       items:
                                         type: string
                                       type: array
                                   type: object
                                 routes:
-                                  description: Routes configures IP routes for the interface
+                                  description: Routes configures IP routes for the
+                                    interface
                                   items:
-                                    description: StaticIPAMRoutes provides Destination/Gateway pairs for static IPAM routes
+                                    description: StaticIPAMRoutes provides Destination/Gateway
+                                      pairs for static IPAM routes
                                     properties:
                                       destination:
-                                        description: Destination points the IP route destination
+                                        description: Destination points the IP route
+                                          destination
                                         type: string
                                       gateway:
-                                        description: Gateway is the route's next-hop IP address If unset, a default gateway is assumed (as determined by the CNI plugin).
+                                        description: Gateway is the route's next-hop
+                                          IP address If unset, a default gateway is
+                                          assumed (as determined by the CNI plugin).
                                         type: string
                                     type: object
                                   type: array
                               type: object
                             type:
-                              description: Type is the type of IPAM module will be used for IP Address Management(IPAM). The supported values are IPAMTypeDHCP, IPAMTypeStatic
+                              description: Type is the type of IPAM module will be
+                                used for IP Address Management(IPAM). The supported
+                                values are IPAMTypeDHCP, IPAMTypeStatic
                               type: string
                           type: object
                         master:
-                          description: master is the host interface to create the macvlan interface from. If not specified, it will be default route interface
+                          description: master is the host interface to create the
+                            macvlan interface from. If not specified, it will be default
+                            route interface
                           type: string
                         mode:
-                          description: 'mode is the macvlan mode: bridge, private, vepa, passthru. The default is bridge'
+                          description: 'mode is the macvlan mode: bridge, private,
+                            vepa, passthru. The default is bridge'
                           type: string
                         mtu:
-                          description: mtu is the mtu to use for the macvlan interface. if unset, host's kernel will select the value.
+                          description: mtu is the mtu to use for the macvlan interface.
+                            if unset, host's kernel will select the value.
                           format: int32
                           minimum: 0
                           type: integer
                       type: object
                     type:
-                      description: type is the type of network The supported values are NetworkTypeRaw, NetworkTypeSimpleMacvlan
+                      description: type is the type of network The supported values
+                        are NetworkTypeRaw, NetworkTypeSimpleMacvlan
                       type: string
                   type: object
                 type: array
               clusterNetwork:
-                description: clusterNetwork is the IP address pool to use for pod IPs. Some network providers, e.g. OpenShift SDN, support multiple ClusterNetworks. Others only support one. This is equivalent to the cluster-cidr.
+                description: clusterNetwork is the IP address pool to use for pod
+                  IPs. Some network providers, e.g. OpenShift SDN, support multiple
+                  ClusterNetworks. Others only support one. This is equivalent to
+                  the cluster-cidr.
                 items:
-                  description: ClusterNetworkEntry is a subnet from which to allocate PodIPs. A network of size HostPrefix (in CIDR notation) will be allocated when nodes join the cluster. If the HostPrefix field is not used by the plugin, it can be left unset. Not all network providers support multiple ClusterNetworks
+                  description: ClusterNetworkEntry is a subnet from which to allocate
+                    PodIPs. A network of size HostPrefix (in CIDR notation) will be
+                    allocated when nodes join the cluster. If the HostPrefix field
+                    is not used by the plugin, it can be left unset. Not all network
+                    providers support multiple ClusterNetworks
                   properties:
                     cidr:
                       type: string
@@ -834,42 +810,83 @@ spec:
                   type: object
                 type: array
               defaultNetwork:
-                description: defaultNetwork is the "default" network that all pods will receive
+                description: defaultNetwork is the "default" network that all pods
+                  will receive
                 properties:
                   kuryrConfig:
                     description: KuryrConfig configures the kuryr plugin
                     properties:
                       controllerProbesPort:
-                        description: The port kuryr-controller will listen for readiness and liveness requests.
+                        description: The port kuryr-controller will listen for readiness
+                          and liveness requests.
                         format: int32
                         minimum: 0
                         type: integer
                       daemonProbesPort:
-                        description: The port kuryr-daemon will listen for readiness and liveness requests.
+                        description: The port kuryr-daemon will listen for readiness
+                          and liveness requests.
                         format: int32
                         minimum: 0
                         type: integer
                       enablePortPoolsPrepopulation:
-                        description: enablePortPoolsPrepopulation when true will make Kuryr prepopulate each newly created port pool with a minimum number of ports. Kuryr uses Neutron port pooling to fight the fact that it takes a significant amount of time to create one. Instead of creating it when pod is being deployed, Kuryr keeps a number of ports ready to be attached to pods. By default port prepopulation is disabled.
+                        description: enablePortPoolsPrepopulation when true will make
+                          Kuryr prepopulate each newly created port pool with a minimum
+                          number of ports. Kuryr uses Neutron port pooling to fight
+                          the fact that it takes a significant amount of time to create
+                          one. Instead of creating it when pod is being deployed,
+                          Kuryr keeps a number of ports ready to be attached to pods.
+                          By default port prepopulation is disabled.
                         type: boolean
                       mtu:
-                        description: mtu is the MTU that Kuryr should use when creating pod networks in Neutron. The value has to be lower or equal to the MTU of the nodes network and Neutron has to allow creation of tenant networks with such MTU. If unset Pod networks will be created with the same MTU as the nodes network has.
+                        description: mtu is the MTU that Kuryr should use when creating
+                          pod networks in Neutron. The value has to be lower or equal
+                          to the MTU of the nodes network and Neutron has to allow
+                          creation of tenant networks with such MTU. If unset Pod
+                          networks will be created with the same MTU as the nodes
+                          network has.
                         format: int32
                         minimum: 0
                         type: integer
                       openStackServiceNetwork:
-                        description: openStackServiceNetwork contains the CIDR of network from which to allocate IPs for OpenStack Octavia's Amphora VMs. Please note that with Amphora driver Octavia uses two IPs from that network for each loadbalancer - one given by OpenShift and second for VRRP connections. As the first one is managed by OpenShift's and second by Neutron's IPAMs, those need to come from different pools. Therefore ` + "`" + `openStackServiceNetwork` + "`" + ` needs to be at least twice the size of ` + "`" + `serviceNetwork` + "`" + `, and whole ` + "`" + `serviceNetwork` + "`" + ` must be overlapping with ` + "`" + `openStackServiceNetwork` + "`" + `. cluster-network-operator will then make sure VRRP IPs are taken from the ranges inside ` + "`" + `openStackServiceNetwork` + "`" + ` that are not overlapping with ` + "`" + `serviceNetwork` + "`" + `, effectivly preventing conflicts. If not set cluster-network-operator will use ` + "`" + `serviceNetwork` + "`" + ` expanded by decrementing the prefix size by 1.
+                        description: openStackServiceNetwork contains the CIDR of
+                          network from which to allocate IPs for OpenStack Octavia's
+                          Amphora VMs. Please note that with Amphora driver Octavia
+                          uses two IPs from that network for each loadbalancer - one
+                          given by OpenShift and second for VRRP connections. As the
+                          first one is managed by OpenShift's and second by Neutron's
+                          IPAMs, those need to come from different pools. Therefore
+                          ` + "`" + `openStackServiceNetwork` + "`" + ` needs to be at least twice the
+                          size of ` + "`" + `serviceNetwork` + "`" + `, and whole ` + "`" + `serviceNetwork` + "`" + ` must
+                          be overlapping with ` + "`" + `openStackServiceNetwork` + "`" + `. cluster-network-operator
+                          will then make sure VRRP IPs are taken from the ranges inside
+                          ` + "`" + `openStackServiceNetwork` + "`" + ` that are not overlapping with
+                          ` + "`" + `serviceNetwork` + "`" + `, effectivly preventing conflicts. If not
+                          set cluster-network-operator will use ` + "`" + `serviceNetwork` + "`" + ` expanded
+                          by decrementing the prefix size by 1.
                         type: string
                       poolBatchPorts:
-                        description: poolBatchPorts sets a number of ports that should be created in a single batch request to extend the port pool. The default is 3. For more information about port pools see enablePortPoolsPrepopulation setting.
+                        description: poolBatchPorts sets a number of ports that should
+                          be created in a single batch request to extend the port
+                          pool. The default is 3. For more information about port
+                          pools see enablePortPoolsPrepopulation setting.
                         minimum: 0
                         type: integer
                       poolMaxPorts:
-                        description: poolMaxPorts sets a maximum number of free ports that are being kept in a port pool. If the number of ports exceeds this setting, free ports will get deleted. Setting 0 will disable this upper bound, effectively preventing pools from shrinking and this is the default value. For more information about port pools see enablePortPoolsPrepopulation setting.
+                        description: poolMaxPorts sets a maximum number of free ports
+                          that are being kept in a port pool. If the number of ports
+                          exceeds this setting, free ports will get deleted. Setting
+                          0 will disable this upper bound, effectively preventing
+                          pools from shrinking and this is the default value. For
+                          more information about port pools see enablePortPoolsPrepopulation
+                          setting.
                         minimum: 0
                         type: integer
                       poolMinPorts:
-                        description: poolMinPorts sets a minimum number of free ports that should be kept in a port pool. If the number of ports is lower than this setting, new ports will get created and added to pool. The default is 1. For more information about port pools see enablePortPoolsPrepopulation setting.
+                        description: poolMinPorts sets a minimum number of free ports
+                          that should be kept in a port pool. If the number of ports
+                          is lower than this setting, new ports will get created and
+                          added to pool. The default is 1. For more information about
+                          port pools see enablePortPoolsPrepopulation setting.
                         minimum: 1
                         type: integer
                     type: object
@@ -877,40 +894,58 @@ spec:
                     description: openShiftSDNConfig configures the openshift-sdn plugin
                     properties:
                       enableUnidling:
-                        description: enableUnidling controls whether or not the service proxy will support idling and unidling of services. By default, unidling is enabled.
+                        description: enableUnidling controls whether or not the service
+                          proxy will support idling and unidling of services. By default,
+                          unidling is enabled.
                         type: boolean
                       mode:
                         description: mode is one of "Multitenant", "Subnet", or "NetworkPolicy"
                         type: string
                       mtu:
-                        description: mtu is the mtu to use for the tunnel interface. Defaults to 1450 if unset. This must be 50 bytes smaller than the machine's uplink.
+                        description: mtu is the mtu to use for the tunnel interface.
+                          Defaults to 1450 if unset. This must be 50 bytes smaller
+                          than the machine's uplink.
                         format: int32
                         minimum: 0
                         type: integer
                       useExternalOpenvswitch:
-                        description: useExternalOpenvswitch tells the operator not to install openvswitch, because it will be provided separately. If set, you must provide it yourself.
+                        description: 'useExternalOpenvswitch used to control whether
+                          the operator would deploy an OVS DaemonSet itself or expect
+                          someone else to start OVS. As of 4.6, OVS is always run
+                          as a system service, and this flag is ignored. DEPRECATED:
+                          non-functional as of 4.6'
                         type: boolean
                       vxlanPort:
-                        description: vxlanPort is the port to use for all vxlan packets. The default is 4789.
+                        description: vxlanPort is the port to use for all vxlan packets.
+                          The default is 4789.
                         format: int32
                         minimum: 0
                         type: integer
                     type: object
                   ovnKubernetesConfig:
-                    description: oVNKubernetesConfig configures the ovn-kubernetes plugin. This is currently not implemented.
+                    description: oVNKubernetesConfig configures the ovn-kubernetes
+                      plugin. This is currently not implemented.
                     properties:
                       genevePort:
-                        description: geneve port is the UDP port to be used by geneve encapulation. Default is 6081
+                        description: geneve port is the UDP port to be used by geneve
+                          encapulation. Default is 6081
                         format: int32
                         minimum: 1
                         type: integer
                       hybridOverlayConfig:
-                        description: HybridOverlayConfig configures an additional overlay network for peers that are not using OVN.
+                        description: HybridOverlayConfig configures an additional
+                          overlay network for peers that are not using OVN.
                         properties:
                           hybridClusterNetwork:
-                            description: HybridClusterNetwork defines a network space given to nodes on an additional overlay network.
+                            description: HybridClusterNetwork defines a network space
+                              given to nodes on an additional overlay network.
                             items:
-                              description: ClusterNetworkEntry is a subnet from which to allocate PodIPs. A network of size HostPrefix (in CIDR notation) will be allocated when nodes join the cluster. If the HostPrefix field is not used by the plugin, it can be left unset. Not all network providers support multiple ClusterNetworks
+                              description: ClusterNetworkEntry is a subnet from which
+                                to allocate PodIPs. A network of size HostPrefix (in
+                                CIDR notation) will be allocated when nodes join the
+                                cluster. If the HostPrefix field is not used by the
+                                plugin, it can be left unset. Not all network providers
+                                support multiple ClusterNetworks
                               properties:
                                 cidr:
                                   type: string
@@ -921,67 +956,102 @@ spec:
                               type: object
                             type: array
                           hybridOverlayVXLANPort:
-                            description: HybridOverlayVXLANPort defines the VXLAN port number to be used by the additional overlay network. Default is 4789
+                            description: HybridOverlayVXLANPort defines the VXLAN
+                              port number to be used by the additional overlay network.
+                              Default is 4789
                             format: int32
                             type: integer
                         type: object
                       ipsecConfig:
-                        description: ipsecConfig enables and configures IPsec for pods on the pod network within the cluster.
+                        description: ipsecConfig enables and configures IPsec for
+                          pods on the pod network within the cluster.
                         type: object
                       mtu:
-                        description: mtu is the MTU to use for the tunnel interface. This must be 100 bytes smaller than the uplink mtu. Default is 1400
+                        description: mtu is the MTU to use for the tunnel interface.
+                          This must be 100 bytes smaller than the uplink mtu. Default
+                          is 1400
                         format: int32
                         minimum: 0
                         type: integer
                       policyAuditConfig:
-                        description: policyAuditConfig is the configuration for network policy audit events. If unset, reported defaults are used.
+                        description: policyAuditConfig is the configuration for network
+                          policy audit events. If unset, reported defaults are used.
                         properties:
                           destination:
                             default: "null"
-                            description: 'destination is the location for policy log messages. Regardless of this config, persistent logs will always be dumped to the host at /var/log/ovn/ however Additionally syslog output may be configured as follows. Valid values are: - "libc" -> to use the libc syslog() function of the host node''s journdald process - "udp:host:port" -> for sending syslog over UDP - "unix:file" -> for using the UNIX domain socket directly - "null" -> to discard all messages logged to syslog The default is "null"'
+                            description: 'destination is the location for policy log
+                              messages. Regardless of this config, persistent logs
+                              will always be dumped to the host at /var/log/ovn/ however
+                              Additionally syslog output may be configured as follows.
+                              Valid values are: - "libc" -> to use the libc syslog()
+                              function of the host node''s journdald process - "udp:host:port"
+                              -> for sending syslog over UDP - "unix:file" -> for
+                              using the UNIX domain socket directly - "null" -> to
+                              discard all messages logged to syslog The default is
+                              "null"'
                             type: string
                           maxFileSize:
                             default: 50
-                            description: maxFilesSize is the max size an ACL_audit log file is allowed to reach before rotation occurs Units are in MB and the Default is 50MB
+                            description: maxFilesSize is the max size an ACL_audit
+                              log file is allowed to reach before rotation occurs
+                              Units are in MB and the Default is 50MB
                             format: int32
                             minimum: 1
                             type: integer
                           rateLimit:
                             default: 20
-                            description: rateLimit is the approximate maximum number of messages to generate per-second per-node. If unset the default of 20 msg/sec is used.
+                            description: rateLimit is the approximate maximum number
+                              of messages to generate per-second per-node. If unset
+                              the default of 20 msg/sec is used.
                             format: int32
                             minimum: 1
                             type: integer
                           syslogFacility:
                             default: local0
-                            description: syslogFacility the RFC5424 facility for generated messages, e.g. "kern". Default is "local0"
+                            description: syslogFacility the RFC5424 facility for generated
+                              messages, e.g. "kern". Default is "local0"
                             type: string
                         type: object
                     type: object
                   type:
-                    description: type is the type of network All NetworkTypes are supported except for NetworkTypeRaw
+                    description: type is the type of network All NetworkTypes are
+                      supported except for NetworkTypeRaw
                     type: string
                 type: object
               deployKubeProxy:
-                description: deployKubeProxy specifies whether or not a standalone kube-proxy should be deployed by the operator. Some network providers include kube-proxy or similar functionality. If unset, the plugin will attempt to select the correct value, which is false when OpenShift SDN and ovn-kubernetes are used and true otherwise.
+                description: deployKubeProxy specifies whether or not a standalone
+                  kube-proxy should be deployed by the operator. Some network providers
+                  include kube-proxy or similar functionality. If unset, the plugin
+                  will attempt to select the correct value, which is false when OpenShift
+                  SDN and ovn-kubernetes are used and true otherwise.
                 type: boolean
               disableMultiNetwork:
-                description: disableMultiNetwork specifies whether or not multiple pod network support should be disabled. If unset, this property defaults to 'false' and multiple network support is enabled.
+                description: disableMultiNetwork specifies whether or not multiple
+                  pod network support should be disabled. If unset, this property
+                  defaults to 'false' and multiple network support is enabled.
                 type: boolean
               disableNetworkDiagnostics:
                 default: false
-                description: disableNetworkDiagnostics specifies whether or not PodNetworkConnectivityCheck CRs from a test pod to every node, apiserver and LB should be disabled or not. If unset, this property defaults to 'false' and network diagnostics is enabled. Setting this to 'true' would reduce the additional load of the pods performing the checks.
+                description: disableNetworkDiagnostics specifies whether or not PodNetworkConnectivityCheck
+                  CRs from a test pod to every node, apiserver and LB should be disabled
+                  or not. If unset, this property defaults to 'false' and network
+                  diagnostics is enabled. Setting this to 'true' would reduce the
+                  additional load of the pods performing the checks.
                 type: boolean
               exportNetworkFlows:
-                description: exportNetworkFlows enables and configures the export of network flow metadata from the pod network by using protocols NetFlow, SFlow or IPFIX. Currently only supported on OVN-Kubernetes plugin. If unset, flows will not be exported to any collector.
+                description: exportNetworkFlows enables and configures the export
+                  of network flow metadata from the pod network by using protocols
+                  NetFlow, SFlow or IPFIX. Currently only supported on OVN-Kubernetes
+                  plugin. If unset, flows will not be exported to any collector.
                 properties:
                   ipfix:
                     description: ipfix defines IPFIX configuration.
                     properties:
                       collectors:
-                        description: ipfixCollectors is list of strings formatted as ip:port with a maximum of ten items
+                        description: ipfixCollectors is list of strings formatted
+                          as ip:port with a maximum of ten items
                         items:
-                          pattern: ^(([0-9]|[0-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[0-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5]):[0-9]+$
+                          pattern: ^(([0-9]|[0-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[0-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5]):([1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$
                           type: string
                         maxItems: 10
                         minItems: 1
@@ -991,9 +1061,11 @@ spec:
                     description: netFlow defines the NetFlow configuration.
                     properties:
                       collectors:
-                        description: netFlow defines the NetFlow collectors that will consume the flow data exported from OVS. It is a list of strings formatted as ip:port with a maximum of ten items
+                        description: netFlow defines the NetFlow collectors that will
+                          consume the flow data exported from OVS. It is a list of
+                          strings formatted as ip:port with a maximum of ten items
                         items:
-                          pattern: ^(([0-9]|[0-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[0-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5]):[0-9]+$
+                          pattern: ^(([0-9]|[0-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[0-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5]):([1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$
                           type: string
                         maxItems: 10
                         minItems: 1
@@ -1003,9 +1075,10 @@ spec:
                     description: sFlow defines the SFlow configuration.
                     properties:
                       collectors:
-                        description: sFlowCollectors is list of strings formatted as ip:port with a maximum of ten items
+                        description: sFlowCollectors is list of strings formatted
+                          as ip:port with a maximum of ten items
                         items:
-                          pattern: ^(([0-9]|[0-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[0-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5]):[0-9]+$
+                          pattern: ^(([0-9]|[0-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[0-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5]):([1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$
                           type: string
                         maxItems: 10
                         minItems: 1
@@ -1013,26 +1086,39 @@ spec:
                     type: object
                 type: object
               kubeProxyConfig:
-                description: kubeProxyConfig lets us configure desired proxy configuration. If not specified, sensible defaults will be chosen by OpenShift directly. Not consumed by all network providers - currently only openshift-sdn.
+                description: kubeProxyConfig lets us configure desired proxy configuration.
+                  If not specified, sensible defaults will be chosen by OpenShift
+                  directly. Not consumed by all network providers - currently only
+                  openshift-sdn.
                 properties:
                   bindAddress:
                     description: The address to "bind" on Defaults to 0.0.0.0
                     type: string
                   iptablesSyncPeriod:
-                    description: 'An internal kube-proxy parameter. In older releases of OCP, this sometimes needed to be adjusted in large clusters for performance reasons, but this is no longer necessary, and there is no reason to change this from the default value. Default: 30s'
+                    description: 'An internal kube-proxy parameter. In older releases
+                      of OCP, this sometimes needed to be adjusted in large clusters
+                      for performance reasons, but this is no longer necessary, and
+                      there is no reason to change this from the default value. Default:
+                      30s'
                     type: string
                   proxyArguments:
                     additionalProperties:
-                      description: ProxyArgumentList is a list of arguments to pass to the kubeproxy process
+                      description: ProxyArgumentList is a list of arguments to pass
+                        to the kubeproxy process
                       items:
                         type: string
                       type: array
-                    description: Any additional arguments to pass to the kubeproxy process
+                    description: Any additional arguments to pass to the kubeproxy
+                      process
                     type: object
                 type: object
               logLevel:
                 default: Normal
-                description: "logLevel is an intent based logging for an overall component.  It does not give fine grained control, but it is a simple way to manage coarse grained logging choices that operators have to interpret for their operands. \n Valid values are: \"Normal\", \"Debug\", \"Trace\", \"TraceAll\". Defaults to \"Normal\"."
+                description: "logLevel is an intent based logging for an overall component.
+                  \ It does not give fine grained control, but it is a simple way
+                  to manage coarse grained logging choices that operators have to
+                  interpret for their operands. \n Valid values are: \"Normal\", \"Debug\",
+                  \"Trace\", \"TraceAll\". Defaults to \"Normal\"."
                 enum:
                 - ""
                 - Normal
@@ -1041,24 +1127,35 @@ spec:
                 - TraceAll
                 type: string
               managementState:
-                description: managementState indicates whether and how the operator should manage the component
+                description: managementState indicates whether and how the operator
+                  should manage the component
                 pattern: ^(Managed|Unmanaged|Force|Removed)$
                 type: string
               migration:
-                description: migration enables and configures the cluster network migration. Setting this to the target network type to allow changing the default network. If unset, the operation of changing cluster default network plugin will be rejected.
+                description: migration enables and configures the cluster network
+                  migration. Setting this to the target network type to allow changing
+                  the default network. If unset, the operation of changing cluster
+                  default network plugin will be rejected.
                 properties:
                   networkType:
-                    description: networkType is the target type of network migration The supported values are OpenShiftSDN, OVNKubernetes
+                    description: networkType is the target type of network migration
+                      The supported values are OpenShiftSDN, OVNKubernetes
                     type: string
                 type: object
               observedConfig:
-                description: observedConfig holds a sparse config that controller has observed from the cluster state.  It exists in spec because it is an input to the level for the operator
+                description: observedConfig holds a sparse config that controller
+                  has observed from the cluster state.  It exists in spec because
+                  it is an input to the level for the operator
                 nullable: true
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
               operatorLogLevel:
                 default: Normal
-                description: "operatorLogLevel is an intent based logging for the operator itself.  It does not give fine grained control, but it is a simple way to manage coarse grained logging choices that operators have to interpret for themselves. \n Valid values are: \"Normal\", \"Debug\", \"Trace\", \"TraceAll\". Defaults to \"Normal\"."
+                description: "operatorLogLevel is an intent based logging for the
+                  operator itself.  It does not give fine grained control, but it
+                  is a simple way to manage coarse grained logging choices that operators
+                  have to interpret for themselves. \n Valid values are: \"Normal\",
+                  \"Debug\", \"Trace\", \"TraceAll\". Defaults to \"Normal\"."
                 enum:
                 - ""
                 - Normal
@@ -1067,21 +1164,35 @@ spec:
                 - TraceAll
                 type: string
               serviceNetwork:
-                description: serviceNetwork is the ip address pool to use for Service IPs Currently, all existing network providers only support a single value here, but this is an array to allow for growth.
+                description: serviceNetwork is the ip address pool to use for Service
+                  IPs Currently, all existing network providers only support a single
+                  value here, but this is an array to allow for growth.
                 items:
                   type: string
                 type: array
               unsupportedConfigOverrides:
-                description: 'unsupportedConfigOverrides holds a sparse config that will override any previously set options.  It only needs to be the fields to override it will end up overlaying in the following order: 1. hardcoded defaults 2. observedConfig 3. unsupportedConfigOverrides'
+                description: 'unsupportedConfigOverrides holds a sparse config that
+                  will override any previously set options.  It only needs to be the
+                  fields to override it will end up overlaying in the following order:
+                  1. hardcoded defaults 2. observedConfig 3. unsupportedConfigOverrides'
                 nullable: true
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
               useMultiNetworkPolicy:
-                description: useMultiNetworkPolicy enables a controller which allows for MultiNetworkPolicy objects to be used on additional networks as created by Multus CNI. MultiNetworkPolicy are similar to NetworkPolicy objects, but NetworkPolicy objects only apply to the primary interface. With MultiNetworkPolicy, you can control the traffic that a pod can receive over the secondary interfaces. If unset, this property defaults to 'false' and MultiNetworkPolicy objects are ignored. If 'disableMultiNetwork' is 'true' then the value of this field is ignored.
+                description: useMultiNetworkPolicy enables a controller which allows
+                  for MultiNetworkPolicy objects to be used on additional networks
+                  as created by Multus CNI. MultiNetworkPolicy are similar to NetworkPolicy
+                  objects, but NetworkPolicy objects only apply to the primary interface.
+                  With MultiNetworkPolicy, you can control the traffic that a pod
+                  can receive over the secondary interfaces. If unset, this property
+                  defaults to 'false' and MultiNetworkPolicy objects are ignored.
+                  If 'disableMultiNetwork' is 'true' then the value of this field
+                  is ignored.
                 type: boolean
             type: object
           status:
-            description: NetworkStatus is detailed operator status, which is distilled up to the Network clusteroperator object.
+            description: NetworkStatus is detailed operator status, which is distilled
+              up to the Network clusteroperator object.
             properties:
               conditions:
                 description: conditions is a list of conditions and their status
@@ -1102,18 +1213,23 @@ spec:
                   type: object
                 type: array
               generations:
-                description: generations are used to determine when an item needs to be reconciled or has changed in a way that needs a reaction.
+                description: generations are used to determine when an item needs
+                  to be reconciled or has changed in a way that needs a reaction.
                 items:
-                  description: GenerationStatus keeps track of the generation for a given resource so that decisions about forced updates can be made.
+                  description: GenerationStatus keeps track of the generation for
+                    a given resource so that decisions about forced updates can be
+                    made.
                   properties:
                     group:
                       description: group is the group of the thing you're tracking
                       type: string
                     hash:
-                      description: hash is an optional field set for resources without generation that are content sensitive like secrets and configmaps
+                      description: hash is an optional field set for resources without
+                        generation that are content sensitive like secrets and configmaps
                       type: string
                     lastGeneration:
-                      description: lastGeneration is the last generation of the workload controller involved
+                      description: lastGeneration is the last generation of the workload
+                        controller involved
                       format: int64
                       type: integer
                     name:
@@ -1123,16 +1239,19 @@ spec:
                       description: namespace is where the thing you're tracking is
                       type: string
                     resource:
-                      description: resource is the resource type of the thing you're tracking
+                      description: resource is the resource type of the thing you're
+                        tracking
                       type: string
                   type: object
                 type: array
               observedGeneration:
-                description: observedGeneration is the last generation change you've dealt with
+                description: observedGeneration is the last generation change you've
+                  dealt with
                 format: int64
                 type: integer
               readyReplicas:
-                description: readyReplicas indicates how many replicas are ready and at the desired state
+                description: readyReplicas indicates how many replicas are ready and
+                  at the desired state
                 format: int32
                 type: integer
               version:
@@ -1233,6 +1352,93 @@ func clusterBootstrapClusterVersionNamespaceYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "cluster-bootstrap/cluster-version-namespace.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _clusterBootstrapCsr_approver_clusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.9/bindata/assets/kube-controller-manager/csr_approver_clusterrole.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  annotations:
+    rbac.authorization.kubernetes.io/autoupdate: "true"
+  name: system:openshift:controller:cluster-csr-approver-controller
+rules:
+  - apiGroups:
+    - certificates.k8s.io
+    resources:
+    - certificatesigningrequests
+    verbs:
+    - get
+    - list
+    - watch
+  - apiGroups:
+    - certificates.k8s.io
+    resources:
+    - certificatesigningrequests/approval
+    verbs:
+    - update
+  - apiGroups:
+    - certificates.k8s.io
+    resources:
+    - signers
+    resourceNames:
+    - kubernetes.io/kube-apiserver-client
+    verbs:
+    - approve
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create
+      - patch
+      - update
+`)
+
+func clusterBootstrapCsr_approver_clusterroleYamlBytes() ([]byte, error) {
+	return _clusterBootstrapCsr_approver_clusterroleYaml, nil
+}
+
+func clusterBootstrapCsr_approver_clusterroleYaml() (*asset, error) {
+	bytes, err := clusterBootstrapCsr_approver_clusterroleYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "cluster-bootstrap/csr_approver_clusterrole.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _clusterBootstrapCsr_approver_clusterrolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.9/bindata/assets/kube-controller-manager/csr_approver_clusterrolebinding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  annotations:
+    rbac.authorization.kubernetes.io/autoupdate: "true"
+  name: system:openshift:controller:cluster-csr-approver-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:openshift:controller:cluster-csr-approver-controller
+subjects:
+  - kind: ServiceAccount
+    name: cluster-csr-approver-controller
+    namespace: openshift-infra
+`)
+
+func clusterBootstrapCsr_approver_clusterrolebindingYamlBytes() ([]byte, error) {
+	return _clusterBootstrapCsr_approver_clusterrolebindingYaml, nil
+}
+
+func clusterBootstrapCsr_approver_clusterrolebindingYaml() (*asset, error) {
+	bytes, err := clusterBootstrapCsr_approver_clusterrolebindingYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "cluster-bootstrap/csr_approver_clusterrolebinding.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -1338,7 +1544,8 @@ func clusterBootstrapIngressToRouteControllerClusterrolebindingYaml() (*asset, e
 	return a, nil
 }
 
-var _clusterBootstrapNamespaceSecurityAllocationControllerClusterroleYaml = []byte(`apiVersion: rbac.authorization.k8s.io/v1
+var _clusterBootstrapNamespaceSecurityAllocationControllerClusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.9/bindata/assets/kube-controller-manager/namespace-security-allocation-controller-clusterrole.yaml
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   annotations:
@@ -1390,7 +1597,8 @@ func clusterBootstrapNamespaceSecurityAllocationControllerClusterroleYaml() (*as
 	return a, nil
 }
 
-var _clusterBootstrapNamespaceSecurityAllocationControllerClusterrolebindingYaml = []byte(`apiVersion: rbac.authorization.k8s.io/v1
+var _clusterBootstrapNamespaceSecurityAllocationControllerClusterrolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.9/bindata/assets/kube-controller-manager/namespace-security-allocation-controller-clusterrolebinding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   annotations:
@@ -5834,6 +6042,8 @@ var _bindata = map[string]func() (*asset, error){
 	"cluster-bootstrap/cluster-network-02-config.yaml":                                   clusterBootstrapClusterNetwork02ConfigYaml,
 	"cluster-bootstrap/cluster-proxy-01-config.yaml":                                     clusterBootstrapClusterProxy01ConfigYaml,
 	"cluster-bootstrap/cluster-version-namespace.yaml":                                   clusterBootstrapClusterVersionNamespaceYaml,
+	"cluster-bootstrap/csr_approver_clusterrole.yaml":                                    clusterBootstrapCsr_approver_clusterroleYaml,
+	"cluster-bootstrap/csr_approver_clusterrolebinding.yaml":                             clusterBootstrapCsr_approver_clusterrolebindingYaml,
 	"cluster-bootstrap/ingress-to-route-controller-clusterrole.yaml":                     clusterBootstrapIngressToRouteControllerClusterroleYaml,
 	"cluster-bootstrap/ingress-to-route-controller-clusterrolebinding.yaml":              clusterBootstrapIngressToRouteControllerClusterrolebindingYaml,
 	"cluster-bootstrap/namespace-security-allocation-controller-clusterrole.yaml":        clusterBootstrapNamespaceSecurityAllocationControllerClusterroleYaml,
@@ -5969,6 +6179,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"cluster-network-02-config.yaml":                                   {clusterBootstrapClusterNetwork02ConfigYaml, map[string]*bintree{}},
 		"cluster-proxy-01-config.yaml":                                     {clusterBootstrapClusterProxy01ConfigYaml, map[string]*bintree{}},
 		"cluster-version-namespace.yaml":                                   {clusterBootstrapClusterVersionNamespaceYaml, map[string]*bintree{}},
+		"csr_approver_clusterrole.yaml":                                    {clusterBootstrapCsr_approver_clusterroleYaml, map[string]*bintree{}},
+		"csr_approver_clusterrolebinding.yaml":                             {clusterBootstrapCsr_approver_clusterrolebindingYaml, map[string]*bintree{}},
 		"ingress-to-route-controller-clusterrole.yaml":                     {clusterBootstrapIngressToRouteControllerClusterroleYaml, map[string]*bintree{}},
 		"ingress-to-route-controller-clusterrolebinding.yaml":              {clusterBootstrapIngressToRouteControllerClusterrolebindingYaml, map[string]*bintree{}},
 		"namespace-security-allocation-controller-clusterrole.yaml":        {clusterBootstrapNamespaceSecurityAllocationControllerClusterroleYaml, map[string]*bintree{}},
