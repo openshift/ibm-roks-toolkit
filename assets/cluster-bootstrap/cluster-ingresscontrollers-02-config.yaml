@@ -3,7 +3,7 @@ kind: IngressController
 metadata:
   name: default
   namespace: openshift-ingress-operator
-spec:{{ if eq .RouterServiceType "Private" }}
+spec: {{ if eq .RouterServiceType "Private" }}
   endpointPublishingStrategy:
     type: Private {{ else if .EndpointPublishingStrategyScope }}
   endpointPublishingStrategy:
