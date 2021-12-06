@@ -3,13 +3,16 @@ kind: IngressController
 metadata:
   name: default
   namespace: openshift-ingress-operator
-spec: {{ if eq .RouterServiceType "Private" }}
+spec:
+  {{- if eq .RouterServiceType "Private" }}
   endpointPublishingStrategy:
-    type: Private {{ else if .EndpointPublishingStrategyScope }}
+    type: Private 
+  {{- else if .EndpointPublishingStrategyScope }}
   endpointPublishingStrategy:
     loadBalancer:
       scope: {{ .EndpointPublishingStrategyScope }}
-    type: LoadBalancerService{{ end }}
+    type: LoadBalancerService
+  {{- end }}
   nodePlacement:
     tolerations:
     - key: dedicated
