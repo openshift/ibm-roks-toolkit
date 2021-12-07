@@ -4,15 +4,15 @@ metadata:
   name: default
   namespace: openshift-ingress-operator
 spec:
-  {{- if eq .RouterServiceType "Private" }}
+{{- if eq .RouterServiceType "Private" }}
   endpointPublishingStrategy:
     type: Private 
-  {{- else if .EndpointPublishingStrategyScope }}
+{{- else if .EndpointPublishingStrategyScope }}
   endpointPublishingStrategy:
     loadBalancer:
       scope: {{ .EndpointPublishingStrategyScope }}
     type: LoadBalancerService
-  {{- end }}
+{{- end }}
   nodePlacement:
     tolerations:
     - key: dedicated
