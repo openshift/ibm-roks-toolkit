@@ -1323,7 +1323,62 @@ spec:
 {{ if .MasterPriorityClass }}
       priorityClassName: {{ .MasterPriorityClass }}
 {{ end }}
+      initContainers:
+      - image: {{ imageFor "cluster-config-operator" }}
+{{- if .ClusterConfigOperatorSecurityContext }}
+{{- $securityContext := .ClusterConfigOperatorSecurityContext }}
+        securityContext:
+          runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
+        imagePullPolicy: IfNotPresent
+        name: config-bootstrap
+        workingDir: /tmp
+        command:
+        - /bin/bash
+        args:
+        - -c
+        - |-
+          cd /tmp
+          mkdir input output
+          /usr/bin/cluster-config-operator render --config-output-file config --asset-input-dir /tmp/input --asset-output-dir /tmp/output
+          cp /tmp/output/manifests/* /work
+        volumeMounts:
+        - mountPath: /work
+          name: bootstrap-manifests
       containers:
+      - image: {{ imageFor "cli" }}
+{{- if .ManifestBootstrapperSecurityContext }}
+{{- $securityContext := .ManifestBootstrapperSecurityContext }}
+        securityContext:
+          runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
+        name: initialize-manifests
+        env:
+        - name: KUBECONFIG
+          value: /var/secrets/localhost-kubeconfig/kubeconfig
+        workingDir: /work
+        command:
+        - /bin/bash
+        args:
+        - -c
+        - |-
+          while true; do
+            if oc apply -f .; then
+              echo "Bootstrap manifests applied successfully."
+              break
+            fi
+            sleep 1
+          done
+          while true; do
+            sleep 1000
+          done
+        volumeMounts:
+        - mountPath: /work
+          name: bootstrap-manifests
+          readOnly: true
+        - mountPath: /var/secrets/localhost-kubeconfig
+          name: localhost-kubeconfig
+          readOnly: true
       - name: kube-apiserver
 {{- if .KubeAPIServerSecurityContext }}
 {{- $securityContext := .KubeAPIServerSecurityContext }}
@@ -1584,6 +1639,8 @@ spec:
           readOnly: true
 {{ end }}
       volumes:
+      - name: bootstrap-manifests
+        emptyDir: {}
       - secret:
           secretName: kube-apiserver
           defaultMode: 0640
@@ -1599,6 +1656,9 @@ spec:
       - configMap:
           name: kube-apiserver-oauth-metadata
         name: oauth
+      - secret:
+          secretName: localhost-admin-kubeconfig
+        name: localhost-kubeconfig
 {{- if or .ROKSMetricsImage .PortierisEnabled }}
       - secret:
           secretName: service-network-admin-kubeconfig
@@ -4124,27 +4184,6 @@ spec:
           cp /tmp/output/manifests/* /work
           # Add machineconfig CRDs to prevent upgrade getting stuck
           cp /release-manifests/*machine-config-operator*machineconfig*.crd.yaml /work
-      volumeMounts:
-        - mountPath: /work
-          name: work
-    - image: {{ imageFor "cluster-config-operator" }}
-{{- if .ClusterConfigOperatorSecurityContext }}
-{{- $securityContext := .ClusterConfigOperatorSecurityContext }}
-      securityContext:
-        runAsUser: {{ $securityContext.RunAsUser }}
-{{- end }}
-      imagePullPolicy: IfNotPresent
-      name: config-operator
-      workingDir: /tmp
-      command:
-        - /bin/bash
-      args:
-        - -c
-        - |-
-          cd /tmp
-          mkdir input output
-          /usr/bin/cluster-config-operator render --config-output-file config --asset-input-dir /tmp/input --asset-output-dir /tmp/output
-          cp /tmp/output/manifests/* /work
       volumeMounts:
         - mountPath: /work
           name: work
