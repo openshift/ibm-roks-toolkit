@@ -600,11 +600,13 @@ spec:
 {{- if eq .RouterServiceType "Private" }}
   endpointPublishingStrategy:
     type: Private 
-{{- else if .EndpointPublishingStrategyScope }}
+{{- else if .RouterServiceType "LoadBalancer" }}
   endpointPublishingStrategy:
+    type: LoadBalancerService
+{{- if .EndpointPublishingStrategyScope }}
     loadBalancer:
       scope: {{ .EndpointPublishingStrategyScope }}
-    type: LoadBalancerService
+{{- end }}
 {{- end }}
   nodePlacement:
     tolerations:
