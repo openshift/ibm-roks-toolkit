@@ -14,13 +14,11 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kubeclient "k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	"sigs.k8s.io/controller-runtime/pkg/envtest/printer"
 )
 
 var (
-	cfg          *rest.Config
 	k8sClient    kubeclient.Interface
 	configClient configclient.Interface
 	testEnv      *envtest.Environment
@@ -91,7 +89,7 @@ var _ = Describe("When running a clusterOperator controller", func() {
 			},
 		}
 		By("creating a clusterOperator resource explicitly")
-		co, err := configClient.ConfigV1().ClusterOperators().Create(ctx, co, metav1.CreateOptions{})
+		_, err := configClient.ConfigV1().ClusterOperators().Create(ctx, co, metav1.CreateOptions{})
 		Expect(err).ToNot(HaveOccurred())
 
 		By("waiting for all other control plane clusterOperator resources to be reconciled")

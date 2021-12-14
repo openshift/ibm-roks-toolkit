@@ -1,4 +1,4 @@
-package openshift_apiserver
+package openshiftapiserver
 
 import (
 	"bytes"

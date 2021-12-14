@@ -1,4 +1,4 @@
-package openshift_controller_manager
+package openshiftcontrollermanager
 
 import (
 	"context"

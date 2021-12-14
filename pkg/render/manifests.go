@@ -11,8 +11,8 @@ import (
 	"github.com/openshift/ibm-roks-toolkit/pkg/release"
 )
 
-// RenderClusterManifests renders manifests for a hosted control plane cluster
-func RenderClusterManifests(params *api.ClusterParams, pullSecretFile, outputDir string, externalOauth, includeRegistry bool) error {
+// ClusterManifests renders manifests for a hosted control plane cluster
+func ClusterManifests(params *api.ClusterParams, pullSecretFile, outputDir string, externalOauth, includeRegistry bool) error {
 	releaseInfo, err := release.GetReleaseInfo(params.ReleaseImage, params.OriginReleasePrefix, pullSecretFile)
 	if err != nil {
 		return err

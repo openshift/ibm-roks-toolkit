@@ -1,4 +1,4 @@
-package kubelet_serving_ca
+package kubeletservingca
 
 import (
 	"sigs.k8s.io/controller-runtime/pkg/controller"
@@ -17,7 +17,7 @@ func Setup(cfg *cpoperator.ControlPlaneOperatorConfig) error {
 	informerFactory := cfg.TargetKubeInformersForNamespace(ManagedConfigNamespace)
 	configMaps := informerFactory.Core().V1().ConfigMaps()
 
-	reconciler := &KubeletServingCASyncer{
+	reconciler := &Syncer{
 		InitialCA:    cfg.InitialCA(),
 		TargetClient: cfg.TargetKubeClient(),
 		Log:          cfg.Logger().WithName("KubeletServingCA"),
