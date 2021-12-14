@@ -18,7 +18,7 @@ import (
 	configlister "github.com/openshift/client-go/config/listers/config/v1"
 )
 
-type InfraStatusReconciler struct {
+type Reconciler struct {
 	Source     *configv1.Infrastructure
 	Client     configclient.Interface
 	KubeClient kubeclient.Interface
@@ -29,7 +29,7 @@ type InfraStatusReconciler struct {
 	hasSubresource *bool
 }
 
-func (r *InfraStatusReconciler) Reconcile(_ context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *Reconciler) Reconcile(_ context.Context, req ctrl.Request) (ctrl.Result, error) {
 	proceed, err := r.shouldReconcile()
 	if err != nil || !proceed {
 		return ctrl.Result{}, err
@@ -54,7 +54,7 @@ func (r *InfraStatusReconciler) Reconcile(_ context.Context, req ctrl.Request) (
 	return ctrl.Result{}, err
 }
 
-func (r *InfraStatusReconciler) shouldReconcile() (bool, error) {
+func (r *Reconciler) shouldReconcile() (bool, error) {
 	r.m.Lock()
 	defer r.m.Unlock()
 	if r.hasSubresource != nil {

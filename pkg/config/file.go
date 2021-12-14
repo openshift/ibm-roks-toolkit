@@ -10,7 +10,7 @@ import (
 
 func ReadFrom(fileName string) (*api.ClusterParams, error) {
 	result := api.NewClusterParams()
-	b, err := ioutil.ReadFile(fileName)
+	b, err := ioutil.ReadFile(fileName) // #nosec G304 We control the contents of any files read by this function
 	if err != nil {
 		return nil, err
 	}

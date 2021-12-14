@@ -59,7 +59,7 @@ func TestReconcile(t *testing.T) {
 
 			informerFactory.Config().V1().ClusterVersions().Informer().GetStore().Add(tc.existingCV)
 
-			r := &ClusterVersionReconciler{
+			r := &Reconciler{
 				Client: fakeClient,
 				Lister: informerFactory.Config().V1().ClusterVersions().Lister(),
 				Log:    ctrl.Log.WithName("TestReconcile"),

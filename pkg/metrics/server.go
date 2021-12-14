@@ -21,13 +21,13 @@ import (
 	buildmetrics "github.com/openshift/openshift-controller-manager/pkg/build/metrics/prometheus"
 )
 
-type MetricsServer struct {
+type Server struct {
 	ListenAddress string
 	CertFile      string
 	KeyFile       string
 }
 
-func (s *MetricsServer) Run() error {
+func (s *Server) Run() error {
 	rules := clientcmd.NewDefaultClientConfigLoadingRules()
 	kubeconfig := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(rules, &clientcmd.ConfigOverrides{})
 	cfg, err := kubeconfig.ClientConfig()
@@ -70,11 +70,9 @@ func (s *MetricsServer) Run() error {
 	}
 	go func() {
 		klog.Infof("Listening on %s", s.ListenAddress)
-		select {
-		case <-done:
-			klog.Info("Done received, closing server")
-			server.Close()
-		}
+		<-done
+		klog.Info("Done received, closing server")
+		server.Close()
 	}()
 	return server.ListenAndServeTLS(s.CertFile, s.KeyFile)
 }

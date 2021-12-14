@@ -1,5 +1,5 @@
 SRC_DIRS = cmd pkg
-
+GOSEC_VERSION := v2.8.1
 
 .PHONY: default
 default: build
@@ -25,8 +25,14 @@ verify-gofmt:
 	  cat .out && echo && rm .out && false)
 	@rm .out
 
+.PHONY: verify-gosec
+verify-gosec:
+	@echo Verifying gosec
+	@curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b /tmp ${GOSEC_VERSION}
+	@/tmp/gosec -exclude G104,G401,G402,G501 ./...
+
 .PHONY: verify
-verify: verify-gofmt verify-bindata
+verify: verify-gofmt verify-gosec verify-bindata
 
 # Build manager binary
 .PHONY: control-plane-operator

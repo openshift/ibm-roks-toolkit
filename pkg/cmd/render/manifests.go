@@ -11,7 +11,7 @@ import (
 	"github.com/openshift/ibm-roks-toolkit/pkg/render"
 )
 
-type RenderManifestsOptions struct {
+type ManifestsOptions struct {
 	OutputDir       string
 	ConfigFile      string
 	PullSecretFile  string
@@ -19,7 +19,7 @@ type RenderManifestsOptions struct {
 }
 
 func NewRenderManifestsCommand() *cobra.Command {
-	opt := &RenderManifestsOptions{}
+	opt := &ManifestsOptions{}
 	cmd := &cobra.Command{
 		Use: "render",
 		Run: func(cmd *cobra.Command, args []string) {
@@ -35,7 +35,7 @@ func NewRenderManifestsCommand() *cobra.Command {
 	return cmd
 }
 
-func (o *RenderManifestsOptions) Run() error {
+func (o *ManifestsOptions) Run() error {
 	util.EnsureDir(o.OutputDir)
 	params, err := config.ReadFrom(o.ConfigFile)
 	if err != nil {
@@ -45,7 +45,7 @@ func (o *RenderManifestsOptions) Run() error {
 	if len(params.ExternalOauthDNSName) == 0 {
 		params.ExternalOauthDNSName = params.ExternalAPIDNSName
 	}
-	err = render.RenderClusterManifests(params, o.PullSecretFile, o.OutputDir, externalOauth, o.IncludeRegistry)
+	err = render.ClusterManifests(params, o.PullSecretFile, o.OutputDir, externalOauth, o.IncludeRegistry)
 	if err != nil {
 		return err
 	}
@@ -62,8 +62,4 @@ func defaultConfigFile() string {
 
 func defaultPullSecretFile() string {
 	return filepath.Join(util.WorkingDir(), "pull-secret.txt")
-}
-
-func defaultPKIDir() string {
-	return filepath.Join(util.WorkingDir(), "pki")
 }

@@ -1,4 +1,4 @@
-package openshift_apiserver_monitor
+package openshiftapiservermonitor
 
 import (
 	"context"

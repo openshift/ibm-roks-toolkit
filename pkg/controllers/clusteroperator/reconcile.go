@@ -18,13 +18,13 @@ import (
 	configlister "github.com/openshift/client-go/config/listers/config/v1"
 )
 
-type ClusterOperatorInfo struct {
+type Info struct {
 	Name           string
 	VersionMapping map[string]string
 	RelatedObjects []configv1.ObjectReference
 }
 
-var clusterOperators = []ClusterOperatorInfo{
+var clusterOperators = []Info{
 	{
 		Name: "openshift-apiserver",
 		VersionMapping: map[string]string{
@@ -358,7 +358,7 @@ func (r *ControlPlaneClusterOperatorSyncer) ensureClusterOperatorIsUpToDate(co *
 	return err
 }
 
-func (r *ControlPlaneClusterOperatorSyncer) createClusterOperator(coInfo ClusterOperatorInfo) error {
+func (r *ControlPlaneClusterOperatorSyncer) createClusterOperator(coInfo Info) error {
 	co := &configv1.ClusterOperator{}
 	co.Name = coInfo.Name
 	co, err := r.Client.ConfigV1().ClusterOperators().Create(context.TODO(), co, metav1.CreateOptions{})
@@ -374,7 +374,7 @@ func (r *ControlPlaneClusterOperatorSyncer) createClusterOperator(coInfo Cluster
 	return nil
 }
 
-func (r *ControlPlaneClusterOperatorSyncer) clusterOperatorStatus(coInfo ClusterOperatorInfo) configv1.ClusterOperatorStatus {
+func (r *ControlPlaneClusterOperatorSyncer) clusterOperatorStatus(coInfo Info) configv1.ClusterOperatorStatus {
 	status := configv1.ClusterOperatorStatus{}
 	for key, target := range coInfo.VersionMapping {
 		v, hasVersion := r.Versions[target]
@@ -417,12 +417,12 @@ func (r *ControlPlaneClusterOperatorSyncer) clusterOperatorStatus(coInfo Cluster
 	return status
 }
 
-func clusterOperatorInfo(name string) ClusterOperatorInfo {
+func clusterOperatorInfo(name string) Info {
 	for _, coInfo := range clusterOperators {
 		if coInfo.Name == name {
 			return coInfo
 		}
 	}
 	// should not happen
-	return ClusterOperatorInfo{}
+	return Info{}
 }

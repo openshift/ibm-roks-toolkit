@@ -4,20 +4,21 @@ import (
 	"github.com/pkg/errors"
 
 	"fmt"
-	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"os"
 	"strings"
+
+	"k8s.io/cli-runtime/pkg/genericclioptions"
 
 	"github.com/openshift/oc/pkg/cli/admin/release"
 )
 
-// ReleaseInfo includes image references and versions for a given release
-type ReleaseInfo struct {
+// Info includes image references and versions for a given release
+type Info struct {
 	Images   map[string]string
 	Versions map[string]string
 }
 
-func GetReleaseInfo(image string, originReleasePrefix string, pullSecretFile string) (*ReleaseInfo, error) {
+func GetReleaseInfo(image string, originReleasePrefix string, pullSecretFile string) (*Info, error) {
 	streams := genericclioptions.IOStreams{
 		Out:    os.Stdout,
 		ErrOut: os.Stderr,
@@ -53,7 +54,7 @@ func GetReleaseInfo(image string, originReleasePrefix string, pullSecretFile str
 		versions[component] = version.Version
 	}
 
-	return &ReleaseInfo{
+	return &Info{
 		Images:   images,
 		Versions: versions,
 	}, nil
