@@ -270,7 +270,7 @@ spec:
         - name: NUM_LEN_BYTES
           value: "4"
         - name: CACHE_TIMEOUT_IN_HOURS
-          value: "1"
+          value: "4"
         - name: RESTART_DELAY_IN_SECONDS
           value: "0"
         - name: UNIX_SOCKET_PATH
