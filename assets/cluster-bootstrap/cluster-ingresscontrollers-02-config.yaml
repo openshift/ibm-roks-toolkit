@@ -7,7 +7,7 @@ spec:
 {{- if eq .RouterServiceType "Private" }}
   endpointPublishingStrategy:
     type: Private 
-{{- else if .RouterServiceType "LoadBalancer" }}
+{{- else if eq .RouterServiceType "LoadBalancer" }}
   endpointPublishingStrategy:
     type: LoadBalancerService
 {{- if .EndpointPublishingStrategyScope }}
