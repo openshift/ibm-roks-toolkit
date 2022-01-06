@@ -11,3 +11,5 @@ cd $REPO_ROOT && \
 	fetch_tools && \
 	setup_envs
 	go test -v ./...
+
+make test-render
