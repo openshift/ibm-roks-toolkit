@@ -44,5 +44,10 @@ roks-metrics:
 	go build -mod=vendor -o ./bin/roks-metrics ./cmd/roks-metrics/main.go
 	go build -mod=vendor -o ./bin/metrics-pusher ./cmd/metrics-pusher/main.go
 
+.PHONY: test-render
+test-render: build
+	./bin/ibm-roks render --config cluster.yaml.example --output-dir manifests --pull-secret empty-pull-secret.txt
+
+.PHONY: test
 test:
 	./hack/test.sh
