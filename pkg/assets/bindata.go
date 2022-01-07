@@ -19,36 +19,25 @@
 // assets/cluster-bootstrap/namespace-security-allocation-controller-clusterrolebinding.yaml
 // assets/cluster-bootstrap/node-bootstrapper-clusterrolebinding.yaml
 // assets/cluster-bootstrap/openshift-install-configmap.yaml
-// assets/cluster-version-operator/cluster-version-operator-configmap.yaml
 // assets/cluster-version-operator/cluster-version-operator-deployment.yaml
-// assets/cluster-version-operator/cluster-version-operator-secret.yaml
-// assets/common/service-network-admin-kubeconfig-secret.yaml
-// assets/control-plane-operator/cp-operator-configmap.yaml
 // assets/control-plane-operator/cp-operator-deployment.yaml
 // assets/kube-apiserver/config.yaml
 // assets/kube-apiserver/default-audit-policy.yaml
 // assets/kube-apiserver/kube-apiserver-config-configmap.yaml
-// assets/kube-apiserver/kube-apiserver-configmap.yaml
 // assets/kube-apiserver/kube-apiserver-default-audit-policy.yaml
 // assets/kube-apiserver/kube-apiserver-deployment.yaml
 // assets/kube-apiserver/kube-apiserver-oauth-metadata-configmap.yaml
-// assets/kube-apiserver/kube-apiserver-secret.yaml
 // assets/kube-apiserver/kube-apiserver-service.yaml
 // assets/kube-apiserver/oauthMetadata.json
 // assets/kube-controller-manager/config.yaml
 // assets/kube-controller-manager/kube-controller-manager-config-configmap.yaml
-// assets/kube-controller-manager/kube-controller-manager-configmap.yaml
 // assets/kube-controller-manager/kube-controller-manager-deployment.yaml
-// assets/kube-controller-manager/kube-controller-manager-secret.yaml
 // assets/kube-scheduler/config.yaml
 // assets/kube-scheduler/kube-scheduler-config-configmap.yaml
 // assets/kube-scheduler/kube-scheduler-deployment.yaml
-// assets/kube-scheduler/kube-scheduler-secret.yaml
 // assets/oauth-apiserver/audit-policy.yaml
 // assets/oauth-apiserver/oauth-apiserver-auditpolicy.yaml
-// assets/oauth-apiserver/oauth-apiserver-configmap.yaml
 // assets/oauth-apiserver/oauth-apiserver-deployment.yaml
-// assets/oauth-apiserver/oauth-apiserver-secret.yaml
 // assets/oauth-apiserver/oauth-apiserver-service.yaml
 // assets/oauth-apiserver/oauth-apiserver-user-endpoint.yaml
 // assets/oauth-apiserver/oauth-apiserver-user-service.yaml
@@ -57,18 +46,14 @@
 // assets/oauth-openshift/oauth-challenging-client.yaml
 // assets/oauth-openshift/oauth-server-config-configmap.yaml
 // assets/oauth-openshift/oauth-server-config.yaml
-// assets/oauth-openshift/oauth-server-configmap.yaml
 // assets/oauth-openshift/oauth-server-deployment.yaml
-// assets/oauth-openshift/oauth-server-secret.yaml
 // assets/oauth-openshift/oauth-server-service.yaml
 // assets/oauth-openshift/oauth-server-sessionsecret-secret.yaml
 // assets/oauth-openshift/v4-0-config-system-branding.yaml
 // assets/oauth-openshift/v4-0-config-system-session.json
 // assets/openshift-apiserver/config.yaml
 // assets/openshift-apiserver/openshift-apiserver-config-configmap.yaml
-// assets/openshift-apiserver/openshift-apiserver-configmap.yaml
 // assets/openshift-apiserver/openshift-apiserver-deployment.yaml
-// assets/openshift-apiserver/openshift-apiserver-secret.yaml
 // assets/openshift-apiserver/openshift-apiserver-service.yaml
 // assets/openshift-apiserver/openshift-apiserver-user-endpoint.yaml
 // assets/openshift-apiserver/openshift-apiserver-user-service.yaml
@@ -77,9 +62,7 @@
 // assets/openshift-controller-manager/cluster-policy-controller-deployment.yaml
 // assets/openshift-controller-manager/config.yaml
 // assets/openshift-controller-manager/openshift-controller-manager-config-configmap.yaml
-// assets/openshift-controller-manager/openshift-controller-manager-configmap.yaml
 // assets/openshift-controller-manager/openshift-controller-manager-deployment.yaml
-// assets/openshift-controller-manager/openshift-controller-manager-secret.yaml
 // assets/openshift-controller-manager/openshift-controller-manager-service-ca.yaml
 // assets/registry/cluster-imageregistry-config.yaml
 // assets/roks-metrics/roks-metrics-00-namespace.yaml
@@ -1689,30 +1672,6 @@ func clusterBootstrapOpenshiftInstallConfigmapYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterVersionOperatorClusterVersionOperatorConfigmapYaml = []byte(`apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: cluster-version-operator
-data:
-  initial-ca.crt: |
-{{ include_pki "combined-ca.crt"  4 }}
-`)
-
-func clusterVersionOperatorClusterVersionOperatorConfigmapYamlBytes() ([]byte, error) {
-	return _clusterVersionOperatorClusterVersionOperatorConfigmapYaml, nil
-}
-
-func clusterVersionOperatorClusterVersionOperatorConfigmapYaml() (*asset, error) {
-	bytes, err := clusterVersionOperatorClusterVersionOperatorConfigmapYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "cluster-version-operator/cluster-version-operator-configmap.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
 var _clusterVersionOperatorClusterVersionOperatorDeploymentYaml = []byte(`apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -1910,77 +1869,6 @@ func clusterVersionOperatorClusterVersionOperatorDeploymentYaml() (*asset, error
 	}
 
 	info := bindataFileInfo{name: "cluster-version-operator/cluster-version-operator-deployment.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _clusterVersionOperatorClusterVersionOperatorSecretYaml = []byte(`apiVersion: v1
-kind: Secret
-metadata:
-  name: cluster-version-operator
-data:
-  server.crt: {{ pki "cluster-version-operator.crt" }}
-  server.key: {{ pki "cluster-version-operator.key" }}
-`)
-
-func clusterVersionOperatorClusterVersionOperatorSecretYamlBytes() ([]byte, error) {
-	return _clusterVersionOperatorClusterVersionOperatorSecretYaml, nil
-}
-
-func clusterVersionOperatorClusterVersionOperatorSecretYaml() (*asset, error) {
-	bytes, err := clusterVersionOperatorClusterVersionOperatorSecretYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "cluster-version-operator/cluster-version-operator-secret.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _commonServiceNetworkAdminKubeconfigSecretYaml = []byte(`apiVersion: v1
-kind: Secret
-metadata:
-  name: service-network-admin-kubeconfig
-data:
-  kubeconfig: {{ pki "internal-admin.kubeconfig" }}
-`)
-
-func commonServiceNetworkAdminKubeconfigSecretYamlBytes() ([]byte, error) {
-	return _commonServiceNetworkAdminKubeconfigSecretYaml, nil
-}
-
-func commonServiceNetworkAdminKubeconfigSecretYaml() (*asset, error) {
-	bytes, err := commonServiceNetworkAdminKubeconfigSecretYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "common/service-network-admin-kubeconfig-secret.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _controlPlaneOperatorCpOperatorConfigmapYaml = []byte(`apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: control-plane-operator
-data:
-  initial-ca.crt: |
-{{ include_pki "combined-ca.crt"  4 }}
-`)
-
-func controlPlaneOperatorCpOperatorConfigmapYamlBytes() ([]byte, error) {
-	return _controlPlaneOperatorCpOperatorConfigmapYaml, nil
-}
-
-func controlPlaneOperatorCpOperatorConfigmapYaml() (*asset, error) {
-	bytes, err := controlPlaneOperatorCpOperatorConfigmapYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "control-plane-operator/cp-operator-configmap.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -2447,38 +2335,6 @@ func kubeApiserverKubeApiserverConfigConfigmapYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "kube-apiserver/kube-apiserver-config-configmap.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _kubeApiserverKubeApiserverConfigmapYaml = []byte(`apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: kube-apiserver
-data:
-  aggregator-client-ca.crt: |-
-{{ include_pki "root-ca.crt" 4 }}
-  kubelet-client-ca.crt: |-
-{{ include_pki "combined-ca.crt" 4 }}
-  service-account.pub: |-
-{{ include_pki "service-account.pub" 4 }}
-  serving-ca.crt: |-
-{{ include_pki "combined-ca.crt" 4 }}
-  etcd-ca.crt: |-
-{{ include_pki "root-ca.crt" 4 }}
-`)
-
-func kubeApiserverKubeApiserverConfigmapYamlBytes() ([]byte, error) {
-	return _kubeApiserverKubeApiserverConfigmapYaml, nil
-}
-
-func kubeApiserverKubeApiserverConfigmapYaml() (*asset, error) {
-	bytes, err := kubeApiserverKubeApiserverConfigmapYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "kube-apiserver/kube-apiserver-configmap.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -2983,37 +2839,6 @@ func kubeApiserverKubeApiserverOauthMetadataConfigmapYaml() (*asset, error) {
 	return a, nil
 }
 
-var _kubeApiserverKubeApiserverSecretYaml = []byte(`apiVersion: v1
-kind: Secret
-metadata:
-  name: kube-apiserver
-data:
-  server.crt: {{ pki "kube-apiserver-server.crt" }}
-  server.key: {{ pki "kube-apiserver-server.key" }}
-  kubelet-client.crt: {{ pki "kube-apiserver-kubelet.crt" }}
-  kubelet-client.key: {{ pki "kube-apiserver-kubelet.key" }}
-  etcd-client.crt: {{ pki "etcd-client.crt" }}
-  etcd-client.key: {{ pki "etcd-client.key" }}
-  proxy-client.crt: {{ pki "kube-apiserver-aggregator-proxy-client.crt" }}
-  proxy-client.key: {{ pki "kube-apiserver-aggregator-proxy-client.key" }}
-  service-account.key: {{ pki "service-account.key" }}
-`)
-
-func kubeApiserverKubeApiserverSecretYamlBytes() ([]byte, error) {
-	return _kubeApiserverKubeApiserverSecretYaml, nil
-}
-
-func kubeApiserverKubeApiserverSecretYaml() (*asset, error) {
-	bytes, err := kubeApiserverKubeApiserverSecretYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "kube-apiserver/kube-apiserver-secret.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
 var _kubeApiserverKubeApiserverServiceYaml = []byte(`apiVersion: v1
 kind: Service
 metadata:
@@ -3132,32 +2957,6 @@ func kubeControllerManagerKubeControllerManagerConfigConfigmapYaml() (*asset, er
 	}
 
 	info := bindataFileInfo{name: "kube-controller-manager/kube-controller-manager-config-configmap.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _kubeControllerManagerKubeControllerManagerConfigmapYaml = []byte(`apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: kube-controller-manager
-data:
-  root-ca.crt: |-
-{{ include_pki "combined-ca.crt" 4 }}
-  service-ca.crt: |-
-{{ include_pki "combined-ca.crt" 4 }}
-`)
-
-func kubeControllerManagerKubeControllerManagerConfigmapYamlBytes() ([]byte, error) {
-	return _kubeControllerManagerKubeControllerManagerConfigmapYaml, nil
-}
-
-func kubeControllerManagerKubeControllerManagerConfigmapYaml() (*asset, error) {
-	bytes, err := kubeControllerManagerKubeControllerManagerConfigmapYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "kube-controller-manager/kube-controller-manager-configmap.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -3345,32 +3144,6 @@ func kubeControllerManagerKubeControllerManagerDeploymentYaml() (*asset, error) 
 	}
 
 	info := bindataFileInfo{name: "kube-controller-manager/kube-controller-manager-deployment.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _kubeControllerManagerKubeControllerManagerSecretYaml = []byte(`apiVersion: v1
-kind: Secret
-metadata:
-  name: kube-controller-manager
-data:
-  kubeconfig: {{ pki "internal-admin.kubeconfig" }}
-  service-account.key: {{ pki "service-account.key" }}
-  cluster-signer.crt: {{ pki "cluster-signer.crt" }}
-  cluster-signer.key: {{ pki "cluster-signer.key" }}
-`)
-
-func kubeControllerManagerKubeControllerManagerSecretYamlBytes() ([]byte, error) {
-	return _kubeControllerManagerKubeControllerManagerSecretYaml, nil
-}
-
-func kubeControllerManagerKubeControllerManagerSecretYaml() (*asset, error) {
-	bytes, err := kubeControllerManagerKubeControllerManagerSecretYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "kube-controller-manager/kube-controller-manager-secret.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -3576,29 +3349,6 @@ func kubeSchedulerKubeSchedulerDeploymentYaml() (*asset, error) {
 	return a, nil
 }
 
-var _kubeSchedulerKubeSchedulerSecretYaml = []byte(`kind: Secret
-apiVersion: v1
-metadata:
-  name: kube-scheduler
-data:
-  kubeconfig: {{ pki "internal-admin.kubeconfig" }}
-`)
-
-func kubeSchedulerKubeSchedulerSecretYamlBytes() ([]byte, error) {
-	return _kubeSchedulerKubeSchedulerSecretYaml, nil
-}
-
-func kubeSchedulerKubeSchedulerSecretYaml() (*asset, error) {
-	bytes, err := kubeSchedulerKubeSchedulerSecretYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "kube-scheduler/kube-scheduler-secret.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
 var _oauthApiserverAuditPolicyYaml = []byte(`apiVersion: audit.k8s.io/v1
 kind: Policy
 omitStages:
@@ -3663,32 +3413,6 @@ func oauthApiserverOauthApiserverAuditpolicyYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "oauth-apiserver/oauth-apiserver-auditpolicy.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _oauthApiserverOauthApiserverConfigmapYaml = []byte(`apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: openshift-oauth-apiserver
-data:
-  etcd-ca.crt: |-
-{{ include_pki "root-ca.crt" 4 }}
-  serving-ca.crt: |-
-{{ include_pki "root-ca.crt" 4 }}
-`)
-
-func oauthApiserverOauthApiserverConfigmapYamlBytes() ([]byte, error) {
-	return _oauthApiserverOauthApiserverConfigmapYaml, nil
-}
-
-func oauthApiserverOauthApiserverConfigmapYaml() (*asset, error) {
-	bytes, err := oauthApiserverOauthApiserverConfigmapYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "oauth-apiserver/oauth-apiserver-configmap.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -3877,33 +3601,6 @@ func oauthApiserverOauthApiserverDeploymentYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "oauth-apiserver/oauth-apiserver-deployment.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _oauthApiserverOauthApiserverSecretYaml = []byte(`apiVersion: v1
-kind: Secret
-metadata:
-  name: openshift-oauth-apiserver
-data:
-  kubeconfig: {{ pki "internal-admin.kubeconfig" }}
-  server.crt: {{ pki "openshift-apiserver-server.crt" }}
-  server.key: {{ pki "openshift-apiserver-server.key" }}
-  etcd-client.crt: {{ pki "etcd-client.crt" }}
-  etcd-client.key: {{ pki "etcd-client.key" }}
-`)
-
-func oauthApiserverOauthApiserverSecretYamlBytes() ([]byte, error) {
-	return _oauthApiserverOauthApiserverSecretYaml, nil
-}
-
-func oauthApiserverOauthApiserverSecretYaml() (*asset, error) {
-	bytes, err := oauthApiserverOauthApiserverSecretYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "oauth-apiserver/oauth-apiserver-secret.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -4196,30 +3893,6 @@ func oauthOpenshiftOauthServerConfigYaml() (*asset, error) {
 	return a, nil
 }
 
-var _oauthOpenshiftOauthServerConfigmapYaml = []byte(`apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: oauth-openshift
-data:
-  ca.crt: |-
-{{ include_pki "combined-ca.crt" 4 }}
-`)
-
-func oauthOpenshiftOauthServerConfigmapYamlBytes() ([]byte, error) {
-	return _oauthOpenshiftOauthServerConfigmapYaml, nil
-}
-
-func oauthOpenshiftOauthServerConfigmapYaml() (*asset, error) {
-	bytes, err := oauthOpenshiftOauthServerConfigmapYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "oauth-openshift/oauth-server-configmap.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
 var _oauthOpenshiftOauthServerDeploymentYaml = []byte(`kind: Deployment
 apiVersion: apps/v1
 metadata:
@@ -4377,31 +4050,6 @@ func oauthOpenshiftOauthServerDeploymentYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "oauth-openshift/oauth-server-deployment.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _oauthOpenshiftOauthServerSecretYaml = []byte(`apiVersion: v1
-kind: Secret
-metadata:
-  name: oauth-openshift
-data:
-  kubeconfig: {{ pki "internal-admin.kubeconfig" }}
-  server.crt: {{ pki "oauth-openshift.crt" }}
-  server.key: {{ pki "oauth-openshift.key" }}
-`)
-
-func oauthOpenshiftOauthServerSecretYamlBytes() ([]byte, error) {
-	return _oauthOpenshiftOauthServerSecretYaml, nil
-}
-
-func oauthOpenshiftOauthServerSecretYaml() (*asset, error) {
-	bytes, err := oauthOpenshiftOauthServerSecretYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "oauth-openshift/oauth-server-secret.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -4631,34 +4279,6 @@ func openshiftApiserverOpenshiftApiserverConfigConfigmapYaml() (*asset, error) {
 	return a, nil
 }
 
-var _openshiftApiserverOpenshiftApiserverConfigmapYaml = []byte(`apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: openshift-apiserver
-data:
-  aggregator-client-ca.crt: |-
-{{ include_pki "root-ca.crt" 4 }}
-  etcd-ca.crt: |-
-{{ include_pki "root-ca.crt" 4 }}
-  serving-ca.crt: |- 
-{{ include_pki "root-ca.crt" 4 }}
-`)
-
-func openshiftApiserverOpenshiftApiserverConfigmapYamlBytes() ([]byte, error) {
-	return _openshiftApiserverOpenshiftApiserverConfigmapYaml, nil
-}
-
-func openshiftApiserverOpenshiftApiserverConfigmapYaml() (*asset, error) {
-	bytes, err := openshiftApiserverOpenshiftApiserverConfigmapYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "openshift-apiserver/openshift-apiserver-configmap.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
 var _openshiftApiserverOpenshiftApiserverDeploymentYaml = []byte(`kind: Deployment
 apiVersion: apps/v1
 metadata:
@@ -4794,33 +4414,6 @@ func openshiftApiserverOpenshiftApiserverDeploymentYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "openshift-apiserver/openshift-apiserver-deployment.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _openshiftApiserverOpenshiftApiserverSecretYaml = []byte(`apiVersion: v1
-kind: Secret
-metadata:
-  name: openshift-apiserver
-data:
-  kubeconfig: {{ pki "internal-admin.kubeconfig" }}
-  server.crt: {{ pki "openshift-apiserver-server.crt" }}
-  server.key: {{ pki "openshift-apiserver-server.key" }}
-  etcd-client.crt: {{ pki "etcd-client.crt" }}
-  etcd-client.key: {{ pki "etcd-client.key" }}
-`)
-
-func openshiftApiserverOpenshiftApiserverSecretYamlBytes() ([]byte, error) {
-	return _openshiftApiserverOpenshiftApiserverSecretYaml, nil
-}
-
-func openshiftApiserverOpenshiftApiserverSecretYaml() (*asset, error) {
-	bytes, err := openshiftApiserverOpenshiftApiserverSecretYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "openshift-apiserver/openshift-apiserver-secret.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -5164,30 +4757,6 @@ func openshiftControllerManagerOpenshiftControllerManagerConfigConfigmapYaml() (
 	return a, nil
 }
 
-var _openshiftControllerManagerOpenshiftControllerManagerConfigmapYaml = []byte(`apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: openshift-controller-manager
-data:
-  serving-ca.crt: |-
-{{ include_pki "root-ca.crt"  4 }}
-`)
-
-func openshiftControllerManagerOpenshiftControllerManagerConfigmapYamlBytes() ([]byte, error) {
-	return _openshiftControllerManagerOpenshiftControllerManagerConfigmapYaml, nil
-}
-
-func openshiftControllerManagerOpenshiftControllerManagerConfigmapYaml() (*asset, error) {
-	bytes, err := openshiftControllerManagerOpenshiftControllerManagerConfigmapYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "openshift-controller-manager/openshift-controller-manager-configmap.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
 var _openshiftControllerManagerOpenshiftControllerManagerDeploymentYaml = []byte(`kind: Deployment
 apiVersion: apps/v1
 metadata:
@@ -5312,31 +4881,6 @@ func openshiftControllerManagerOpenshiftControllerManagerDeploymentYaml() (*asse
 	}
 
 	info := bindataFileInfo{name: "openshift-controller-manager/openshift-controller-manager-deployment.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _openshiftControllerManagerOpenshiftControllerManagerSecretYaml = []byte(`apiVersion: v1
-kind: Secret
-metadata:
-  name: openshift-controller-manager
-data:
-  kubeconfig: {{ pki "internal-admin.kubeconfig" }}
-  server.crt: {{ pki "openshift-controller-manager-server.crt" }}
-  server.key: {{ pki "openshift-controller-manager-server.key" }}
-`)
-
-func openshiftControllerManagerOpenshiftControllerManagerSecretYamlBytes() ([]byte, error) {
-	return _openshiftControllerManagerOpenshiftControllerManagerSecretYaml, nil
-}
-
-func openshiftControllerManagerOpenshiftControllerManagerSecretYaml() (*asset, error) {
-	bytes, err := openshiftControllerManagerOpenshiftControllerManagerSecretYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "openshift-controller-manager/openshift-controller-manager-secret.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -6055,36 +5599,25 @@ var _bindata = map[string]func() (*asset, error){
 	"cluster-bootstrap/namespace-security-allocation-controller-clusterrolebinding.yaml": clusterBootstrapNamespaceSecurityAllocationControllerClusterrolebindingYaml,
 	"cluster-bootstrap/node-bootstrapper-clusterrolebinding.yaml":                        clusterBootstrapNodeBootstrapperClusterrolebindingYaml,
 	"cluster-bootstrap/openshift-install-configmap.yaml":                                 clusterBootstrapOpenshiftInstallConfigmapYaml,
-	"cluster-version-operator/cluster-version-operator-configmap.yaml":                   clusterVersionOperatorClusterVersionOperatorConfigmapYaml,
 	"cluster-version-operator/cluster-version-operator-deployment.yaml":                  clusterVersionOperatorClusterVersionOperatorDeploymentYaml,
-	"cluster-version-operator/cluster-version-operator-secret.yaml":                      clusterVersionOperatorClusterVersionOperatorSecretYaml,
-	"common/service-network-admin-kubeconfig-secret.yaml":                                commonServiceNetworkAdminKubeconfigSecretYaml,
-	"control-plane-operator/cp-operator-configmap.yaml":                                  controlPlaneOperatorCpOperatorConfigmapYaml,
 	"control-plane-operator/cp-operator-deployment.yaml":                                 controlPlaneOperatorCpOperatorDeploymentYaml,
 	"kube-apiserver/config.yaml":                                                         kubeApiserverConfigYaml,
 	"kube-apiserver/default-audit-policy.yaml":                                           kubeApiserverDefaultAuditPolicyYaml,
 	"kube-apiserver/kube-apiserver-config-configmap.yaml":                                kubeApiserverKubeApiserverConfigConfigmapYaml,
-	"kube-apiserver/kube-apiserver-configmap.yaml":                                       kubeApiserverKubeApiserverConfigmapYaml,
 	"kube-apiserver/kube-apiserver-default-audit-policy.yaml":                            kubeApiserverKubeApiserverDefaultAuditPolicyYaml,
 	"kube-apiserver/kube-apiserver-deployment.yaml":                                      kubeApiserverKubeApiserverDeploymentYaml,
 	"kube-apiserver/kube-apiserver-oauth-metadata-configmap.yaml":                        kubeApiserverKubeApiserverOauthMetadataConfigmapYaml,
-	"kube-apiserver/kube-apiserver-secret.yaml":                                          kubeApiserverKubeApiserverSecretYaml,
 	"kube-apiserver/kube-apiserver-service.yaml":                                         kubeApiserverKubeApiserverServiceYaml,
 	"kube-apiserver/oauthMetadata.json":                                                  kubeApiserverOauthmetadataJson,
 	"kube-controller-manager/config.yaml":                                                kubeControllerManagerConfigYaml,
 	"kube-controller-manager/kube-controller-manager-config-configmap.yaml":              kubeControllerManagerKubeControllerManagerConfigConfigmapYaml,
-	"kube-controller-manager/kube-controller-manager-configmap.yaml":                     kubeControllerManagerKubeControllerManagerConfigmapYaml,
 	"kube-controller-manager/kube-controller-manager-deployment.yaml":                    kubeControllerManagerKubeControllerManagerDeploymentYaml,
-	"kube-controller-manager/kube-controller-manager-secret.yaml":                        kubeControllerManagerKubeControllerManagerSecretYaml,
 	"kube-scheduler/config.yaml":                                                         kubeSchedulerConfigYaml,
 	"kube-scheduler/kube-scheduler-config-configmap.yaml":                                kubeSchedulerKubeSchedulerConfigConfigmapYaml,
 	"kube-scheduler/kube-scheduler-deployment.yaml":                                      kubeSchedulerKubeSchedulerDeploymentYaml,
-	"kube-scheduler/kube-scheduler-secret.yaml":                                          kubeSchedulerKubeSchedulerSecretYaml,
 	"oauth-apiserver/audit-policy.yaml":                                                  oauthApiserverAuditPolicyYaml,
 	"oauth-apiserver/oauth-apiserver-auditpolicy.yaml":                                   oauthApiserverOauthApiserverAuditpolicyYaml,
-	"oauth-apiserver/oauth-apiserver-configmap.yaml":                                     oauthApiserverOauthApiserverConfigmapYaml,
 	"oauth-apiserver/oauth-apiserver-deployment.yaml":                                    oauthApiserverOauthApiserverDeploymentYaml,
-	"oauth-apiserver/oauth-apiserver-secret.yaml":                                        oauthApiserverOauthApiserverSecretYaml,
 	"oauth-apiserver/oauth-apiserver-service.yaml":                                       oauthApiserverOauthApiserverServiceYaml,
 	"oauth-apiserver/oauth-apiserver-user-endpoint.yaml":                                 oauthApiserverOauthApiserverUserEndpointYaml,
 	"oauth-apiserver/oauth-apiserver-user-service.yaml":                                  oauthApiserverOauthApiserverUserServiceYaml,
@@ -6093,18 +5626,14 @@ var _bindata = map[string]func() (*asset, error){
 	"oauth-openshift/oauth-challenging-client.yaml":                                      oauthOpenshiftOauthChallengingClientYaml,
 	"oauth-openshift/oauth-server-config-configmap.yaml":                                 oauthOpenshiftOauthServerConfigConfigmapYaml,
 	"oauth-openshift/oauth-server-config.yaml":                                           oauthOpenshiftOauthServerConfigYaml,
-	"oauth-openshift/oauth-server-configmap.yaml":                                        oauthOpenshiftOauthServerConfigmapYaml,
 	"oauth-openshift/oauth-server-deployment.yaml":                                       oauthOpenshiftOauthServerDeploymentYaml,
-	"oauth-openshift/oauth-server-secret.yaml":                                           oauthOpenshiftOauthServerSecretYaml,
 	"oauth-openshift/oauth-server-service.yaml":                                          oauthOpenshiftOauthServerServiceYaml,
 	"oauth-openshift/oauth-server-sessionsecret-secret.yaml":                             oauthOpenshiftOauthServerSessionsecretSecretYaml,
 	"oauth-openshift/v4-0-config-system-branding.yaml":                                   oauthOpenshiftV40ConfigSystemBrandingYaml,
 	"oauth-openshift/v4-0-config-system-session.json":                                    oauthOpenshiftV40ConfigSystemSessionJson,
 	"openshift-apiserver/config.yaml":                                                    openshiftApiserverConfigYaml,
 	"openshift-apiserver/openshift-apiserver-config-configmap.yaml":                      openshiftApiserverOpenshiftApiserverConfigConfigmapYaml,
-	"openshift-apiserver/openshift-apiserver-configmap.yaml":                             openshiftApiserverOpenshiftApiserverConfigmapYaml,
 	"openshift-apiserver/openshift-apiserver-deployment.yaml":                            openshiftApiserverOpenshiftApiserverDeploymentYaml,
-	"openshift-apiserver/openshift-apiserver-secret.yaml":                                openshiftApiserverOpenshiftApiserverSecretYaml,
 	"openshift-apiserver/openshift-apiserver-service.yaml":                               openshiftApiserverOpenshiftApiserverServiceYaml,
 	"openshift-apiserver/openshift-apiserver-user-endpoint.yaml":                         openshiftApiserverOpenshiftApiserverUserEndpointYaml,
 	"openshift-apiserver/openshift-apiserver-user-service.yaml":                          openshiftApiserverOpenshiftApiserverUserServiceYaml,
@@ -6113,9 +5642,7 @@ var _bindata = map[string]func() (*asset, error){
 	"openshift-controller-manager/cluster-policy-controller-deployment.yaml":             openshiftControllerManagerClusterPolicyControllerDeploymentYaml,
 	"openshift-controller-manager/config.yaml":                                           openshiftControllerManagerConfigYaml,
 	"openshift-controller-manager/openshift-controller-manager-config-configmap.yaml":    openshiftControllerManagerOpenshiftControllerManagerConfigConfigmapYaml,
-	"openshift-controller-manager/openshift-controller-manager-configmap.yaml":           openshiftControllerManagerOpenshiftControllerManagerConfigmapYaml,
 	"openshift-controller-manager/openshift-controller-manager-deployment.yaml":          openshiftControllerManagerOpenshiftControllerManagerDeploymentYaml,
-	"openshift-controller-manager/openshift-controller-manager-secret.yaml":              openshiftControllerManagerOpenshiftControllerManagerSecretYaml,
 	"openshift-controller-manager/openshift-controller-manager-service-ca.yaml":          openshiftControllerManagerOpenshiftControllerManagerServiceCaYaml,
 	"registry/cluster-imageregistry-config.yaml":                                         registryClusterImageregistryConfigYaml,
 	"roks-metrics/roks-metrics-00-namespace.yaml":                                        roksMetricsRoksMetrics00NamespaceYaml,
@@ -6194,48 +5721,35 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"openshift-install-configmap.yaml":                                 {clusterBootstrapOpenshiftInstallConfigmapYaml, map[string]*bintree{}},
 	}},
 	"cluster-version-operator": {nil, map[string]*bintree{
-		"cluster-version-operator-configmap.yaml":  {clusterVersionOperatorClusterVersionOperatorConfigmapYaml, map[string]*bintree{}},
 		"cluster-version-operator-deployment.yaml": {clusterVersionOperatorClusterVersionOperatorDeploymentYaml, map[string]*bintree{}},
-		"cluster-version-operator-secret.yaml":     {clusterVersionOperatorClusterVersionOperatorSecretYaml, map[string]*bintree{}},
-	}},
-	"common": {nil, map[string]*bintree{
-		"service-network-admin-kubeconfig-secret.yaml": {commonServiceNetworkAdminKubeconfigSecretYaml, map[string]*bintree{}},
 	}},
 	"control-plane-operator": {nil, map[string]*bintree{
-		"cp-operator-configmap.yaml":  {controlPlaneOperatorCpOperatorConfigmapYaml, map[string]*bintree{}},
 		"cp-operator-deployment.yaml": {controlPlaneOperatorCpOperatorDeploymentYaml, map[string]*bintree{}},
 	}},
 	"kube-apiserver": {nil, map[string]*bintree{
 		"config.yaml":                                  {kubeApiserverConfigYaml, map[string]*bintree{}},
 		"default-audit-policy.yaml":                    {kubeApiserverDefaultAuditPolicyYaml, map[string]*bintree{}},
 		"kube-apiserver-config-configmap.yaml":         {kubeApiserverKubeApiserverConfigConfigmapYaml, map[string]*bintree{}},
-		"kube-apiserver-configmap.yaml":                {kubeApiserverKubeApiserverConfigmapYaml, map[string]*bintree{}},
 		"kube-apiserver-default-audit-policy.yaml":     {kubeApiserverKubeApiserverDefaultAuditPolicyYaml, map[string]*bintree{}},
 		"kube-apiserver-deployment.yaml":               {kubeApiserverKubeApiserverDeploymentYaml, map[string]*bintree{}},
 		"kube-apiserver-oauth-metadata-configmap.yaml": {kubeApiserverKubeApiserverOauthMetadataConfigmapYaml, map[string]*bintree{}},
-		"kube-apiserver-secret.yaml":                   {kubeApiserverKubeApiserverSecretYaml, map[string]*bintree{}},
 		"kube-apiserver-service.yaml":                  {kubeApiserverKubeApiserverServiceYaml, map[string]*bintree{}},
 		"oauthMetadata.json":                           {kubeApiserverOauthmetadataJson, map[string]*bintree{}},
 	}},
 	"kube-controller-manager": {nil, map[string]*bintree{
 		"config.yaml": {kubeControllerManagerConfigYaml, map[string]*bintree{}},
 		"kube-controller-manager-config-configmap.yaml": {kubeControllerManagerKubeControllerManagerConfigConfigmapYaml, map[string]*bintree{}},
-		"kube-controller-manager-configmap.yaml":        {kubeControllerManagerKubeControllerManagerConfigmapYaml, map[string]*bintree{}},
 		"kube-controller-manager-deployment.yaml":       {kubeControllerManagerKubeControllerManagerDeploymentYaml, map[string]*bintree{}},
-		"kube-controller-manager-secret.yaml":           {kubeControllerManagerKubeControllerManagerSecretYaml, map[string]*bintree{}},
 	}},
 	"kube-scheduler": {nil, map[string]*bintree{
 		"config.yaml":                          {kubeSchedulerConfigYaml, map[string]*bintree{}},
 		"kube-scheduler-config-configmap.yaml": {kubeSchedulerKubeSchedulerConfigConfigmapYaml, map[string]*bintree{}},
 		"kube-scheduler-deployment.yaml":       {kubeSchedulerKubeSchedulerDeploymentYaml, map[string]*bintree{}},
-		"kube-scheduler-secret.yaml":           {kubeSchedulerKubeSchedulerSecretYaml, map[string]*bintree{}},
 	}},
 	"oauth-apiserver": {nil, map[string]*bintree{
 		"audit-policy.yaml":                  {oauthApiserverAuditPolicyYaml, map[string]*bintree{}},
 		"oauth-apiserver-auditpolicy.yaml":   {oauthApiserverOauthApiserverAuditpolicyYaml, map[string]*bintree{}},
-		"oauth-apiserver-configmap.yaml":     {oauthApiserverOauthApiserverConfigmapYaml, map[string]*bintree{}},
 		"oauth-apiserver-deployment.yaml":    {oauthApiserverOauthApiserverDeploymentYaml, map[string]*bintree{}},
-		"oauth-apiserver-secret.yaml":        {oauthApiserverOauthApiserverSecretYaml, map[string]*bintree{}},
 		"oauth-apiserver-service.yaml":       {oauthApiserverOauthApiserverServiceYaml, map[string]*bintree{}},
 		"oauth-apiserver-user-endpoint.yaml": {oauthApiserverOauthApiserverUserEndpointYaml, map[string]*bintree{}},
 		"oauth-apiserver-user-service.yaml":  {oauthApiserverOauthApiserverUserServiceYaml, map[string]*bintree{}},
@@ -6246,9 +5760,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"oauth-challenging-client.yaml":          {oauthOpenshiftOauthChallengingClientYaml, map[string]*bintree{}},
 		"oauth-server-config-configmap.yaml":     {oauthOpenshiftOauthServerConfigConfigmapYaml, map[string]*bintree{}},
 		"oauth-server-config.yaml":               {oauthOpenshiftOauthServerConfigYaml, map[string]*bintree{}},
-		"oauth-server-configmap.yaml":            {oauthOpenshiftOauthServerConfigmapYaml, map[string]*bintree{}},
 		"oauth-server-deployment.yaml":           {oauthOpenshiftOauthServerDeploymentYaml, map[string]*bintree{}},
-		"oauth-server-secret.yaml":               {oauthOpenshiftOauthServerSecretYaml, map[string]*bintree{}},
 		"oauth-server-service.yaml":              {oauthOpenshiftOauthServerServiceYaml, map[string]*bintree{}},
 		"oauth-server-sessionsecret-secret.yaml": {oauthOpenshiftOauthServerSessionsecretSecretYaml, map[string]*bintree{}},
 		"v4-0-config-system-branding.yaml":       {oauthOpenshiftV40ConfigSystemBrandingYaml, map[string]*bintree{}},
@@ -6257,9 +5769,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	"openshift-apiserver": {nil, map[string]*bintree{
 		"config.yaml": {openshiftApiserverConfigYaml, map[string]*bintree{}},
 		"openshift-apiserver-config-configmap.yaml": {openshiftApiserverOpenshiftApiserverConfigConfigmapYaml, map[string]*bintree{}},
-		"openshift-apiserver-configmap.yaml":        {openshiftApiserverOpenshiftApiserverConfigmapYaml, map[string]*bintree{}},
 		"openshift-apiserver-deployment.yaml":       {openshiftApiserverOpenshiftApiserverDeploymentYaml, map[string]*bintree{}},
-		"openshift-apiserver-secret.yaml":           {openshiftApiserverOpenshiftApiserverSecretYaml, map[string]*bintree{}},
 		"openshift-apiserver-service.yaml":          {openshiftApiserverOpenshiftApiserverServiceYaml, map[string]*bintree{}},
 		"openshift-apiserver-user-endpoint.yaml":    {openshiftApiserverOpenshiftApiserverUserEndpointYaml, map[string]*bintree{}},
 		"openshift-apiserver-user-service.yaml":     {openshiftApiserverOpenshiftApiserverUserServiceYaml, map[string]*bintree{}},
@@ -6270,9 +5780,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"cluster-policy-controller-deployment.yaml":      {openshiftControllerManagerClusterPolicyControllerDeploymentYaml, map[string]*bintree{}},
 		"config.yaml": {openshiftControllerManagerConfigYaml, map[string]*bintree{}},
 		"openshift-controller-manager-config-configmap.yaml": {openshiftControllerManagerOpenshiftControllerManagerConfigConfigmapYaml, map[string]*bintree{}},
-		"openshift-controller-manager-configmap.yaml":        {openshiftControllerManagerOpenshiftControllerManagerConfigmapYaml, map[string]*bintree{}},
 		"openshift-controller-manager-deployment.yaml":       {openshiftControllerManagerOpenshiftControllerManagerDeploymentYaml, map[string]*bintree{}},
-		"openshift-controller-manager-secret.yaml":           {openshiftControllerManagerOpenshiftControllerManagerSecretYaml, map[string]*bintree{}},
 		"openshift-controller-manager-service-ca.yaml":       {openshiftControllerManagerOpenshiftControllerManagerServiceCaYaml, map[string]*bintree{}},
 	}},
 	"registry": {nil, map[string]*bintree{
