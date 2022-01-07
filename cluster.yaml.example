@@ -4,15 +4,15 @@ externalAPIDNSName: c100-e.containers.test.cloud.ibm.com
 externalAPIAddress: 172.20.0.1
 serviceCIDR: 172.21.0.0/16
 podCIDR: 172.30.0.0/16
-releaseImage: registry.ng.bluemix.net/armada-master/ocp-release:4.9.8-x86_64
+releaseImage: registry.ng.bluemix.net/armada-master/ocp-release:4.8.24-x86_64
 originReleasePrefix: quay.io/openshift-release-dev
 apiNodePort: 31451
 externalAPIPort: 31451
-ingressSubdomain: roks-4-9-9398621688dc748aa317e6786aba8220-0000.us-east.stg.containers.appdomain.cloud
+ingressSubdomain: roks-4-8-9398621688dc748aa317e6786aba8220-0000.us-east.stg.containers.appdomain.cloud
 endpointPublishingStrategyScope: External
 openshiftAPIClusterIP: 172.19.63.113
 oauthAPIClusterIP: 172.19.21.147
-baseDomain: roks-4-9-9398621688dc748aa317e6786aba8220-0000.us-east.stg.containers.appdomain.cloud
+baseDomain: roks-4-8-9398621688dc748aa317e6786aba8220-0000.us-east.stg.containers.appdomain.cloud
 networkType: Calico
 replicas: 3
 etcdClientName: etcd-c7a8rnl20rees1f3dmdg-client
@@ -147,7 +147,7 @@ restartDate: "2022-01-07T13:58:11Z"
 extraFeatureGates: [ExpandInUsePersistentVolumes=true, RotateKubeletServerCertificate=true, DownwardAPIHugePages=true,
   ServiceLBNodePortControl=false]
 apiServerAuditEnabled: true
-controlPlaneOperatorImage: registry.ng.bluemix.net/armada-master/ocp-control-plane-operator:v4.9.0-20211201
+controlPlaneOperatorImage: registry.ng.bluemix.net/armada-master/ocp-control-plane-operator:v4.8.0-20211201
 apiserverLivenessProbe:
   httpGet:
     path: livez?exclude=etcd
@@ -181,7 +181,7 @@ schedulerLivenessProbe:
   initialDelaySeconds: 300
   timeoutSeconds: 160
 masterPriorityClass: cruiser-mcp-xs
-roksMetricsImage: registry.ng.bluemix.net/armada-master/ocp-roks-metrics-server:v4.9.0-20211201
+roksMetricsImage: registry.ng.bluemix.net/armada-master/ocp-roks-metrics-server:v4.8.0-20211201
 roksMetricsSecurityContextWorker:
   runAsNonRoot: true
 roksMetricsSecurityContextMaster:
