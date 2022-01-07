@@ -1,32 +1,22 @@
-namespace: hosted
-clusterID: bxabcdefghijklmnopq0
-externalAPIDNSName: api.hosted.example.com
-externalAPIPort: 6443
-externalAPIAddress: 10.0.0.1
-externalVPNDNSName: vpn.hosted.example.com
-externalVPNPort: 3118
-externalOauthPort: 4000
-serviceCIDR: 172.31.0.0/16
-namedCerts:
-  - namedCertPrefix: /etc/kubernetes/secret/cert1
-    namedCertDomain: c1.hosted.example.com
-  - namedCertPrefix: /etc/kubernetes/secret/cert2
-    namedCertDomain: c2.hosted.example.com
-podCIDR: 10.32.0.0/14
-releaseImage: quay.io/openshift-release-dev/ocp-release:4.2.0
+namespace: master-c7a8rnl20rees1f3dmdg
+clusterID: "c7a8rnl20rees1f3dmdg"
+externalAPIDNSName: c100-e.containers.test.cloud.ibm.com
+externalAPIAddress: 172.20.0.1
+serviceCIDR: 172.21.0.0/16
+podCIDR: 172.30.0.0/16
+releaseImage: registry.ng.bluemix.net/armada-master/ocp-release:4.9.8-x86_64
 originReleasePrefix: quay.io/openshift-release-dev
-apiNodePort: 32323
-openVPNNodePort: 32324
+apiNodePort: 31451
+externalAPIPort: 31451
+ingressSubdomain: roks-4-9-9398621688dc748aa317e6786aba8220-0000.us-east.stg.containers.appdomain.cloud
 endpointPublishingStrategyScope: External
-ingressSubdomain: apps.hosted.example.com
-openshiftAPIClusterIP: 172.30.0.20
-oauthAPIClusterIP: 172.30.0.21
-baseDomain: example.com
-networkType: OpenShiftSDN
-replicas: 1
-etcdClientName: etcd-client
-openshiftAPIServerCABundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURFRENDQWZpZ0F3SUJBZ0lJQ2U4TG5NOWpWTE13RFFZSktvWklodmNOQVFFTEJRQXdKakVTTUJBR0ExVUUKQ3hNSmIzQmxibk5vYVdaME1SQXdEZ1lEVlFRREV3ZHliMjkwTFdOaE1CNFhEVEU1TVRJd01qRTJOVEExTVZvWApEVEk1TVRFeU9URTJOVEExTVZvd0pqRVNNQkFHQTFVRUN4TUpiM0JsYm5Ob2FXWjBNUkF3RGdZRFZRUURFd2R5CmIyOTBMV05oTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUEyUU8yUXN6cDN1NVMKUXNQNjhpSHBiV08vMm9tM0pZQjlmejZWQkFWSk41TlZUbktZUzhTRjE0SjF5aE5EWXhzRmg5NU1vY2hML3phawphUWNNQkppYURJZkx6N2IvSXBDUWhSa1RJUGxTaytxajFFMWtCSzRDd3lGNlozR3F4QTVoMysxeUF3cWp5SERxCkRnUmE1YWR2K1BOd2xXaWJCQXR5RkZORmFncVZueUFEUDlmU2tEYXU3Uko3eUxqLzFacW1FZDNETlNrRlNwV24KNHNxZHM5OE5DalBhQzI5SS80Wlo4bittWWlHcytmczBmeWVpbEtBdG9QTnkyWW1oT3hkTHVzbktsUW55bFJ1cwovR1Qzai9FTmpzbTV6eG9qQUZFUUpUNjlQcDhUSEJVRE9BZURlOE1BWjdqVDNnUVMzRXk1RXV5NXc5dC9iL1J0CjFzUU0wMjhGeFFJREFRQUJvMEl3UURBT0JnTlZIUThCQWY4RUJBTUNBcVF3RHdZRFZSMFRBUUgvQkFVd0F3RUIKL3pBZEJnTlZIUTRFRmdRVS95TTlKWXAzT2xjSWlUM1lXOXo2NW0yRDl1RXdEUVlKS29aSWh2Y05BUUVMQlFBRApnZ0VCQUpLcEtRT1VZdkJFN3poajJScGxBQWxrZ1BxTkRFRmw5cTBxcjB3VXZmaUwxNlBuMUVEN203SjBhTmdlCnc2MTFjb3kxRGNaN1pZNEdsajY4SU5YZS9EVWs0aUg5NEFMTlJoRmJNeE1XS1JhZWlkc2JEZWlENVJCNXh2TzQKbjRyTmcwek9mbUFlMWJ2cFI3S04rT1VGeElNNi9ob3JvbTBzWUo1WFFmdHEwaGRLVC9SRnhqRnVKWDM2ZVVrMQpvY1pqYmRKQklJWXNrekpaZkxaWVZUWHpES25SNzBzb1p6Um5VOVY5aE9pNmJ3SC8zcTRJSzZ0aEFHRXRwQzZjCjJZR0NNaFMzc0RoV0Z1SUJvUEF4UEgyRDFxTkdXV0g5eThhUFF4OWkzQmtGZTdwSkx4c0Flbzd2L0hkaHVRYmUKTGxseFg2Uk9OZEhWRXUrSFQxM2pHblUrMWFVPQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCi0tLS0tQkVHSU4gQ0VSVElGSUNBVEUtLS0tLQpNSUlESGpDQ0FnYWdBd0lCQWdJSVRGNG40UVRVWS9Jd0RRWUpLb1pJaHZjTkFRRUxCUUF3TFRFU01CQUdBMVVFCkN4TUpiM0JsYm5Ob2FXWjBNUmN3RlFZRFZRUURFdzVqYkhWemRHVnlMWE5wWjI1bGNqQWVGdzB4T1RFeU1ESXgKTmpVd05URmFGdzB5T1RFeE1qa3hOalV3TlRGYU1DMHhFakFRQmdOVkJBc1RDVzl3Wlc1emFHbG1kREVYTUJVRwpBMVVFQXhNT1kyeDFjM1JsY2kxemFXZHVaWEl3Z2dFaU1BMEdDU3FHU0liM0RRRUJBUVVBQTRJQkR3QXdnZ0VLCkFvSUJBUUMyQnIzUGh6VFZJdHJxRjc5OXFZVlFnNkk2TGkrWE9YalhyVEcxb2oyZ0pWQk9HN0RuNlR6d3hIRXQKR09uRVpGS0tRSndhT1N6OUF4UjF1bTFUMElIcmIrV1ZoVlFubWpFVFB4dE94MHN2clhjc0JQbFZ5Q3JBYnlUZgpVb1dwR2NsYTJ1enZicmM4NEYxWTVRZ2ZqR3d4SkVvOTRhLzFwVElpck5xNTRXN1ljV0tJblpJRVdRUVEzclVTCnFQTUtUdFZRSVRneThSY1VJbS9iUjNtOHBFTkhOM2RtV3F2OGxsU3NGMzJLcXZnbi8rK2dhc2J0VlFxRFU2TVIKbG0zRXhTQ2hiSGZKZVc4b05rZjBFWWJnTVlJOGpEWEVVZjV5VW9CemhDajJBdlVvRys2S2ZaYStiUzE1ZHM0dAo0N3NsdUhVeHJhN0w5SFNNcjlmeUpZY2M0Ti9iQWdNQkFBR2pRakJBTUE0R0ExVWREd0VCL3dRRUF3SUNwREFQCkJnTlZIUk1CQWY4RUJUQURBUUgvTUIwR0ExVWREZ1FXQkJRUWQwL3RxVU1CeUZiY2tOay9sbEFtc0tyZnlEQU4KQmdrcWhraUc5dzBCQVFzRkFBT0NBUUVBWSt3V1ZUVkdzeDkrbS9pNk4xelBYSlUyNzI4TmNPK0c2RzFpL2d5RQpnWWUwSkozRTVVZEtzVjF5UHlQZjBILytnSUpSRWV0TmZ5cFpZTGxCRjNaV0xzYWkza0xxSGhydjlKeFR5SlJFCmQ5YnlJTGltY3VpNE11N2pESGp0UDhSb213K0docC9icnRvdFRWSG55Z1Rwa2syOFNha3JsQndxcnYzd2tEcjcKY3Q2Ulc0S1ZtVVV0cEdLRlMyWC9GWjZiZmxlclhWN0FOekRWeml6QUtpNitVSDZYM2RobTR6NlBDYWVmSENmVgplSmZaNXFDWllQa2orNkRtdjBFeFNKSS9wRG1qb3VuVHVrenpvdGFINVU1eVBsUnNibXlTaG1ueStDL1JTRm5VCnRUL045ZlFPNTVIRXRJbEdNci9XODBXQWxUaWVBWWFNVW9nQzBINWNLc1hpMWc9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
-oauthAPIServerCABundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURFRENDQWZpZ0F3SUJBZ0lJQ2U4TG5NOWpWTE13RFFZSktvWklodmNOQVFFTEJRQXdKakVTTUJBR0ExVUUKQ3hNSmIzQmxibk5vYVdaME1SQXdEZ1lEVlFRREV3ZHliMjkwTFdOaE1CNFhEVEU1TVRJd01qRTJOVEExTVZvWApEVEk1TVRFeU9URTJOVEExTVZvd0pqRVNNQkFHQTFVRUN4TUpiM0JsYm5Ob2FXWjBNUkF3RGdZRFZRUURFd2R5CmIyOTBMV05oTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUEyUU8yUXN6cDN1NVMKUXNQNjhpSHBiV08vMm9tM0pZQjlmejZWQkFWSk41TlZUbktZUzhTRjE0SjF5aE5EWXhzRmg5NU1vY2hML3phawphUWNNQkppYURJZkx6N2IvSXBDUWhSa1RJUGxTaytxajFFMWtCSzRDd3lGNlozR3F4QTVoMysxeUF3cWp5SERxCkRnUmE1YWR2K1BOd2xXaWJCQXR5RkZORmFncVZueUFEUDlmU2tEYXU3Uko3eUxqLzFacW1FZDNETlNrRlNwV24KNHNxZHM5OE5DalBhQzI5SS80Wlo4bittWWlHcytmczBmeWVpbEtBdG9QTnkyWW1oT3hkTHVzbktsUW55bFJ1cwovR1Qzai9FTmpzbTV6eG9qQUZFUUpUNjlQcDhUSEJVRE9BZURlOE1BWjdqVDNnUVMzRXk1RXV5NXc5dC9iL1J0CjFzUU0wMjhGeFFJREFRQUJvMEl3UURBT0JnTlZIUThCQWY4RUJBTUNBcVF3RHdZRFZSMFRBUUgvQkFVd0F3RUIKL3pBZEJnTlZIUTRFRmdRVS95TTlKWXAzT2xjSWlUM1lXOXo2NW0yRDl1RXdEUVlKS29aSWh2Y05BUUVMQlFBRApnZ0VCQUpLcEtRT1VZdkJFN3poajJScGxBQWxrZ1BxTkRFRmw5cTBxcjB3VXZmaUwxNlBuMUVEN203SjBhTmdlCnc2MTFjb3kxRGNaN1pZNEdsajY4SU5YZS9EVWs0aUg5NEFMTlJoRmJNeE1XS1JhZWlkc2JEZWlENVJCNXh2TzQKbjRyTmcwek9mbUFlMWJ2cFI3S04rT1VGeElNNi9ob3JvbTBzWUo1WFFmdHEwaGRLVC9SRnhqRnVKWDM2ZVVrMQpvY1pqYmRKQklJWXNrekpaZkxaWVZUWHpES25SNzBzb1p6Um5VOVY5aE9pNmJ3SC8zcTRJSzZ0aEFHRXRwQzZjCjJZR0NNaFMzc0RoV0Z1SUJvUEF4UEgyRDFxTkdXV0g5eThhUFF4OWkzQmtGZTdwSkx4c0Flbzd2L0hkaHVRYmUKTGxseFg2Uk9OZEhWRXUrSFQxM2pHblUrMWFVPQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCi0tLS0tQkVHSU4gQ0VSVElGSUNBVEUtLS0tLQpNSUlESGpDQ0FnYWdBd0lCQWdJSVRGNG40UVRVWS9Jd0RRWUpLb1pJaHZjTkFRRUxCUUF3TFRFU01CQUdBMVVFCkN4TUpiM0JsYm5Ob2FXWjBNUmN3RlFZRFZRUURFdzVqYkhWemRHVnlMWE5wWjI1bGNqQWVGdzB4T1RFeU1ESXgKTmpVd05URmFGdzB5T1RFeE1qa3hOalV3TlRGYU1DMHhFakFRQmdOVkJBc1RDVzl3Wlc1emFHbG1kREVYTUJVRwpBMVVFQXhNT1kyeDFjM1JsY2kxemFXZHVaWEl3Z2dFaU1BMEdDU3FHU0liM0RRRUJBUVVBQTRJQkR3QXdnZ0VLCkFvSUJBUUMyQnIzUGh6VFZJdHJxRjc5OXFZVlFnNkk2TGkrWE9YalhyVEcxb2oyZ0pWQk9HN0RuNlR6d3hIRXQKR09uRVpGS0tRSndhT1N6OUF4UjF1bTFUMElIcmIrV1ZoVlFubWpFVFB4dE94MHN2clhjc0JQbFZ5Q3JBYnlUZgpVb1dwR2NsYTJ1enZicmM4NEYxWTVRZ2ZqR3d4SkVvOTRhLzFwVElpck5xNTRXN1ljV0tJblpJRVdRUVEzclVTCnFQTUtUdFZRSVRneThSY1VJbS9iUjNtOHBFTkhOM2RtV3F2OGxsU3NGMzJLcXZnbi8rK2dhc2J0VlFxRFU2TVIKbG0zRXhTQ2hiSGZKZVc4b05rZjBFWWJnTVlJOGpEWEVVZjV5VW9CemhDajJBdlVvRys2S2ZaYStiUzE1ZHM0dAo0N3NsdUhVeHJhN0w5SFNNcjlmeUpZY2M0Ti9iQWdNQkFBR2pRakJBTUE0R0ExVWREd0VCL3dRRUF3SUNwREFQCkJnTlZIUk1CQWY4RUJUQURBUUgvTUIwR0ExVWREZ1FXQkJRUWQwL3RxVU1CeUZiY2tOay9sbEFtc0tyZnlEQU4KQmdrcWhraUc5dzBCQVFzRkFBT0NBUUVBWSt3V1ZUVkdzeDkrbS9pNk4xelBYSlUyNzI4TmNPK0c2RzFpL2d5RQpnWWUwSkozRTVVZEtzVjF5UHlQZjBILytnSUpSRWV0TmZ5cFpZTGxCRjNaV0xzYWkza0xxSGhydjlKeFR5SlJFCmQ5YnlJTGltY3VpNE11N2pESGp0UDhSb213K0docC9icnRvdFRWSG55Z1Rwa2syOFNha3JsQndxcnYzd2tEcjcKY3Q2Ulc0S1ZtVVV0cEdLRlMyWC9GWjZiZmxlclhWN0FOekRWeml6QUtpNitVSDZYM2RobTR6NlBDYWVmSENmVgplSmZaNXFDWllQa2orNkRtdjBFeFNKSS9wRG1qb3VuVHVrenpvdGFINVU1eVBsUnNibXlTaG1ueStDL1JTRm5VCnRUL045ZlFPNTVIRXRJbEdNci9XODBXQWxUaWVBWWFNVW9nQzBINWNLc1hpMWc9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
+openshiftAPIClusterIP: 172.19.63.113
+oauthAPIClusterIP: 172.19.21.147
+baseDomain: roks-4-9-9398621688dc748aa317e6786aba8220-0000.us-east.stg.containers.appdomain.cloud
+networkType: Calico
+replicas: 3
+etcdClientName: etcd-c7a8rnl20rees1f3dmdg-client
+externalOauthPort: 30293
 identityProviders: |
   - challenge: true
     login: true
@@ -44,7 +34,7 @@ identityProviders: |
           - name
         preferredUsername:
           - preferred_username
-      clientID: clientid
+      clientID: kubernetes-openshift
       clientSecret:
         env: ''
         file: "/etc/oauth-openshift-secrets/clientSecret"
@@ -57,85 +47,81 @@ identityProviders: |
         authorize: https://iam.test.cloud.ibm.com/identity/authorize
         token: https://iam.test.cloud.ibm.com/identity/token
         userInfo: https://iam.test.cloud.ibm.com/identity/userinfo
-cloudProvider: ''
-cvoSetupImage: "quay.io/csrwng/origin-cluster-version-operator:hosted"
-internalAPIPort: 6443
+namedCerts:
+  - namedCertPrefix: /etc/kubernetes/secret/named.server
+    namedCertDomain: c100-e.containers.test.cloud.ibm.com
+openshiftAPIServerCABundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURFRENDQWZpZ0F3SUJBZ0lJQ2U4TG5NOWpWTE13RFFZSktvWklodmNOQVFFTEJRQXdKakVTTUJBR0ExVUUKQ3hNSmIzQmxibk5vYVdaME1SQXdEZ1lEVlFRREV3ZHliMjkwTFdOaE1CNFhEVEU1TVRJd01qRTJOVEExTVZvWApEVEk1TVRFeU9URTJOVEExTVZvd0pqRVNNQkFHQTFVRUN4TUpiM0JsYm5Ob2FXWjBNUkF3RGdZRFZRUURFd2R5CmIyOTBMV05oTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUEyUU8yUXN6cDN1NVMKUXNQNjhpSHBiV08vMm9tM0pZQjlmejZWQkFWSk41TlZUbktZUzhTRjE0SjF5aE5EWXhzRmg5NU1vY2hML3phawphUWNNQkppYURJZkx6N2IvSXBDUWhSa1RJUGxTaytxajFFMWtCSzRDd3lGNlozR3F4QTVoMysxeUF3cWp5SERxCkRnUmE1YWR2K1BOd2xXaWJCQXR5RkZORmFncVZueUFEUDlmU2tEYXU3Uko3eUxqLzFacW1FZDNETlNrRlNwV24KNHNxZHM5OE5DalBhQzI5SS80Wlo4bittWWlHcytmczBmeWVpbEtBdG9QTnkyWW1oT3hkTHVzbktsUW55bFJ1cwovR1Qzai9FTmpzbTV6eG9qQUZFUUpUNjlQcDhUSEJVRE9BZURlOE1BWjdqVDNnUVMzRXk1RXV5NXc5dC9iL1J0CjFzUU0wMjhGeFFJREFRQUJvMEl3UURBT0JnTlZIUThCQWY4RUJBTUNBcVF3RHdZRFZSMFRBUUgvQkFVd0F3RUIKL3pBZEJnTlZIUTRFRmdRVS95TTlKWXAzT2xjSWlUM1lXOXo2NW0yRDl1RXdEUVlKS29aSWh2Y05BUUVMQlFBRApnZ0VCQUpLcEtRT1VZdkJFN3poajJScGxBQWxrZ1BxTkRFRmw5cTBxcjB3VXZmaUwxNlBuMUVEN203SjBhTmdlCnc2MTFjb3kxRGNaN1pZNEdsajY4SU5YZS9EVWs0aUg5NEFMTlJoRmJNeE1XS1JhZWlkc2JEZWlENVJCNXh2TzQKbjRyTmcwek9mbUFlMWJ2cFI3S04rT1VGeElNNi9ob3JvbTBzWUo1WFFmdHEwaGRLVC9SRnhqRnVKWDM2ZVVrMQpvY1pqYmRKQklJWXNrekpaZkxaWVZUWHpES25SNzBzb1p6Um5VOVY5aE9pNmJ3SC8zcTRJSzZ0aEFHRXRwQzZjCjJZR0NNaFMzc0RoV0Z1SUJvUEF4UEgyRDFxTkdXV0g5eThhUFF4OWkzQmtGZTdwSkx4c0Flbzd2L0hkaHVRYmUKTGxseFg2Uk9OZEhWRXUrSFQxM2pHblUrMWFVPQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCi0tLS0tQkVHSU4gQ0VSVElGSUNBVEUtLS0tLQpNSUlESGpDQ0FnYWdBd0lCQWdJSVRGNG40UVRVWS9Jd0RRWUpLb1pJaHZjTkFRRUxCUUF3TFRFU01CQUdBMVVFCkN4TUpiM0JsYm5Ob2FXWjBNUmN3RlFZRFZRUURFdzVqYkhWemRHVnlMWE5wWjI1bGNqQWVGdzB4T1RFeU1ESXgKTmpVd05URmFGdzB5T1RFeE1qa3hOalV3TlRGYU1DMHhFakFRQmdOVkJBc1RDVzl3Wlc1emFHbG1kREVYTUJVRwpBMVVFQXhNT1kyeDFjM1JsY2kxemFXZHVaWEl3Z2dFaU1BMEdDU3FHU0liM0RRRUJBUVVBQTRJQkR3QXdnZ0VLCkFvSUJBUUMyQnIzUGh6VFZJdHJxRjc5OXFZVlFnNkk2TGkrWE9YalhyVEcxb2oyZ0pWQk9HN0RuNlR6d3hIRXQKR09uRVpGS0tRSndhT1N6OUF4UjF1bTFUMElIcmIrV1ZoVlFubWpFVFB4dE94MHN2clhjc0JQbFZ5Q3JBYnlUZgpVb1dwR2NsYTJ1enZicmM4NEYxWTVRZ2ZqR3d4SkVvOTRhLzFwVElpck5xNTRXN1ljV0tJblpJRVdRUVEzclVTCnFQTUtUdFZRSVRneThSY1VJbS9iUjNtOHBFTkhOM2RtV3F2OGxsU3NGMzJLcXZnbi8rK2dhc2J0VlFxRFU2TVIKbG0zRXhTQ2hiSGZKZVc4b05rZjBFWWJnTVlJOGpEWEVVZjV5VW9CemhDajJBdlVvRys2S2ZaYStiUzE1ZHM0dAo0N3NsdUhVeHJhN0w5SFNNcjlmeUpZY2M0Ti9iQWdNQkFBR2pRakJBTUE0R0ExVWREd0VCL3dRRUF3SUNwREFQCkJnTlZIUk1CQWY4RUJUQURBUUgvTUIwR0ExVWREZ1FXQkJRUWQwL3RxVU1CeUZiY2tOay9sbEFtc0tyZnlEQU4KQmdrcWhraUc5dzBCQVFzRkFBT0NBUUVBWSt3V1ZUVkdzeDkrbS9pNk4xelBYSlUyNzI4TmNPK0c2RzFpL2d5RQpnWWUwSkozRTVVZEtzVjF5UHlQZjBILytnSUpSRWV0TmZ5cFpZTGxCRjNaV0xzYWkza0xxSGhydjlKeFR5SlJFCmQ5YnlJTGltY3VpNE11N2pESGp0UDhSb213K0docC9icnRvdFRWSG55Z1Rwa2syOFNha3JsQndxcnYzd2tEcjcKY3Q2Ulc0S1ZtVVV0cEdLRlMyWC9GWjZiZmxlclhWN0FOekRWeml6QUtpNitVSDZYM2RobTR6NlBDYWVmSENmVgplSmZaNXFDWllQa2orNkRtdjBFeFNKSS9wRG1qb3VuVHVrenpvdGFINVU1eVBsUnNibXlTaG1ueStDL1JTRm5VCnRUL045ZlFPNTVIRXRJbEdNci9XODBXQWxUaWVBWWFNVW9nQzBINWNLc1hpMWc9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
+internalAPIPort: 2040
+cloudProvider: external
 routerServiceType: LoadBalancer
 platformType: IBMCloud
 kubeAPIServerResources:
     - resourceRequest:
-        - cpu: 100m
-          memory: 100Mi
+        - cpu: 747m
+          memory: 1916Mi
     - resourceLimit:
-        - cpu: 200m
-          memory: 200Mi
+        - cpu: 5000m
+          memory: 10000Mi
 openshiftControllerManagerResources:
     - resourceRequest:
-        - cpu: 100m
-          memory: 100Mi
+        - cpu: 23m
+          memory: 78Mi
     - resourceLimit:
         - cpu: 200m
           memory: 200Mi
 clusterVersionOperatorResources:
     - resourceRequest:
-        - cpu: 100m
-          memory: 100Mi
+        - cpu: 12m
+          memory: 50Mi
     - resourceLimit:
         - cpu: 200m
           memory: 200Mi
 kubeControllerManagerResources:
     - resourceRequest:
-        - cpu: 100m
-          memory: 100Mi
+        - cpu: 71m
+          memory: 194Mi
     - resourceLimit:
         - cpu: 200m
           memory: 200Mi
 openshiftAPIServerResources:
     - resourceRequest:
-        - cpu: 100m
+        - cpu: 5m
           memory: 100Mi
     - resourceLimit:
         - cpu: 200m
           memory: 200Mi
 oauthAPIServerResources:
     - resourceRequest:
-        - cpu: 100m
-          memory: 100Mi
+        - cpu: 40m
+          memory: 55Mi
     - resourceLimit:
         - cpu: 200m
           memory: 200Mi
 kubeSchedulerResources:
     - resourceRequest:
-        - cpu: 100m
-          memory: 100Mi
+        - cpu: 3m
+          memory: 30Mi
     - resourceLimit:
         - cpu: 200m
           memory: 200Mi
 controlPlaneOperatorResources:
     - resourceRequest:
-        - cpu: 100m
-          memory: 100Mi
+        - cpu: 5m
+          memory: 10Mi
     - resourceLimit:
         - cpu: 200m
           memory: 200Mi
 oAuthServerResources:
     - resourceRequest:
-        - cpu: 100m
-          memory: 100Mi
+        - cpu: 1m
+          memory: 15Mi
     - resourceLimit:
         - cpu: 200m
           memory: 200Mi
 clusterPolicyControllerResources:
     - resourceRequest:
-        - cpu: 100m
-          memory: 100Mi
-    - resourceLimit:
-        - cpu: 200m
-          memory: 200Mi
-autoApproverResources:
-    - resourceRequest:
-        - cpu: 100m
-          memory: 100Mi
+        - cpu: 42m
+          memory: 134Mi
     - resourceLimit:
         - cpu: 200m
           memory: 200Mi
@@ -153,17 +139,20 @@ portierisContainerResources:
     - resourceLimit:
         - cpu: 200m
           memory: 200Mi
-kmsImage: example.image:v1.0.0
+kmsImage: registry.ng.bluemix.net/armada-master/armada-kms:v2.3.12
 kmsAPIKey: abcdefghijklmnopqrstuvwxyz
 kpInfo: '{"example":"foobar"}'
 kpRegion: us-south
+restartDate: "2022-01-07T13:58:11Z"
+extraFeatureGates: [ExpandInUsePersistentVolumes=true, RotateKubeletServerCertificate=true, DownwardAPIHugePages=true,
+  ServiceLBNodePortControl=false]
 apiServerAuditEnabled: true
-restartDate: "2017-07-27T16:39:00Z"
-extraFeatureGates: [ExpandInUsePersistentVolumes=true]
-# apiserverLivenessPath: livez?exclude=etcd
+controlPlaneOperatorImage: registry.ng.bluemix.net/armada-master/ocp-control-plane-operator:v4.9.0-20211201
 apiserverLivenessProbe:
+  httpGet:
+    path: livez?exclude=etcd
   initialDelaySeconds: 300
-  periodSeconds: 10
+  periodSeconds: 180
   timeoutSeconds: 160
   failureThreshold: 6
   successThreshold: 1
@@ -179,29 +168,26 @@ kmsLivenessProbe:
   timeoutSeconds: 160
   failureThreshold: 3
   successThreshold: 1
+controllerManagerLivenessProbe:
+  initialDelaySeconds: 300
+  timeoutSeconds: 160
 portierisLivenessProbe:
   initialDelaySeconds: 120
   periodSeconds: 300
   timeoutSeconds: 160
   failureThreshold: 3
   successThreshold: 1
-controllerManagerLivenessProbe:
-  initialDelaySeconds: 300
-  timeoutSeconds: 160
 schedulerLivenessProbe:
   initialDelaySeconds: 300
   timeoutSeconds: 160
-controlPlaneOperatorImage: registry.ci.openshift.org/ibm-roks/ibm-roks-4.4:control-plane-operator
-controlPlaneOperatorSecurityContext:
-  runAsUser: 1000
-masterPriorityClass: ''
-roksMetricsImage: registry.ci.openshift.org/hypershift-toolkit/ibm-roks-4.6:roks-metrics
-roksMetricsSecurityContextMaster:
-  runAsUser: 1000
+masterPriorityClass: cruiser-mcp-xs
+roksMetricsImage: registry.ng.bluemix.net/armada-master/ocp-roks-metrics-server:v4.9.0-20211201
 roksMetricsSecurityContextWorker:
   runAsNonRoot: true
-portierisEnabled: false
-portierisImage: ''
+roksMetricsSecurityContextMaster:
+  runAsUser: 1000
+portierisEnabled: true
+portierisImage: registry.ng.bluemix.net/armada-master/portieris:v0.12.1
 kubeAPIServerSecurityContext:
   runAsUser: 1000
 kubeSchedulerSecurityContext:
@@ -212,18 +198,23 @@ openshiftAPIServerSecurityContext:
   runAsUser: 1000
 openshiftControllerManagerSecurityContext:
   runAsUser: 1000
+clusterPolicyControllerSecurityContext:
+  runAsUser: 1000
+oAuthServerSecurityContext:
+  runAsUser: 1000
+manifestBootstrapperSecurityContext:
+  runAsUser: 1000
+clusterConfigOperatorSecurityContext:
+  runAsUser: 1000
 clusterVersionOperatorSecurityContext:
   runAsUser: 1000
 portierisSecurityContext:
   runAsUser: 1000
 kmsSecurityContext:
   runAsUser: 1000
-manifestBootstrapperSecurityContext:
+controlPlaneOperatorSecurityContext:
+  runAsUser: 1001
+oauthAPIServerSecurityContext:
   runAsUser: 1000
-clusterPolicyControllerSecurityContext:
-  runAsUser: 1000
-oAuthServerSecurityContext:
-  runAsUser: 1000
-clusterConfigOperatorSecurityContext:
-  runAsUser: 1000
+oauthAPIServerCABundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURFRENDQWZpZ0F3SUJBZ0lJQ2U4TG5NOWpWTE13RFFZSktvWklodmNOQVFFTEJRQXdKakVTTUJBR0ExVUUKQ3hNSmIzQmxibk5vYVdaME1SQXdEZ1lEVlFRREV3ZHliMjkwTFdOaE1CNFhEVEU1TVRJd01qRTJOVEExTVZvWApEVEk1TVRFeU9URTJOVEExTVZvd0pqRVNNQkFHQTFVRUN4TUpiM0JsYm5Ob2FXWjBNUkF3RGdZRFZRUURFd2R5CmIyOTBMV05oTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUEyUU8yUXN6cDN1NVMKUXNQNjhpSHBiV08vMm9tM0pZQjlmejZWQkFWSk41TlZUbktZUzhTRjE0SjF5aE5EWXhzRmg5NU1vY2hML3phawphUWNNQkppYURJZkx6N2IvSXBDUWhSa1RJUGxTaytxajFFMWtCSzRDd3lGNlozR3F4QTVoMysxeUF3cWp5SERxCkRnUmE1YWR2K1BOd2xXaWJCQXR5RkZORmFncVZueUFEUDlmU2tEYXU3Uko3eUxqLzFacW1FZDNETlNrRlNwV24KNHNxZHM5OE5DalBhQzI5SS80Wlo4bittWWlHcytmczBmeWVpbEtBdG9QTnkyWW1oT3hkTHVzbktsUW55bFJ1cwovR1Qzai9FTmpzbTV6eG9qQUZFUUpUNjlQcDhUSEJVRE9BZURlOE1BWjdqVDNnUVMzRXk1RXV5NXc5dC9iL1J0CjFzUU0wMjhGeFFJREFRQUJvMEl3UURBT0JnTlZIUThCQWY4RUJBTUNBcVF3RHdZRFZSMFRBUUgvQkFVd0F3RUIKL3pBZEJnTlZIUTRFRmdRVS95TTlKWXAzT2xjSWlUM1lXOXo2NW0yRDl1RXdEUVlKS29aSWh2Y05BUUVMQlFBRApnZ0VCQUpLcEtRT1VZdkJFN3poajJScGxBQWxrZ1BxTkRFRmw5cTBxcjB3VXZmaUwxNlBuMUVEN203SjBhTmdlCnc2MTFjb3kxRGNaN1pZNEdsajY4SU5YZS9EVWs0aUg5NEFMTlJoRmJNeE1XS1JhZWlkc2JEZWlENVJCNXh2TzQKbjRyTmcwek9mbUFlMWJ2cFI3S04rT1VGeElNNi9ob3JvbTBzWUo1WFFmdHEwaGRLVC9SRnhqRnVKWDM2ZVVrMQpvY1pqYmRKQklJWXNrekpaZkxaWVZUWHpES25SNzBzb1p6Um5VOVY5aE9pNmJ3SC8zcTRJSzZ0aEFHRXRwQzZjCjJZR0NNaFMzc0RoV0Z1SUJvUEF4UEgyRDFxTkdXV0g5eThhUFF4OWkzQmtGZTdwSkx4c0Flbzd2L0hkaHVRYmUKTGxseFg2Uk9OZEhWRXUrSFQxM2pHblUrMWFVPQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCi0tLS0tQkVHSU4gQ0VSVElGSUNBVEUtLS0tLQpNSUlESGpDQ0FnYWdBd0lCQWdJSVRGNG40UVRVWS9Jd0RRWUpLb1pJaHZjTkFRRUxCUUF3TFRFU01CQUdBMVVFCkN4TUpiM0JsYm5Ob2FXWjBNUmN3RlFZRFZRUURFdzVqYkhWemRHVnlMWE5wWjI1bGNqQWVGdzB4T1RFeU1ESXgKTmpVd05URmFGdzB5T1RFeE1qa3hOalV3TlRGYU1DMHhFakFRQmdOVkJBc1RDVzl3Wlc1emFHbG1kREVYTUJVRwpBMVVFQXhNT1kyeDFjM1JsY2kxemFXZHVaWEl3Z2dFaU1BMEdDU3FHU0liM0RRRUJBUVVBQTRJQkR3QXdnZ0VLCkFvSUJBUUMyQnIzUGh6VFZJdHJxRjc5OXFZVlFnNkk2TGkrWE9YalhyVEcxb2oyZ0pWQk9HN0RuNlR6d3hIRXQKR09uRVpGS0tRSndhT1N6OUF4UjF1bTFUMElIcmIrV1ZoVlFubWpFVFB4dE94MHN2clhjc0JQbFZ5Q3JBYnlUZgpVb1dwR2NsYTJ1enZicmM4NEYxWTVRZ2ZqR3d4SkVvOTRhLzFwVElpck5xNTRXN1ljV0tJblpJRVdRUVEzclVTCnFQTUtUdFZRSVRneThSY1VJbS9iUjNtOHBFTkhOM2RtV3F2OGxsU3NGMzJLcXZnbi8rK2dhc2J0VlFxRFU2TVIKbG0zRXhTQ2hiSGZKZVc4b05rZjBFWWJnTVlJOGpEWEVVZjV5VW9CemhDajJBdlVvRys2S2ZaYStiUzE1ZHM0dAo0N3NsdUhVeHJhN0w5SFNNcjlmeUpZY2M0Ti9iQWdNQkFBR2pRakJBTUE0R0ExVWREd0VCL3dRRUF3SUNwREFQCkJnTlZIUk1CQWY4RUJUQURBUUgvTUIwR0ExVWREZ1FXQkJRUWQwL3RxVU1CeUZiY2tOay9sbEFtc0tyZnlEQU4KQmdrcWhraUc5dzBCQVFzRkFBT0NBUUVBWSt3V1ZUVkdzeDkrbS9pNk4xelBYSlUyNzI4TmNPK0c2RzFpL2d5RQpnWWUwSkozRTVVZEtzVjF5UHlQZjBILytnSUpSRWV0TmZ5cFpZTGxCRjNaV0xzYWkza0xxSGhydjlKeFR5SlJFCmQ5YnlJTGltY3VpNE11N2pESGp0UDhSb213K0docC9icnRvdFRWSG55Z1Rwa2syOFNha3JsQndxcnYzd2tEcjcKY3Q2Ulc0S1ZtVVV0cEdLRlMyWC9GWjZiZmxlclhWN0FOekRWeml6QUtpNitVSDZYM2RobTR6NlBDYWVmSENmVgplSmZaNXFDWllQa2orNkRtdjBFeFNKSS9wRG1qb3VuVHVrenpvdGFINVU1eVBsUnNibXlTaG1ueStDL1JTRm5VCnRUL045ZlFPNTVIRXRJbEdNci9XODBXQWxUaWVBWWFNVW9nQzBINWNLc1hpMWc9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
 kubeAPIServerVerbosity: 3
