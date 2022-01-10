@@ -526,7 +526,7 @@ status:
   apiServerURL: https://{{ .ExternalAPIDNSName }}:{{ .ExternalAPIPort }}
   etcdDiscoveryDomain: {{ .BaseDomain }}
   infrastructureName: kubernetes
-  controlPlaneTopology: HighlyAvailable
+  controlPlaneTopology: External
   infrastructureTopology: HighlyAvailable
   platform: {{ if .PlatformType }}{{ .PlatformType }}{{ else }}None {{ end }}
   platformStatus: {{ if eq .PlatformType "IBMCloud" }}
