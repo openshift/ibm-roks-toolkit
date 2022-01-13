@@ -12,6 +12,7 @@ spec:
   selector:
     matchLabels:
       app: openshift-apiserver
+  minReadySeconds: 30
   template:
     metadata:
       labels:
@@ -69,6 +70,7 @@ spec:
 {{ if .MasterPriorityClass }}
       priorityClassName: {{ .MasterPriorityClass }}
 {{ end }}
+      terminationGracePeriodSeconds: 90
       containers:
       - name: openshift-apiserver
 {{- if .OpenshiftAPIServerSecurityContext }}
