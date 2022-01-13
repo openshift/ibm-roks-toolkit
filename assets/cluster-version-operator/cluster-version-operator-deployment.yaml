@@ -156,6 +156,10 @@ spec:
             - "--source-url=https://localhost:9099/metrics"
             - "--client-ca-file=/etc/kubernetes/config/initial-ca.crt"
           terminationMessagePolicy: FallbackToLogsOnError
+          resources:
+            requests:
+              cpu: 1m
+              memory: 15Mi
           volumeMounts:
             - mountPath: /etc/openshift/kubeconfig
               name: kubeconfig
