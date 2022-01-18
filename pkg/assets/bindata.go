@@ -796,6 +796,10 @@ spec:
             - "--frequency=30s"
             - "--source-url=http://localhost:9099/metrics"
           terminationMessagePolicy: FallbackToLogsOnError
+          resources:
+            requests:
+              cpu: 1m
+              memory: 15Mi
           volumeMounts:
             - mountPath: /etc/openshift/kubeconfig
               name: kubeconfig
@@ -1275,6 +1279,7 @@ spec:
   selector:
     matchLabels:
       app: kube-apiserver
+  minReadySeconds: 15
   template:
     metadata:
       labels:
@@ -1323,6 +1328,7 @@ spec:
 {{ if .MasterPriorityClass }}
       priorityClassName: {{ .MasterPriorityClass }}
 {{ end }}
+      terminationGracePeriodSeconds: 90
       initContainers:
       - image: {{ imageFor "cluster-config-operator" }}
 {{- if .ClusterConfigOperatorSecurityContext }}
@@ -1372,6 +1378,10 @@ spec:
           while true; do
             sleep 1000
           done
+        resources:
+          requests:
+            cpu: 1m
+            memory: 5Mi
         volumeMounts:
         - mountPath: /work
           name: bootstrap-manifests
@@ -1978,6 +1988,7 @@ spec:
   selector:
     matchLabels:
       app: kube-controller-manager
+  minReadySeconds: 30
   template:
     metadata:
       labels:
@@ -2195,6 +2206,7 @@ spec:
   selector:
     matchLabels:
       app: kube-scheduler
+  minReadySeconds: 30
   template:
     metadata:
       labels:
@@ -2554,6 +2566,7 @@ spec:
   selector:
     matchLabels:
       app: oauth-openshift
+  minReadySeconds: 30
   template:
     metadata:
       labels:
@@ -2981,6 +2994,7 @@ spec:
   selector:
     matchLabels:
       app: openshift-apiserver
+  minReadySeconds: 30
   template:
     metadata:
       labels:
@@ -3029,6 +3043,7 @@ spec:
 {{ if .MasterPriorityClass }}
       priorityClassName: {{ .MasterPriorityClass }}
 {{ end }}
+      terminationGracePeriodSeconds: 90
       containers:
       - name: openshift-apiserver
 {{- if .OpenshiftAPIServerSecurityContext }}
@@ -3276,6 +3291,7 @@ spec:
   selector:
     matchLabels:
       app: cluster-policy-controller
+  minReadySeconds: 30
   template:
     metadata:
       labels:
@@ -3488,6 +3504,7 @@ spec:
   selector:
     matchLabels:
       app: openshift-controller-manager
+  minReadySeconds: 30
   template:
     metadata:
       labels:
@@ -3536,6 +3553,7 @@ spec:
 {{ if .MasterPriorityClass }}
       priorityClassName: {{ .MasterPriorityClass }}
 {{ end }}
+      terminationGracePeriodSeconds: 90
       containers:
       - name: openshift-controller-manager
 {{- if .OpenshiftControllerManagerSecurityContext }}
