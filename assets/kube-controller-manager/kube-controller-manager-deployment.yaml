@@ -12,6 +12,7 @@ spec:
   selector:
     matchLabels:
       app: kube-controller-manager
+  minReadySeconds: 30
   template:
     metadata:
       labels:
