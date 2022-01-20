@@ -3920,7 +3920,7 @@ spec:
   selector:
     matchLabels:
       app: oauth-openshift
-  minReadySeconds: 30
+  minReadySeconds: 15
   template:
     metadata:
       labels:
@@ -3987,13 +3987,23 @@ spec:
             runAsUser: {{ $securityContext.RunAsUser }}
 {{- end }}
           livenessProbe:
-            failureThreshold: 3
             httpGet:
-              path: healthz
+              path: livez
               port: 6443
               scheme: HTTPS
             initialDelaySeconds: 30
             periodSeconds: 30
+            failureThreshold: 3
+            successThreshold: 1
+            timeoutSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: readyz
+              port: 6443
+              scheme: HTTPS
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
             successThreshold: 1
             timeoutSeconds: 10
           args:
@@ -4307,7 +4317,7 @@ spec:
   selector:
     matchLabels:
       app: openshift-apiserver
-  minReadySeconds: 30
+  minReadySeconds: 15
   template:
     metadata:
       labels:
@@ -4385,6 +4395,26 @@ spec:
         - "--requestheader-group-headers=X-Remote-Group"
         - "--requestheader-extra-headers-prefix=X-Remote-Extra-"
         - "--client-ca-file=/etc/kubernetes/config/serving-ca.crt"
+        livenessProbe:
+          httpGet:
+            scheme: HTTPS
+            port: 8443
+            path: livez
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 10
+          failureThreshold: 3
+          successThreshold: 1
+        readinessProbe:
+          httpGet:
+            scheme: HTTPS
+            port: 8443
+            path: readyz
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 1
+          failureThreshold: 3
+          successThreshold: 1
 {{ if .OpenshiftAPIServerResources }}
         resources:{{ range .OpenshiftAPIServerResources }}{{ range .ResourceRequest }}
           requests: {{ if .CPU }}
