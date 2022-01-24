@@ -12,7 +12,7 @@ spec:
   selector:
     matchLabels:
       app: oauth-openshift
-  minReadySeconds: 30
+  minReadySeconds: 15
   template:
     metadata:
       labels:
@@ -79,13 +79,23 @@ spec:
             runAsUser: {{ $securityContext.RunAsUser }}
 {{- end }}
           livenessProbe:
-            failureThreshold: 3
             httpGet:
-              path: healthz
+              path: livez
               port: 6443
               scheme: HTTPS
             initialDelaySeconds: 30
             periodSeconds: 30
+            failureThreshold: 3
+            successThreshold: 1
+            timeoutSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: readyz
+              port: 6443
+              scheme: HTTPS
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
             successThreshold: 1
             timeoutSeconds: 10
           args:
