@@ -126,6 +126,8 @@ apiServerArguments:
   - '2000'
   insecure-port:
   - '0'
+  profiling:
+  - 'false'
   kubelet-certificate-authority:
   - /etc/kubernetes/config/kubelet-client-ca.crt
   kubelet-client-certificate:
