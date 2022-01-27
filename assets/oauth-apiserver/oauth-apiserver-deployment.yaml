@@ -128,6 +128,7 @@ spec:
         - start
         - --authentication-kubeconfig=/var/run/secret/kubeconfig
         - --authorization-kubeconfig=/var/run/secret/kubeconfig
+        - --api-audiences=https://kubernetes.default.svc
         - --kubeconfig=/var/run/secret/kubeconfig
         - --secure-port=8443
         - --audit-log-path=/var/log/oauth-apiserver/audit.log
