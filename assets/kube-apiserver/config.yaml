@@ -42,6 +42,10 @@ apiServerArguments:
   audit-webhook-mode:
   - batch
 {{ end }}
+  authentication-token-webhook-config-file:
+  - /etc/kubernetes/auth-token-webhook/kubeconfig
+  authentication-token-webhook-version:
+  - v1
   authorization-mode:
   - Scope
   - SystemMasters
