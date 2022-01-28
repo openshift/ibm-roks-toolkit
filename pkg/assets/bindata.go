@@ -2083,6 +2083,10 @@ apiServerArguments:
   audit-webhook-mode:
   - batch
 {{ end }}
+  authentication-token-webhook-config-file:
+  - /etc/kubernetes/auth-token-webhook/kubeconfig
+  authentication-token-webhook-version:
+  - v1
   authorization-mode:
   - Scope
   - SystemMasters
@@ -2587,6 +2591,8 @@ spec:
           name: config
         - mountPath: /etc/kubernetes/oauth/
           name: oauth
+        - mountPath: /etc/kubernetes/auth-token-webhook
+          name: authentication-token-webhook-config
         - mountPath: /var/log/kube-apiserver/
           name: logs
         - name: apiserver-cm
@@ -2779,6 +2785,10 @@ spec:
       - configMap:
           name: kube-apiserver-oauth-metadata
         name: oauth
+      - secret:
+          secretName: kube-apiserver-authentication-token-webhook-config
+          defaultMode: 0640
+        name: authentication-token-webhook-config
       - secret:
           secretName: localhost-admin-kubeconfig
           defaultMode: 0640
@@ -3561,6 +3571,7 @@ spec:
         - start
         - --authentication-kubeconfig=/var/run/secret/kubeconfig
         - --authorization-kubeconfig=/var/run/secret/kubeconfig
+        - --api-audiences=https://kubernetes.default.svc
         - --kubeconfig=/var/run/secret/kubeconfig
         - --secure-port=8443
         - --audit-log-path=/var/log/oauth-apiserver/audit.log
