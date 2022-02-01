@@ -19,6 +19,8 @@
 // assets/cluster-bootstrap/namespace-security-allocation-controller-clusterrolebinding.yaml
 // assets/cluster-bootstrap/node-bootstrapper-clusterrolebinding.yaml
 // assets/cluster-bootstrap/openshift-install-configmap.yaml
+// assets/cluster-bootstrap/trust_distribution_role.yaml
+// assets/cluster-bootstrap/trust_distribution_rolebinding.yaml
 // assets/cluster-version-operator/cluster-version-operator-deployment.yaml
 // assets/control-plane-operator/cp-operator-deployment.yaml
 // assets/kube-apiserver/config.yaml
@@ -1668,6 +1670,71 @@ func clusterBootstrapOpenshiftInstallConfigmapYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "cluster-bootstrap/openshift-install-configmap.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _clusterBootstrapTrust_distribution_roleYaml = []byte(`# Source: https://github.com/openshift/cluster-authentication-operator/blob/release-4.9/bindata/oauth-openshift/trust_distribution_role.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: system:openshift:oauth-servercert-trust
+  namespace: openshift-config-managed
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  resourceNames:
+  - oauth-serving-cert
+  verbs:
+  - get
+  - list
+  - watch
+`)
+
+func clusterBootstrapTrust_distribution_roleYamlBytes() ([]byte, error) {
+	return _clusterBootstrapTrust_distribution_roleYaml, nil
+}
+
+func clusterBootstrapTrust_distribution_roleYaml() (*asset, error) {
+	bytes, err := clusterBootstrapTrust_distribution_roleYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "cluster-bootstrap/trust_distribution_role.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _clusterBootstrapTrust_distribution_rolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-authentication-operator/blob/release-4.9/bindata/oauth-openshift/trust_distribution_rolebinding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: system:openshift:oauth-servercert-trust
+  namespace: openshift-config-managed
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: system:openshift:oauth-servercert-trust
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: system:authenticated
+`)
+
+func clusterBootstrapTrust_distribution_rolebindingYamlBytes() ([]byte, error) {
+	return _clusterBootstrapTrust_distribution_rolebindingYaml, nil
+}
+
+func clusterBootstrapTrust_distribution_rolebindingYaml() (*asset, error) {
+	bytes, err := clusterBootstrapTrust_distribution_rolebindingYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "cluster-bootstrap/trust_distribution_rolebinding.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -5661,6 +5728,8 @@ var _bindata = map[string]func() (*asset, error){
 	"cluster-bootstrap/namespace-security-allocation-controller-clusterrolebinding.yaml": clusterBootstrapNamespaceSecurityAllocationControllerClusterrolebindingYaml,
 	"cluster-bootstrap/node-bootstrapper-clusterrolebinding.yaml":                        clusterBootstrapNodeBootstrapperClusterrolebindingYaml,
 	"cluster-bootstrap/openshift-install-configmap.yaml":                                 clusterBootstrapOpenshiftInstallConfigmapYaml,
+	"cluster-bootstrap/trust_distribution_role.yaml":                                     clusterBootstrapTrust_distribution_roleYaml,
+	"cluster-bootstrap/trust_distribution_rolebinding.yaml":                              clusterBootstrapTrust_distribution_rolebindingYaml,
 	"cluster-version-operator/cluster-version-operator-deployment.yaml":                  clusterVersionOperatorClusterVersionOperatorDeploymentYaml,
 	"control-plane-operator/cp-operator-deployment.yaml":                                 controlPlaneOperatorCpOperatorDeploymentYaml,
 	"kube-apiserver/config.yaml":                                                         kubeApiserverConfigYaml,
@@ -5781,6 +5850,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"namespace-security-allocation-controller-clusterrolebinding.yaml": {clusterBootstrapNamespaceSecurityAllocationControllerClusterrolebindingYaml, map[string]*bintree{}},
 		"node-bootstrapper-clusterrolebinding.yaml":                        {clusterBootstrapNodeBootstrapperClusterrolebindingYaml, map[string]*bintree{}},
 		"openshift-install-configmap.yaml":                                 {clusterBootstrapOpenshiftInstallConfigmapYaml, map[string]*bintree{}},
+		"trust_distribution_role.yaml":                                     {clusterBootstrapTrust_distribution_roleYaml, map[string]*bintree{}},
+		"trust_distribution_rolebinding.yaml":                              {clusterBootstrapTrust_distribution_rolebindingYaml, map[string]*bintree{}},
 	}},
 	"cluster-version-operator": {nil, map[string]*bintree{
 		"cluster-version-operator-deployment.yaml": {clusterVersionOperatorClusterVersionOperatorDeploymentYaml, map[string]*bintree{}},
