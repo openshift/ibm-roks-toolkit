@@ -1,0 +1,17 @@
+# Source: https://github.com/openshift/cluster-authentication-operator/blob/release-4.9/bindata/oauth-openshift/trust_distribution_role.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: system:openshift:oauth-servercert-trust
+  namespace: openshift-config-managed
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  resourceNames:
+  - oauth-serving-cert
+  verbs:
+  - get
+  - list
+  - watch
