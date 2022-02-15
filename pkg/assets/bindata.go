@@ -3154,9 +3154,9 @@ spec:
         - "--kube-api-qps=150"
         - "--leader-elect-resource-lock=configmaps"
         - "--leader-elect=true"
-        - "--leader-elect-lease-duration=60s"
-        - "--leader-elect-renew-deadline=15s"
-        - "--leader-elect-retry-period=3s"
+        - "--leader-elect-lease-duration=107s"
+        - "--leader-elect-renew-deadline=60s"
+        - "--leader-elect-retry-period=15s"
         - "--port=0"
         - "--profiling=false"
         - "--root-ca-file=/etc/kubernetes/config/root-ca.crt"
@@ -3244,9 +3244,9 @@ clientConnection:
   kubeconfig: "/etc/kubernetes/secret/kubeconfig"
 leaderElection:
   leaderElect: true
-  leaseDuration: 107s
-  renewDeadline: 60s
-  retryPeriod: 15s
+  leaseDuration: 137s
+  renewDeadline: 107s
+  retryPeriod: 26s
 `)
 
 func kubeSchedulerConfigYamlBytes() ([]byte, error) {

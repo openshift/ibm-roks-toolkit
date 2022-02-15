@@ -4,6 +4,6 @@ clientConnection:
   kubeconfig: "/etc/kubernetes/secret/kubeconfig"
 leaderElection:
   leaderElect: true
-  leaseDuration: 107s
-  renewDeadline: 60s
-  retryPeriod: 15s
+  leaseDuration: 137s
+  renewDeadline: 107s
+  retryPeriod: 26s
