@@ -105,7 +105,6 @@ spec:
         - "--leader-elect-lease-duration=107s"
         - "--leader-elect-renew-deadline=60s"
         - "--leader-elect-retry-period=15s"
-        - "--port=0"
         - "--profiling=false"
         - "--root-ca-file=/etc/kubernetes/config/root-ca.crt"
         - "--secure-port=10257"
