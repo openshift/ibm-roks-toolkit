@@ -12,7 +12,6 @@ RUN cd /tmp && \
 
 # Base image on release is pulled from https://github.com/openshift/release/blob/master/ci-operator/config/openshift/ibm-roks-toolkit/openshift-ibm-roks-toolkit-release-4.9.yaml
 FROM quay.io/openshift/origin-base:latest
-RUN yum -y update && yum clean all
 COPY --from=builder /go/src/github.com/openshift/ibm-roks-toolkit/bin/roks-metrics /usr/bin/roks-metrics
 COPY --from=builder /go/src/github.com/openshift/ibm-roks-toolkit/bin/metrics-pusher /usr/bin/metrics-pusher
 COPY --from=builder /pushgateway /usr/bin/pushgateway
