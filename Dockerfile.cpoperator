@@ -7,6 +7,5 @@ RUN go build -mod=vendor -o ./bin/control-plane-operator ./cmd/control-plane-ope
 
 # Base image on release is pulled from https://github.com/openshift/release/blob/master/ci-operator/config/openshift/ibm-roks-toolkit/openshift-ibm-roks-toolkit-release-4.7.yaml
 FROM quay.io/openshift/origin-base:latest
-RUN yum -y update && yum clean all
 COPY --from=builder /go/src/github.com/openshift/ibm-roks-toolkit/bin/control-plane-operator /usr/bin/control-plane-operator
 ENTRYPOINT /usr/bin/control-plane-operator
