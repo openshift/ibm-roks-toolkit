@@ -84,7 +84,6 @@ spec:
         args:
         - "--config=/etc/kubernetes/config/config.yaml"
         - "--cert-dir=/var/run/kubernetes"
-        - "--port=0"
         - "--profiling=false"
         - "--authentication-kubeconfig=/etc/kubernetes/secret/kubeconfig"
         - "--authorization-kubeconfig=/etc/kubernetes/secret/kubeconfig"

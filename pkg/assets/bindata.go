@@ -2236,8 +2236,6 @@ apiServerArguments:
   - '0'
   http2-max-streams-per-connection:
   - '2000'
-  insecure-port:
-  - '0'
   profiling:
   - 'false'
   kubelet-certificate-authority:
@@ -3157,7 +3155,6 @@ spec:
         - "--leader-elect-lease-duration=107s"
         - "--leader-elect-renew-deadline=60s"
         - "--leader-elect-retry-period=15s"
-        - "--port=0"
         - "--profiling=false"
         - "--root-ca-file=/etc/kubernetes/config/root-ca.crt"
         - "--secure-port=10257"
@@ -3374,7 +3371,6 @@ spec:
         args:
         - "--config=/etc/kubernetes/config/config.yaml"
         - "--cert-dir=/var/run/kubernetes"
-        - "--port=0"
         - "--profiling=false"
         - "--authentication-kubeconfig=/etc/kubernetes/secret/kubeconfig"
         - "--authorization-kubeconfig=/etc/kubernetes/secret/kubeconfig"
