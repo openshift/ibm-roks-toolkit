@@ -128,8 +128,6 @@ apiServerArguments:
   - '0'
   http2-max-streams-per-connection:
   - '2000'
-  insecure-port:
-  - '0'
   profiling:
   - 'false'
   kubelet-certificate-authority:
