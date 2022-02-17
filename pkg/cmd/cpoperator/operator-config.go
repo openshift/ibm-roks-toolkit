@@ -109,7 +109,7 @@ func (c *ControlPlaneOperatorConfig) Config() *rest.Config {
 }
 
 func (c *ControlPlaneOperatorConfig) Logger() logr.Logger {
-	if c.logger == nil {
+	if c.logger.GetSink() == nil {
 		c.logger = ctrl.Log.WithName("control-plane-operator")
 	}
 	return c.logger
