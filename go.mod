@@ -172,6 +172,7 @@ replace (
 	github.com/onsi/ginkgo => github.com/openshift/onsi-ginkgo v1.2.1-0.20190125161613-53ca7dc85f60
 	github.com/openshift/api => github.com/openshift/api v0.0.0-20210901140736-d8ed1449662d
 	github.com/openshift/client-go => github.com/openshift/client-go v0.0.0-20210831095141-e19a065e79f7
+	golang.org/x/crypto => golang.org/x/crypto v0.0.0-20220214200702-86341886e292
 	k8s.io/api => k8s.io/api v0.23.3
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.23.3
 	k8s.io/apimachinery => k8s.io/apimachinery v0.23.3
