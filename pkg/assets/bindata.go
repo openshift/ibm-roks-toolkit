@@ -4692,7 +4692,6 @@ spec:
   selector:
     matchLabels:
       app: cluster-policy-controller
-  minReadySeconds: 30
   template:
     metadata:
       labels:
