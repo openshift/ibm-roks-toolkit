@@ -42,6 +42,10 @@ roks-metrics:
 test-render: build
 	./bin/ibm-roks render --config cluster.yaml.example --output-dir manifests --pull-secret empty-pull-secret.txt
 
+.PHONY: create-release
+create-release:
+	@hack/create-release.sh
+
 .PHONY: test
 test:
 	./hack/test.sh
