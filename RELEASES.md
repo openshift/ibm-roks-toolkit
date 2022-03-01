@@ -10,7 +10,7 @@ Releases are controlled by 2 files in the root of the repository:
 - release - Contains the major.minor version of the ibm-roks-toolkit branch. This should remain constant and only change
   when a new release branch is created.
 - release-date - The release date in yyyymmdd format. This is used to create the release tag which is in the format:
-  `v[RELEASE]-[RELEASE_DATE]`
+  `v[RELEASE]+[RELEASE_DATE]` for git, and `v[RELEASE]-[RELEASE_DATE]` for images.
 
 Releases will only be created for named release branches and not for the master branch.
 
