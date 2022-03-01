@@ -1,0 +1,21 @@
+# goreleaser configuration  file
+builds:
+- main: ./cmd/ibm-roks/main.go
+  binary: ibm-roks
+  env:
+  - CGO_ENABLED=0
+  flags:
+  - -mod=vendor
+  goos:
+  - linux
+  goarch:
+  - amd64
+archives:
+- replacements:
+    amd64: x86_64
+  files:
+  - none*
+checksum:
+  name_template: 'checksums.txt'
+changelog:
+  skip: true
