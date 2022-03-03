@@ -145,10 +145,11 @@ func mergeConfig(existingYAML, updateJSON []byte) (updatedYAML []byte, err error
 	if err = json.NewDecoder(bytes.NewBuffer(updateJSON)).Decode(&updateConfig); err != nil {
 		return
 	}
-	for key := range updateConfig {
-		switch key {
-		case "dockerPullSecret", "build", "deployer":
-			existingConfig[key] = updateConfig[key]
+	for _, key := range []string{"dockerPullSecret", "build", "deployer"} {
+		if value, hasKey := updateConfig[key]; hasKey {
+			existingConfig[key] = value
+		} else {
+			delete(existingConfig, key)
 		}
 	}
 	var mergedConfig []byte
