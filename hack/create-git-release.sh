@@ -35,7 +35,13 @@ fi
 
 echo "Creating release ${GIT_RELEASE_TAG}"
 
-git remote -v
+if ! git remote | grep origin; then
+  echo "Adding git remote"
+  git remote add origin https://github.com/openshift/ibm-roks-toolkit.git
+else
+  echo "Setting git remote URL" 
+  git remote set-url origin https://github.com/openshift/ibm-roks-toolkit.git
+fi
 
 git tag "${GIT_RELEASE_TAG}"
 GORELEASER_CURRENT_TAG="${GIT_RELEASE_TAG}" goreleaser release --skip-publish --config "${REPODIR}/hack/release-config.yaml"
