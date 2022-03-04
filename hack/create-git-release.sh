@@ -35,6 +35,8 @@ fi
 
 echo "Creating release ${GIT_RELEASE_TAG}"
 
+git remote -v
+
 git tag "${GIT_RELEASE_TAG}"
 GORELEASER_CURRENT_TAG="${GIT_RELEASE_TAG}" goreleaser release --skip-publish --config "${REPODIR}/hack/release-config.yaml"
 
