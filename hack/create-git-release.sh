@@ -53,7 +53,7 @@ if [[ -z "${GITHUB_TOKEN}" ]]; then
 fi
 
 hub release create \
-  -a "./dist/ibm-roks-toolkit_${GIT_RELEASE_TAG}_linux_x86_64.tar.gz" \
+  -a "./dist/ibm-roks-toolkit_${RELEASE}+${RELEASE_DATE}_linux_x86_64.tar.gz" \
   -a "./dist/checksums.txt" \
   -m "${GIT_RELEASE_TAG} ${RELEASE_DATE}" \
   -t "${RELEASE_BRANCH}" \
