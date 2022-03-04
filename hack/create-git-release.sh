@@ -12,7 +12,7 @@ fi
 
 RELEASE="$(cat "${REPODIR}/release")"
 RELEASE_DATE="$(cat "${REPODIR}/release-date")"
-GIT_RELEASE_TAG="v${RELEASE}+${RELEASE_DATE}"
+GIT_RELEASE_TAG="v${RELEASE}.0+${RELEASE_DATE}"
 RELEASE_BRANCH="release-${RELEASE}"
 
 # if the branch corresponding to the release doesn't exist, skip because 
@@ -53,7 +53,7 @@ if [[ -z "${GITHUB_TOKEN}" ]]; then
 fi
 
 hub release create \
-  -a "./dist/ibm-roks-toolkit_${RELEASE}+${RELEASE_DATE}_linux_x86_64.tar.gz" \
+  -a "./dist/ibm-roks-toolkit_${RELEASE}.0+${RELEASE_DATE}_linux_x86_64.tar.gz" \
   -a "./dist/checksums.txt" \
   -m "${GIT_RELEASE_TAG} ${RELEASE_DATE}" \
   -t "${RELEASE_BRANCH}" \
