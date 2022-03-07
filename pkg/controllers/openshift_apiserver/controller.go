@@ -215,23 +215,34 @@ func mergeConfig(existingYAML, updateJSON []byte) (updatedYAML []byte, err error
 	if err = json.NewDecoder(bytes.NewBuffer(updateJSON)).Decode(&updateConfig); err != nil {
 		return
 	}
-	for key := range updateConfig {
-		switch key {
-		case "projectConfig":
-			existingConfig[key] = updateConfig[key]
-		case "imagePolicyConfig":
-			resultValue := existingConfig[key].(map[string]interface{})
-			if mapValue, ok := updateConfig[key].(map[string]interface{}); ok {
-				for key2 := range mapValue {
-					switch key2 {
-					case "internalRegistryHostname", "allowedRegistriesForImport":
-						resultValue[key2] = mapValue[key2]
-					}
+
+	if value, exists := updateConfig["projectConfig"]; exists {
+		existingConfig["projectConfig"] = value
+	} else {
+		delete(existingConfig, "projectConfig")
+	}
+
+	if value, exists := updateConfig["imagePolicyConfig"]; exists {
+		var resultValue map[string]interface{}
+		if existingValue, ok := existingConfig["imagePolicyConfig"]; !ok {
+			resultValue = map[string]interface{}{}
+		} else {
+			resultValue = existingValue.(map[string]interface{})
+		}
+		if mapValue, ok := value.(map[string]interface{}); ok {
+			for _, key := range []string{"internalRegistryHostname", "allowedRegistriesForImport"} {
+				if value, exists := mapValue[key]; exists {
+					resultValue[key] = value
+				} else {
+					delete(resultValue, key)
 				}
 			}
-			existingConfig[key] = resultValue
 		}
+		existingConfig["imagePolicyConfig"] = resultValue
+	} else {
+		delete(existingConfig, "imagePolicyConfig")
 	}
+
 	var mergedConfig []byte
 	mergedConfig, err = json.Marshal(existingConfig)
 	if err != nil {
