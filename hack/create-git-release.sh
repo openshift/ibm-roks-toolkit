@@ -55,6 +55,6 @@ fi
 hub release create \
   -a "./dist/ibm-roks-toolkit_${RELEASE}.0+${RELEASE_DATE}_linux_x86_64.tar.gz" \
   -a "./dist/checksums.txt" \
-  -m "${GIT_RELEASE_TAG} ${RELEASE_DATE}" \
+  -m "${RELEASE} ${RELEASE_DATE}" \
   -t "${RELEASE_BRANCH}" \
   "${GIT_RELEASE_TAG}"
