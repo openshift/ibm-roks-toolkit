@@ -2436,6 +2436,12 @@ spec:
             cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
             memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
 {{ end }}
+        env:
+        - name: HOST_IP
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: status.podIP
         volumeMounts:
         - mountPath: /etc/kubernetes/secret/
           name: secret
