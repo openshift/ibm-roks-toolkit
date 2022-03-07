@@ -12,7 +12,6 @@ spec:
   selector:
     matchLabels:
       app: oauth-openshift
-  minReadySeconds: 15
   template:
     metadata:
       labels:
