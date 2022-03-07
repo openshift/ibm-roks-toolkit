@@ -12,7 +12,6 @@ spec:
   selector:
     matchLabels:
       app: kube-scheduler
-  minReadySeconds: 30
   template:
     metadata:
       labels:
