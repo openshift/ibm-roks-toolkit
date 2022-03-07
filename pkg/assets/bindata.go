@@ -2413,7 +2413,6 @@ spec:
   selector:
     matchLabels:
       app: kube-apiserver
-  minReadySeconds: 15
   template:
     metadata:
       labels:
@@ -3021,7 +3020,6 @@ spec:
   selector:
     matchLabels:
       app: kube-controller-manager
-  minReadySeconds: 30
   template:
     metadata:
       labels:
@@ -3258,7 +3256,6 @@ spec:
   selector:
     matchLabels:
       app: kube-scheduler
-  minReadySeconds: 30
   template:
     metadata:
       labels:
@@ -3478,7 +3475,6 @@ spec:
     matchLabels:
       app: openshift-oauth-apiserver
   progressDeadlineSeconds: 600
-  minReadySeconds: 15
   template:
     metadata:
       name: openshift-oauth-apiserver
@@ -3955,7 +3951,6 @@ spec:
   selector:
     matchLabels:
       app: oauth-openshift
-  minReadySeconds: 15
   template:
     metadata:
       labels:
@@ -4352,7 +4347,6 @@ spec:
   selector:
     matchLabels:
       app: openshift-apiserver
-  minReadySeconds: 15
   template:
     metadata:
       labels:
@@ -4852,7 +4846,6 @@ spec:
   selector:
     matchLabels:
       app: openshift-controller-manager
-  minReadySeconds: 30
   template:
     metadata:
       labels:
