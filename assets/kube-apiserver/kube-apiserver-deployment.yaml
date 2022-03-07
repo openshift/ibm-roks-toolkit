@@ -14,7 +14,6 @@ spec:
   selector:
     matchLabels:
       app: kube-apiserver
-  minReadySeconds: 15
   template:
     metadata:
       labels:
