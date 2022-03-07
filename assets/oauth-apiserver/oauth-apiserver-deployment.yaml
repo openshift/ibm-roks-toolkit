@@ -13,7 +13,6 @@ spec:
     matchLabels:
       app: openshift-oauth-apiserver
   progressDeadlineSeconds: 600
-  minReadySeconds: 15
   template:
     metadata:
       name: openshift-oauth-apiserver
