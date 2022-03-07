@@ -10,7 +10,7 @@ if [[ ! -f "${REPODIR}/release-date" ]]; then
   echo "Release date file (release-date) does not exist. Nothing to do"
 fi
 RELEASE="$(cat "${REPODIR}/release")"
-RELEASE_TAG="v${RELEASE}-$(cat "${REPODIR}/release-date")"
+RELEASE_TAG="v${RELEASE}.0-$(cat "${REPODIR}/release-date")"
 
 echo "The release tag is ${RELEASE_TAG}"
 
