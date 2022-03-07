@@ -12,7 +12,6 @@ spec:
   selector:
     matchLabels:
       app: openshift-apiserver
-  minReadySeconds: 15
   template:
     metadata:
       labels:
