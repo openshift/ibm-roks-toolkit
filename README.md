@@ -29,7 +29,7 @@ This tool was jointly developed by RedHat and IBM.
 
 New releases for the toolkit are created via pull requests.
 
-1. Run `hack/bump_release.sh`. This will increment the date in the [release-date](release-date) file.
+1. Run `hack/bump-release.sh`. This will increment the date in the [release-date](release-date) file.
 1. Submit a pull request with this change.
 1. Once the PR is merged, a post submit job will automatically be kicked off to publish the release.
    - You can track the status of the post release jobs for all branches [here](https://prow.ci.openshift.org/?repo=openshift%2Fibm-roks-toolkit&type=postsubmit).
