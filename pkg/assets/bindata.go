@@ -2243,6 +2243,8 @@ apiServerArguments:
   - 30000-32767
   shutdown-delay-duration:
   - 70s
+  shutdown-send-retry-after:
+  - "true"
   storage-backend:
   - etcd3
   storage-media-type:
