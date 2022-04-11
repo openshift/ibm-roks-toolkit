@@ -321,7 +321,7 @@ spec:
         command:
           - "metrics-pusher"
         args:
-          - "--destination-path=/api/v1/namespaces/openshift-roks-metrics/services/push-gateway:http/proxy/metrics/job/cluster-version-operator"
+          - "--destination-path=/api/v1/namespaces/openshift-roks-metrics/services/push-gateway:http/proxy/metrics/job/kube-apiserver"
           - "--kubeconfig=/etc/openshift/kubeconfig/kubeconfig"
           - "--frequency=30s"
           - "--source-path=/metrics"
