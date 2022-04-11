@@ -185,7 +185,7 @@ func clusterBootstrap00000_namespacesNeededForMonitoringYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapApiUsageYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-apiserver-operator/blob/release-4.10/bindata/assets/alerts/api-usage.yaml
+var _clusterBootstrapApiUsageYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-apiserver-operator/blob/release-4.8/bindata/v4.1.0/alerts/api-usage.yaml
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
@@ -197,31 +197,28 @@ spec:
       rules:
         - alert: APIRemovedInNextReleaseInUse
           annotations:
-            summary: Deprecated API that will be removed in the next version is being used.
-            description: >-
+            message: >-
               Deprecated API that will be removed in the next version is being used. Removing the workload that is using
               the {{ ` + "`" + `{{ $labels.group }}.{{ $labels.version }}/{{ $labels.resource }}` + "`" + ` }} API might be necessary for
               a successful upgrade to the next cluster version.
               Refer to ` + "`" + `oc get apirequestcounts {{ ` + "`" + `{{ $labels.resource }}.{{ $labels.version }}.{{ $labels.group }}` + "`" + ` }} -o yaml` + "`" + ` to identify the workload.
           expr: |
-            group(apiserver_requested_deprecated_apis{removed_release="1.23"}) by (group,version,resource) and (sum by(group,version,resource) (rate(apiserver_request_total{system_client!="kube-controller-manager",system_client!="cluster-policy-controller"}[4h]))) > 0
+            group(apiserver_requested_deprecated_apis{removed_release="1.22"}) by (group,version,resource) and (sum by(group,version,resource) (rate(apiserver_request_total{system_client!="kube-controller-manager",system_client!="cluster-policy-controller"}[4h]))) > 0
           for: 1h
           labels:
-            namespace: openshift-kube-apiserver
             severity: info
         - alert: APIRemovedInNextEUSReleaseInUse
           annotations:
-            summary: Deprecated API that will be removed in the next EUS version is being used.
-            description: >-
+            message: >-
               Deprecated API that will be removed in the next EUS version is being used. Removing the workload that is using
               the {{ ` + "`" + `{{ $labels.group }}.{{ $labels.version }}/{{ $labels.resource }}` + "`" + ` }} API might be necessary for
               a successful upgrade to the next EUS cluster version.
               Refer to ` + "`" + `oc get apirequestcounts {{ ` + "`" + `{{ $labels.resource }}.{{ $labels.version }}.{{ $labels.group }}` + "`" + ` }} -o yaml` + "`" + ` to identify the workload.
           expr: |
             group(apiserver_requested_deprecated_apis{removed_release=~"1\\.2[123]"}) by (group,version,resource) and (sum by(group,version,resource) (rate(apiserver_request_total{system_client!="kube-controller-manager",system_client!="cluster-policy-controller"}[4h]))) > 0
+
           for: 1h
           labels:
-            namespace: openshift-kube-apiserver
             severity: info
 `)
 
