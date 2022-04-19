@@ -2140,6 +2140,17 @@ admission:
         restrictedCIDRs:
         - {{ .PodCIDR }}
         - {{ .ServiceCIDR }}
+    PodSecurity:
+      configuration:
+        kind: PodSecurityConfiguration
+        apiVersion: pod-security.admission.config.k8s.io/v1alpha1
+        defaults:
+          enforce: "privileged"
+          enforce-version: "latest"
+          audit: "baseline"
+          audit-version: "latest"
+          warn: "baseline"
+          warn-version: "latest"
 apiServerArguments:
   advertise-address:
   - "{{ .ExternalAPIIPAddress }}"
@@ -2178,6 +2189,8 @@ apiServerArguments:
   - /etc/kubernetes/config/serving-ca.crt
   cloud-provider:
   - "{{ .CloudProvider }}"
+  disable-admission-plugins:
+  - PodSecurity
   enable-admission-plugins:
   - CertificateApproval
   - CertificateSigning
