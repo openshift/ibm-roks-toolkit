@@ -2140,6 +2140,17 @@ admission:
         restrictedCIDRs:
         - {{ .PodCIDR }}
         - {{ .ServiceCIDR }}
+    PodSecurity:
+      configuration:
+        kind: PodSecurityConfiguration
+        apiVersion: pod-security.admission.config.k8s.io/v1beta1
+        defaults:
+          enforce: "privileged"
+          enforce-version: "latest"
+          audit: "restricted"
+          audit-version: "latest"
+          warn: "restricted"
+          warn-version: "latest"
 apiServerArguments:
   advertise-address:
   - "{{ .ExternalAPIIPAddress }}"
@@ -2195,6 +2206,7 @@ apiServerArguments:
   - PersistentVolumeClaimResize
   - PersistentVolumeLabel
   - PodNodeSelector
+  - PodSecurity
   - PodTolerationRestriction
   - Priority
   - ResourceQuota
