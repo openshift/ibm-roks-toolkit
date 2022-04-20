@@ -2219,6 +2219,8 @@ apiServerArguments:
   - /etc/kubernetes/config/serving-ca.crt
   cloud-provider:
   - "{{ .CloudProvider }}"
+  disable-admission-plugins:
+  - PodSecurity
   enable-admission-plugins:
   - CertificateApproval
   - CertificateSigning
