@@ -7,12 +7,13 @@ spec:
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 3
+      maxSurge: 0
       maxUnavailable: 1
   selector:
     matchLabels:
       app: openshift-oauth-apiserver
   progressDeadlineSeconds: 600
+  minReadySeconds: 15
   template:
     metadata:
       name: openshift-oauth-apiserver
