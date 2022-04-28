@@ -8,7 +8,7 @@ spec:
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 2
+      maxSurge: 0
       maxUnavailable: 1
   selector:
     matchLabels:
@@ -47,10 +47,10 @@ spec:
         - name: serving-cert
           mountPath: /var/run/secrets/serving-cert
         resources:
-          requests: 
+          requests:
             cpu: "10m"
             memory: "50Mi"
-      serviceAccountName: roks-metrics 
+      serviceAccountName: roks-metrics
       priorityClassName: system-cluster-critical
       volumes:
       - name: serving-cert
