@@ -8,7 +8,7 @@ spec:
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 2
+      maxSurge: 0
       maxUnavailable: 1
   selector:
     matchLabels:
@@ -42,6 +42,6 @@ spec:
         - containerPort: 9091
           name: http
         resources:
-          requests: 
+          requests:
             cpu: "10m"
             memory: "50Mi"

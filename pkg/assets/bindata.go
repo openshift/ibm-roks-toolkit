@@ -1410,11 +1410,12 @@ spec:
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 3
+      maxSurge: 0
       maxUnavailable: 1
   selector:
     matchLabels:
       app: kube-apiserver
+  minReadySeconds: 15
   template:
     metadata:
       labels:
@@ -2115,11 +2116,12 @@ spec:
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 3
+      maxSurge: 0
       maxUnavailable: 1
   selector:
     matchLabels:
       app: kube-controller-manager
+  minReadySeconds: 30
   template:
     metadata:
       labels:
@@ -2364,11 +2366,12 @@ spec:
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 3
+      maxSurge: 0
       maxUnavailable: 1
   selector:
     matchLabels:
       app: kube-scheduler
+  minReadySeconds: 30
   template:
     metadata:
       labels:
@@ -2623,12 +2626,13 @@ spec:
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 3
+      maxSurge: 0
       maxUnavailable: 1
   selector:
     matchLabels:
       app: openshift-oauth-apiserver
   progressDeadlineSeconds: 600
+  minReadySeconds: 15
   template:
     metadata:
       name: openshift-oauth-apiserver
@@ -3141,11 +3145,12 @@ spec:
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 3
+      maxSurge: 0
       maxUnavailable: 1
   selector:
     matchLabels:
       app: oauth-openshift
+  minReadySeconds: 15
   template:
     metadata:
       labels:
@@ -3571,11 +3576,12 @@ spec:
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 3
+      maxSurge: 0
       maxUnavailable: 1
   selector:
     matchLabels:
       app: openshift-apiserver
+  minReadySeconds: 15
   template:
     metadata:
       labels:
@@ -3867,7 +3873,7 @@ spec:
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 3
+      maxSurge: 0
       maxUnavailable: 1
   selector:
     matchLabels:
@@ -4079,11 +4085,12 @@ spec:
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 3
+      maxSurge: 0
       maxUnavailable: 1
   selector:
     matchLabels:
       app: openshift-controller-manager
+  minReadySeconds: 30
   template:
     metadata:
       labels:
@@ -4318,7 +4325,7 @@ spec:
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 2
+      maxSurge: 0
       maxUnavailable: 1
   selector:
     matchLabels:
@@ -4357,10 +4364,10 @@ spec:
         - name: serving-cert
           mountPath: /var/run/secrets/serving-cert
         resources:
-          requests: 
+          requests:
             cpu: "10m"
             memory: "50Mi"
-      serviceAccountName: roks-metrics 
+      serviceAccountName: roks-metrics
       volumes:
       - name: serving-cert
         secret:
@@ -4394,7 +4401,7 @@ spec:
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 2
+      maxSurge: 0
       maxUnavailable: 1
   selector:
     matchLabels:
@@ -4428,7 +4435,7 @@ spec:
         - containerPort: 9091
           name: http
         resources:
-          requests: 
+          requests:
             cpu: "10m"
             memory: "50Mi"
 `)
