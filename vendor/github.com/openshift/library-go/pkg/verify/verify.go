@@ -17,9 +17,11 @@ import (
 	"time"
 
 	"golang.org/x/crypto/openpgp"
+	"k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/klog/v2"
 
 	"github.com/openshift/library-go/pkg/verify/store"
+	"github.com/openshift/library-go/pkg/verify/store/serial"
 	"github.com/openshift/library-go/pkg/verify/util"
 )
 
@@ -30,12 +32,46 @@ type Interface interface {
 	// Verify should return nil if the provided release digest has suffient signatures to be considered
 	// valid. It should return an error in all other cases.
 	Verify(ctx context.Context, releaseDigest string) error
+
+	// Signatures returns a copy of any cached signatures that have been validated
+	// so far. It may return no signatures.
+	Signatures() map[string][][]byte
+
+	// Verifiers returns a copy of the verifiers in this payload.
+	Verifiers() map[string]openpgp.EntityList
+
+	// AddStore adds additional stores for signature verification.
+	AddStore(additionalStore store.Store)
+}
+
+type wrapError struct {
+	msg string
+	err error
+}
+
+func (e *wrapError) Error() string {
+	return e.msg
+}
+
+func (e *wrapError) Unwrap() error {
+	return e.err
 }
 
 type rejectVerifier struct{}
 
 func (rejectVerifier) Verify(ctx context.Context, releaseDigest string) error {
 	return fmt.Errorf("verification is not possible")
+}
+
+func (rejectVerifier) Signatures() map[string][][]byte {
+	return nil
+}
+
+func (rejectVerifier) Verifiers() map[string]openpgp.EntityList {
+	return nil
+}
+
+func (rejectVerifier) AddStore(additionalStore store.Store) {
 }
 
 // Reject fails always fails verification.
@@ -46,33 +82,33 @@ var Reject Interface = rejectVerifier{}
 const maxSignatureSearch = 10
 
 // validReleaseDigest is a verification rule to filter clearly invalid digests.
-var validReleaseDigest = regexp.MustCompile(`^[a-zA-Z0-9:]+$`)
+var validReleaseDigest = regexp.MustCompile(`^[a-z0-9]+(?:[.+_-][a-z0-9]+)*:[a-zA-Z0-9=_-]+$`)
 
-// ReleaseVerifier implements a signature intersection operation on a provided release
+// releaseVerifier implements a signature intersection operation on a provided release
 // digest - all verifiers must have at least one valid signature attesting the release
 // digest. If any failure occurs the caller should assume the content is unverified.
-type ReleaseVerifier struct {
+type releaseVerifier struct {
 	verifiers map[string]openpgp.EntityList
 
-	// Store is the store from which release signatures are retrieved.
-	Store store.Store
+	// store is the store from which release signatures are retrieved.
+	store store.Store
 
 	lock           sync.Mutex
 	signatureCache map[string][][]byte
 }
 
 // NewReleaseVerifier creates a release verifier for the provided inputs.
-func NewReleaseVerifier(verifiers map[string]openpgp.EntityList, store store.Store) *ReleaseVerifier {
-	return &ReleaseVerifier{
+func NewReleaseVerifier(verifiers map[string]openpgp.EntityList, store store.Store) Interface {
+	return &releaseVerifier{
 		verifiers: verifiers,
-		Store:     store,
+		store:     store,
 
 		signatureCache: make(map[string][][]byte),
 	}
 }
 
 // Verifiers returns a copy of the verifiers in this payload.
-func (v *ReleaseVerifier) Verifiers() map[string]openpgp.EntityList {
+func (v *releaseVerifier) Verifiers() map[string]openpgp.EntityList {
 	out := make(map[string]openpgp.EntityList, len(v.verifiers))
 	for k, v := range v.verifiers {
 		out[k] = v
@@ -81,7 +117,7 @@ func (v *ReleaseVerifier) Verifiers() map[string]openpgp.EntityList {
 }
 
 // String summarizes the verifier for human consumption
-func (v *ReleaseVerifier) String() string {
+func (v *releaseVerifier) String() string {
 	var keys []string
 	for name := range v.verifiers {
 		keys = append(keys, name)
@@ -117,10 +153,10 @@ func (v *ReleaseVerifier) String() string {
 		fmt.Fprint(&builder, ")")
 	}
 	fmt.Fprintf(&builder, " - will check for signatures in containers/image format at")
-	if v.Store == nil {
+	if v.store == nil {
 		fmt.Fprint(&builder, " <ERROR: no store>")
 	} else {
-		fmt.Fprintf(&builder, " %s", v.Store)
+		fmt.Fprintf(&builder, " %s", v.store)
 	}
 	return builder.String()
 }
@@ -128,15 +164,15 @@ func (v *ReleaseVerifier) String() string {
 // Verify ensures that at least one valid signature exists for an image with digest
 // matching release digest in any of the provided locations for all verifiers, or returns
 // an error.
-func (v *ReleaseVerifier) Verify(ctx context.Context, releaseDigest string) error {
-	if len(v.verifiers) == 0 || v.Store == nil {
+func (v *releaseVerifier) Verify(ctx context.Context, releaseDigest string) error {
+	if len(v.verifiers) == 0 || v.store == nil {
 		return fmt.Errorf("the release verifier is incorrectly configured, unable to verify digests")
 	}
 	if len(releaseDigest) == 0 {
 		return fmt.Errorf("release images that are not accessed via digest cannot be verified")
 	}
 	if !validReleaseDigest.MatchString(releaseDigest) {
-		return fmt.Errorf("the provided release image digest contains prohibited characters")
+		return fmt.Errorf("the provided release image digest has an invalid format: %q", releaseDigest)
 	}
 
 	if v.hasVerified(releaseDigest) {
@@ -149,19 +185,23 @@ func (v *ReleaseVerifier) Verify(ctx context.Context, releaseDigest string) erro
 	}
 
 	var signedWith [][]byte
-	err := v.Store.Signatures(ctx, "", releaseDigest, func(ctx context.Context, signature []byte, errIn error) (done bool, err error) {
+	var errs []error
+	err := v.store.Signatures(ctx, "", releaseDigest, func(ctx context.Context, signature []byte, errIn error) (done bool, err error) {
 		if errIn != nil {
 			klog.V(4).Infof("error retrieving signature for %s: %v", releaseDigest, errIn)
+			errs = append(errs, fmt.Errorf("%s: %w", time.Now().Format(time.RFC3339), errIn))
 			return false, nil
 		}
 		for k, keyring := range remaining {
 			content, _, err := verifySignatureWithKeyring(bytes.NewReader(signature), keyring)
 			if err != nil {
 				klog.V(4).Infof("keyring %q could not verify signature for %s: %v", k, releaseDigest, err)
+				errs = append(errs, fmt.Errorf("%s: %w", time.Now().Format(time.RFC3339), err))
 				continue
 			}
 			if err := verifyAtomicContainerSignature(content, releaseDigest); err != nil {
 				klog.V(4).Infof("signature for %s is not valid: %v", releaseDigest, err)
+				errs = append(errs, fmt.Errorf("%s: %w", time.Now().Format(time.RFC3339), err))
 				continue
 			}
 			delete(remaining, k)
@@ -170,17 +210,21 @@ func (v *ReleaseVerifier) Verify(ctx context.Context, releaseDigest string) erro
 		return len(remaining) == 0, nil
 	})
 	if err != nil {
-		klog.V(4).Infof("Failed to retrieve signatures for %s (should never happen)", releaseDigest)
-		return err
+		klog.V(4).Infof("Failed to retrieve signatures for %s: %v", releaseDigest, err)
+		errs = append(errs, fmt.Errorf("%s: %w", time.Now().Format(time.RFC3339), err))
 	}
 
 	if len(remaining) > 0 {
-		if klog.V(4).Enabled() {
-			for k := range remaining {
-				klog.Infof("Unable to verify %s against keyring %s", releaseDigest, k)
-			}
+		remainingKeyRings := make([]string, 0, len(remaining))
+		for k := range remaining {
+			remainingKeyRings = append(remainingKeyRings, k)
 		}
-		return fmt.Errorf("unable to locate a valid signature for one or more sources")
+		err := &wrapError{
+			msg: fmt.Sprintf("unable to verify %s against keyrings: %s", releaseDigest, strings.Join(remainingKeyRings, ", ")),
+			err: errors.NewAggregate(errs),
+		}
+		klog.V(4).Info(err.Error())
+		return err
 	}
 
 	v.cacheVerification(releaseDigest, signedWith)
@@ -190,7 +234,7 @@ func (v *ReleaseVerifier) Verify(ctx context.Context, releaseDigest string) erro
 
 // Signatures returns a copy of any cached signatures that have been validated
 // so far. It may return no signatures.
-func (v *ReleaseVerifier) Signatures() map[string][][]byte {
+func (v *releaseVerifier) Signatures() map[string][][]byte {
 	copied := make(map[string][][]byte)
 	v.lock.Lock()
 	defer v.lock.Unlock()
@@ -200,8 +244,13 @@ func (v *ReleaseVerifier) Signatures() map[string][][]byte {
 	return copied
 }
 
+// AddStore adds additional stores for signature verification.
+func (v *releaseVerifier) AddStore(additionalStore store.Store) {
+	v.store = &serial.Store{Stores: []store.Store{additionalStore, v.store}}
+}
+
 // hasVerified returns true if the digest has already been verified.
-func (v *ReleaseVerifier) hasVerified(releaseDigest string) bool {
+func (v *releaseVerifier) hasVerified(releaseDigest string) bool {
 	v.lock.Lock()
 	defer v.lock.Unlock()
 	_, ok := v.signatureCache[releaseDigest]
@@ -211,7 +260,7 @@ func (v *ReleaseVerifier) hasVerified(releaseDigest string) bool {
 const maxSignatureCacheSize = 64
 
 // cacheVerification caches the result of signature check for a digest for later retrieval.
-func (v *ReleaseVerifier) cacheVerification(releaseDigest string, signedWith [][]byte) {
+func (v *releaseVerifier) cacheVerification(releaseDigest string, signedWith [][]byte) {
 	v.lock.Lock()
 	defer v.lock.Unlock()
 

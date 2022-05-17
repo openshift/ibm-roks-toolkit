@@ -136,7 +136,7 @@ func (c ConfigObserver) Sync(ctx context.Context, syncCtx factory.SyncContext) e
 		cond.Reason = "Error"
 		cond.Message = configError.Error()
 	}
-	if _, _, updateError := v1helpers.UpdateStatus(c.operatorClient, v1helpers.UpdateConditionFn(cond)); updateError != nil {
+	if _, _, updateError := v1helpers.UpdateStatus(ctx, c.operatorClient, v1helpers.UpdateConditionFn(cond)); updateError != nil {
 		return updateError
 	}
 
@@ -170,7 +170,7 @@ func (c ConfigObserver) updateObservedConfig(syncCtx factory.SyncContext, existi
 type updateObservedConfigFn func(config map[string]interface{}) v1helpers.UpdateOperatorSpecFunc
 
 func (c ConfigObserver) updateConfig(syncCtx factory.SyncContext, updatedMaybeNestedConfig map[string]interface{}, updateConfigHelper updateObservedConfigFn) error {
-	if _, _, err := v1helpers.UpdateSpec(c.operatorClient, updateConfigHelper(updatedMaybeNestedConfig)); err != nil {
+	if _, _, err := v1helpers.UpdateSpec(context.TODO(), c.operatorClient, updateConfigHelper(updatedMaybeNestedConfig)); err != nil {
 		// At this point we failed to write the updated config. If we are permanently broken, do not pile the errors from observers
 		// but instead reset the errors and only report single error condition.
 		syncCtx.Recorder().Warningf("ObservedConfigWriteError", "Failed to write observed config: %v", err)
