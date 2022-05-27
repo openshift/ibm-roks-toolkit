@@ -23,7 +23,9 @@ const (
 
 var (
 	OldStorageConfigURLsPath = []string{"storageConfig", "urls"}
-	StorageConfigURLsPath    = []string{"apiServerArguments", "etcd-servers"}
+	StorageConfigURLsPath    = []string{"apiServerArguments", StorageConfigURLsKey}
+
+	StorageConfigURLsKey = "etcd-servers"
 )
 
 type fallBackObserverFn func(genericListers configobserver.Listers, recorder events.Recorder, currentConfig map[string]interface{}, storageConfigURLsPath []string) (map[string]interface{}, []error)
@@ -104,11 +106,13 @@ func innerObserveStorageURLs(fallbackObserver fallBackObserverFn, alwaysAppendLo
 			errs = append(errs, ipErr)
 			continue
 		}
-		// skip placeholder ip addresses used in previous versions where the hostname was used instead
+
+		// explicitly report reserved IPs to the user
 		if strings.HasPrefix(ip.String(), "192.0.2.") || strings.HasPrefix(ip.String(), "2001:db8:") {
-			// not considered an error
+			errs = append(errs, fmt.Errorf("configmap %s/%s: address %v is reserved and not supported", EtcdEndpointNamespace, etcdEndpointName, ip.String()))
 			continue
 		}
+
 		// use the canonical representation of the ip address (not original input) when constructing the url
 		if ip.To4() != nil {
 			etcdURLs = append(etcdURLs, fmt.Sprintf("https://%s:2379", ip))

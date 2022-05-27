@@ -89,9 +89,9 @@ func (c *cmOperatorClient) GetOperatorState() (spec *operatorv1.OperatorSpec, st
 }
 
 // UpdateOperatorSpec updates the spec of the operator, assuming the given resource version.
-func (c *cmOperatorClient) UpdateOperatorSpec(oldResourceVersion string, in *operatorv1.OperatorSpec) (out *operatorv1.OperatorSpec, newResourceVersion string, err error) {
+func (c *cmOperatorClient) UpdateOperatorSpec(ctx context.Context, oldResourceVersion string, in *operatorv1.OperatorSpec) (out *operatorv1.OperatorSpec, newResourceVersion string, err error) {
 	var cm *corev1.ConfigMap
-	cm, err = c.Client.CoreV1().ConfigMaps(c.Namespace).Get(context.TODO(), configMapName, metav1.GetOptions{})
+	cm, err = c.Client.CoreV1().ConfigMaps(c.Namespace).Get(ctx, configMapName, metav1.GetOptions{})
 	if err != nil {
 		return
 	}
@@ -112,13 +112,13 @@ func (c *cmOperatorClient) UpdateOperatorSpec(oldResourceVersion string, in *ope
 	cm.Data["config.yaml"] = string(configBytes)
 	c.Logger.Info("Updating OpenShift Controller Manager configmap")
 	c.configCache.Delete("config")
-	_, err = c.Client.CoreV1().ConfigMaps(c.Namespace).Update(context.TODO(), cm, metav1.UpdateOptions{})
+	_, err = c.Client.CoreV1().ConfigMaps(c.Namespace).Update(ctx, cm, metav1.UpdateOptions{})
 	if err != nil {
 		return
 	}
 	dataHash := calculateHash(configBytes)
 	var deployment *appsv1.Deployment
-	deployment, err = c.Client.AppsV1().Deployments(c.Namespace).Get(context.TODO(), deploymentName, metav1.GetOptions{})
+	deployment, err = c.Client.AppsV1().Deployments(c.Namespace).Get(ctx, deploymentName, metav1.GetOptions{})
 	if err != nil {
 		return
 	}
@@ -127,7 +127,7 @@ func (c *cmOperatorClient) UpdateOperatorSpec(oldResourceVersion string, in *ope
 	}
 	c.Logger.Info("Updating OpenShift Controller Manager deployment")
 	deployment.Spec.Template.ObjectMeta.Annotations["config-checksum"] = dataHash
-	_, err = c.Client.AppsV1().Deployments(c.Namespace).Update(context.TODO(), deployment, metav1.UpdateOptions{})
+	_, err = c.Client.AppsV1().Deployments(c.Namespace).Update(ctx, deployment, metav1.UpdateOptions{})
 	return
 }
 
@@ -181,7 +181,7 @@ func filterManagedConfigKeys(in []byte) (out []byte, err error) {
 }
 
 // UpdateOperatorStatus updates the status of the operator, assuming the given resource version.
-func (c *cmOperatorClient) UpdateOperatorStatus(oldResourceVersion string, in *operatorv1.OperatorStatus) (out *operatorv1.OperatorStatus, err error) {
+func (c *cmOperatorClient) UpdateOperatorStatus(ctx context.Context, oldResourceVersion string, in *operatorv1.OperatorStatus) (out *operatorv1.OperatorStatus, err error) {
 	return
 }
 

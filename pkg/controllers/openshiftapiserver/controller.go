@@ -153,9 +153,8 @@ func (c *apiServerOperatorClient) GetOperatorState() (spec *operatorv1.OperatorS
 }
 
 // UpdateOperatorSpec updates the spec of the operator, assuming the given resource version.
-func (c *apiServerOperatorClient) UpdateOperatorSpec(oldResourceVersion string, in *operatorv1.OperatorSpec) (out *operatorv1.OperatorSpec, newResourceVersion string, err error) {
+func (c *apiServerOperatorClient) UpdateOperatorSpec(ctx context.Context, oldResourceVersion string, in *operatorv1.OperatorSpec) (out *operatorv1.OperatorSpec, newResourceVersion string, err error) {
 	var cm *corev1.ConfigMap
-	ctx := context.Background()
 	cm, err = c.Client.CoreV1().ConfigMaps(c.Namespace).Get(ctx, apiserverConfigMapName, metav1.GetOptions{})
 	if err != nil {
 		return
@@ -278,7 +277,7 @@ func filterManagedConfigKeys(in []byte) (out []byte, err error) {
 }
 
 // UpdateOperatorStatus updates the status of the operator, assuming the given resource version.
-func (c *apiServerOperatorClient) UpdateOperatorStatus(oldResourceVersion string, in *operatorv1.OperatorStatus) (out *operatorv1.OperatorStatus, err error) {
+func (c *apiServerOperatorClient) UpdateOperatorStatus(ctx context.Context, oldResourceVersion string, in *operatorv1.OperatorStatus) (out *operatorv1.OperatorStatus, err error) {
 	return
 }
 
