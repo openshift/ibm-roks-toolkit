@@ -1,5 +1,5 @@
 SRC_DIRS = cmd pkg
-GOSEC_VERSION := v2.8.1
+GOSEC_VERSION := v2.11.0
 
 .PHONY: default
 default: build
