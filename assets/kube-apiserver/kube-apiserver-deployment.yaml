@@ -318,7 +318,7 @@ spec:
           runAsUser: {{ $securityContext.RunAsUser }}
 {{- end }}
         image: {{ .ROKSMetricsImage }}
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         command:
           - "metrics-pusher"
         args:
