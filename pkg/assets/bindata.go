@@ -2093,8 +2093,6 @@ apiServerArguments:
   - 'true'
   enable-logs-handler:
   - 'false'
-  enable-swagger-ui:
-  - 'true'
   endpoint-reconciler-type:
   - lease
   etcd-cafile:
