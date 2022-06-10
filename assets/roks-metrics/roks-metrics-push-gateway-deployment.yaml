@@ -35,7 +35,7 @@ spec:
           runAsNonRoot: {{ $securityContext.RunAsNonRoot }}
 {{- end }}
         image: {{ .ROKSMetricsImage }}
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         command:
         - pushgateway
         ports:
