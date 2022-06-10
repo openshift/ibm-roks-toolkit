@@ -66,7 +66,6 @@ spec:
             - "start"
             - "--release-image={{ .ReleaseImage }}"
             - "--enable-auto-update=false"
-            - "--enable-default-cluster-version=true"
             - "--kubeconfig=/etc/openshift/kubeconfig/kubeconfig"
             - "--listen=127.0.0.1:9099"
             - "--serving-cert-file=/etc/tls/serving-cert/server.crt"
