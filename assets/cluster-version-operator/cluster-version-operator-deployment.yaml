@@ -54,7 +54,7 @@ spec:
       containers:
         - name: cluster-version-operator
           image: {{ .ReleaseImage }}
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
 {{- if .ClusterVersionOperatorSecurityContext }}
 {{- $securityContext := .ClusterVersionOperatorSecurityContext }}
           securityContext:
@@ -107,7 +107,7 @@ spec:
           securityContext:
             runAsUser: {{ $securityContext.RunAsUser }}
 {{- end }}
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           command:
             - "metrics-pusher"
           args:
