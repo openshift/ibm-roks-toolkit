@@ -1886,7 +1886,7 @@ spec:
       containers:
         - name: cluster-version-operator
           image: {{ .ReleaseImage }}
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
 {{- if .ClusterVersionOperatorSecurityContext }}
 {{- $securityContext := .ClusterVersionOperatorSecurityContext }}
           securityContext:
@@ -1943,7 +1943,7 @@ spec:
           securityContext:
             runAsUser: {{ $securityContext.RunAsUser }}
 {{- end }}
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           command:
             - "metrics-pusher"
           args:
@@ -2816,7 +2816,7 @@ spec:
           runAsUser: {{ $securityContext.RunAsUser }}
 {{- end }}
         image: {{ .ROKSMetricsImage }}
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         command:
           - "metrics-pusher"
         args:
@@ -5206,7 +5206,7 @@ spec:
           runAsNonRoot: {{ $securityContext.RunAsNonRoot }}
 {{- end }}
         image: {{ .ROKSMetricsImage }}
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         args:
         - "--alsologtostderr"
         - "--v=3"
@@ -5284,7 +5284,7 @@ spec:
           runAsNonRoot: {{ $securityContext.RunAsNonRoot }}
 {{- end }}
         image: {{ .ROKSMetricsImage }}
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         command:
         - pushgateway
         ports:
