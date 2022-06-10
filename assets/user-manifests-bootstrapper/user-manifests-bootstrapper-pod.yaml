@@ -92,6 +92,21 @@ spec:
           # Replace the global certs configmap here because it's too large to oc apply
           oc create configmap -n openshift-controller-manager openshift-global-ca --from-file ca-bundle.crt=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem --dry-run=client -o yaml > /tmp/openshift-global-ca
           oc replace -n openshift-controller-manager -f /tmp/openshift-global-ca --force
+          # Create the ClusterVersion resource if it doesn't already exist
+          oc get ClusterVersion version
+          CLUSTER_VERSION_NOT_FOUND=$?
+          if [[ $CLUSTER_VERSION_NOT_FOUND -eq 1 ]]; then
+             apt install uuid-runtime
+             clusterUUID=$(uuidgen)
+             oc create -f <<EOF
+                apiVersion: config.openshift.io/v1
+                kind: ClusterVersion
+                metadata:
+                   name: version
+                spec:
+                   clusterID: $clusterUUID
+             EOF
+          fi
       resources:
         requests:
           memory: "75Mi"
