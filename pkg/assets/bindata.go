@@ -2004,6 +2004,9 @@ admission:
           audit-version: "latest"
           warn: "restricted"
           warn-version: "latest"
+        exemptions:
+          usernames:
+          - system:serviceaccount:openshift-infra:build-controller
 apiServerArguments:
   advertise-address:
   - "{{ .ExternalAPIIPAddress }}"
@@ -2057,7 +2060,6 @@ apiServerArguments:
   - PersistentVolumeClaimResize
   - PersistentVolumeLabel
   - PodNodeSelector
-  - PodSecurity
   - PodTolerationRestriction
   - Priority
   - ResourceQuota
