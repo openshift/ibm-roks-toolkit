@@ -100,7 +100,7 @@ spec:
         - "--flex-volume-plugin-dir=/etc/kubernetes/kubelet-plugins/volume/exec"
         - "--kube-api-burst=300"
         - "--kube-api-qps=150"
-        - "--leader-elect-resource-lock=configmaps"
+        - "--leader-elect-resource-lock=configmapsleases"
         - "--leader-elect=true"
         - "--leader-elect-lease-duration=137s"
         - "--leader-elect-renew-deadline=107s"

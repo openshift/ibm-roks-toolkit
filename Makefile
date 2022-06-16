@@ -28,8 +28,8 @@ verify-gofmt:
 .PHONY: verify-gosec
 verify-gosec:
 	@echo Verifying gosec
-	@curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b /tmp ${GOSEC_VERSION}
-	@/tmp/gosec -exclude G104,G401,G402,G501 ./...
+	@curl -sfL https://raw.githubusercontent.com/securego/gosec/${GOSEC_VERSION}/install.sh | sh -s -- -b /tmp ${GOSEC_VERSION}
+	@/tmp/gosec -concurrency 1 -exclude G104,G401,G402,G501 ./...
 
 .PHONY: verify
 verify: verify-gofmt verify-gosec verify-bindata
