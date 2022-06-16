@@ -1705,7 +1705,7 @@ spec:
       containers:
         - name: cluster-version-operator
           image: {{ .ReleaseImage }}
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
 {{- if .ClusterVersionOperatorSecurityContext }}
 {{- $securityContext := .ClusterVersionOperatorSecurityContext }}
           securityContext:
@@ -1717,7 +1717,6 @@ spec:
             - "start"
             - "--release-image={{ .ReleaseImage }}"
             - "--enable-auto-update=false"
-            - "--enable-default-cluster-version=true"
             - "--kubeconfig=/etc/openshift/kubeconfig/kubeconfig"
             - "--listen=127.0.0.1:9099"
             - "--serving-cert-file=/etc/tls/serving-cert/server.crt"
@@ -1758,7 +1757,7 @@ spec:
           securityContext:
             runAsUser: {{ $securityContext.RunAsUser }}
 {{- end }}
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           command:
             - "metrics-pusher"
           args:
@@ -2005,6 +2004,9 @@ admission:
           audit-version: "latest"
           warn: "restricted"
           warn-version: "latest"
+        exemptions:
+          usernames:
+          - system:serviceaccount:openshift-infra:build-controller
 apiServerArguments:
   advertise-address:
   - "{{ .ExternalAPIIPAddress }}"
@@ -2058,7 +2060,6 @@ apiServerArguments:
   - PersistentVolumeClaimResize
   - PersistentVolumeLabel
   - PodNodeSelector
-  - PodSecurity
   - PodTolerationRestriction
   - Priority
   - ResourceQuota
@@ -2639,7 +2640,7 @@ spec:
           runAsUser: {{ $securityContext.RunAsUser }}
 {{- end }}
         image: {{ .ROKSMetricsImage }}
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         command:
           - "metrics-pusher"
         args:
@@ -3037,7 +3038,7 @@ spec:
         - "--flex-volume-plugin-dir=/etc/kubernetes/kubelet-plugins/volume/exec"
         - "--kube-api-burst=300"
         - "--kube-api-qps=150"
-        - "--leader-elect-resource-lock=configmaps"
+        - "--leader-elect-resource-lock=configmapsleases"
         - "--leader-elect=true"
         - "--leader-elect-lease-duration=137s"
         - "--leader-elect-renew-deadline=107s"
@@ -5027,7 +5028,7 @@ spec:
           runAsNonRoot: {{ $securityContext.RunAsNonRoot }}
 {{- end }}
         image: {{ .ROKSMetricsImage }}
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         args:
         - "--alsologtostderr"
         - "--v=3"
@@ -5105,7 +5106,7 @@ spec:
           runAsNonRoot: {{ $securityContext.RunAsNonRoot }}
 {{- end }}
         image: {{ .ROKSMetricsImage }}
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         command:
         - pushgateway
         ports:
