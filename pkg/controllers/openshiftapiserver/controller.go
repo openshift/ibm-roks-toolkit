@@ -3,7 +3,7 @@ package openshiftapiserver
 import (
 	"bytes"
 	"context"
-	"crypto/md5"
+	"crypto/md5" //#nosec - not used for security purposes
 	"encoding/json"
 	"fmt"
 	"time"
@@ -293,5 +293,5 @@ func (*noopResourceSyncer) SyncSecret(destination, source resourcesynccontroller
 }
 
 func calculateHash(b []byte) string {
-	return fmt.Sprintf("%x", md5.Sum(b))
+	return fmt.Sprintf("%x", md5.Sum(b)) //#nosec - not used for security purposes
 }

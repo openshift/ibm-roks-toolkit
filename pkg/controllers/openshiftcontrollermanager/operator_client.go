@@ -3,7 +3,7 @@ package openshiftcontrollermanager
 import (
 	"bytes"
 	"context"
-	"crypto/md5"
+	"crypto/md5" //#nosec - not used for security purposes
 	"encoding/json"
 	"fmt"
 	"time"
@@ -186,5 +186,5 @@ func (c *cmOperatorClient) UpdateOperatorStatus(ctx context.Context, oldResource
 }
 
 func calculateHash(b []byte) string {
-	return fmt.Sprintf("%x", md5.Sum(b))
+	return fmt.Sprintf("%x", md5.Sum(b)) //#nosec - not used for security purposes
 }
