@@ -65,8 +65,9 @@ func (s *Server) Run() error {
 	smux := http.NewServeMux()
 	smux.Handle("/metrics", legacyregistry.HandlerWithReset())
 	server := &http.Server{
-		Addr:    s.ListenAddress,
-		Handler: smux,
+		Addr:              s.ListenAddress,
+		Handler:           smux,
+		ReadHeaderTimeout: 5 * time.Minute,
 	}
 	go func() {
 		klog.Infof("Listening on %s", s.ListenAddress)

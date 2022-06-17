@@ -3,7 +3,7 @@ package cmca
 import (
 	"bytes"
 	"context"
-	"crypto/md5"
+	"crypto/md5" //#nosec - not used for security purposes
 	"fmt"
 
 	"github.com/go-logr/logr"
@@ -126,5 +126,5 @@ func (r *ManagedCAObserver) getAdditionalCAs(ctx context.Context, logger logr.Lo
 }
 
 func calculateHash(b []byte) string {
-	return fmt.Sprintf("%x", md5.Sum(b))
+	return fmt.Sprintf("%x", md5.Sum(b)) //#nosec - not used for security purposes
 }

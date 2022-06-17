@@ -75,9 +75,14 @@ func (p *MetricsPusher) pushMetrics() {
 			caCertPool := x509.NewCertPool()
 			caCertPool.AppendCertsFromPEM(caCert)
 
+			tlsConfig := tls.Config{
+				RootCAs:    caCertPool,
+				MinVersion: tls.VersionTLS12,
+			}
+
 			tr := knet.SetTransportDefaults(&http.Transport{
 				TLSHandshakeTimeout: 10 * time.Second,
-				TLSClientConfig:     &tls.Config{RootCAs: caCertPool},
+				TLSClientConfig:     &tlsConfig,
 			})
 
 			client := &http.Client{Transport: tr}
