@@ -1,5 +1,5 @@
 SRC_DIRS = cmd pkg
-GOSEC_VERSION := v2.11.0
+GOSEC_VERSION := v2.12.0
 
 .PHONY: default
 default: build
@@ -29,7 +29,7 @@ verify-gofmt:
 verify-gosec:
 	@echo Verifying gosec
 	@curl -sfL https://raw.githubusercontent.com/securego/gosec/${GOSEC_VERSION}/install.sh | sh -s -- -b /tmp ${GOSEC_VERSION}
-	@/tmp/gosec -concurrency 1 -exclude G104,G401,G402,G501 ./...
+	@/tmp/gosec -concurrency 1 -exclude G104 ./...
 
 .PHONY: verify
 verify: verify-gofmt verify-gosec verify-bindata
