@@ -3,6 +3,7 @@ package api
 type ClusterParams struct {
 	Namespace                                 string                 `json:"namespace"`
 	ClusterID                                 string                 `json:"clusterID"`
+	ClusterUUID                               string                 `json:"clusterUUID"`
 	ExternalAPIDNSName                        string                 `json:"externalAPIDNSName"`
 	ExternalAPIPort                           uint                   `json:"externalAPIPort"`
 	ExternalAPIIPAddress                      string                 `json:"externalAPIAddress"`
