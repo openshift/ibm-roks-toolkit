@@ -12,6 +12,7 @@
 // assets/cluster-bootstrap/cluster-network-02-config.yaml
 // assets/cluster-bootstrap/cluster-proxy-01-config.yaml
 // assets/cluster-bootstrap/cluster-version-namespace.yaml
+// assets/cluster-bootstrap/cluster-version.yaml
 // assets/cluster-bootstrap/csr_approver_clusterrole.yaml
 // assets/cluster-bootstrap/csr_approver_clusterrolebinding.yaml
 // assets/cluster-bootstrap/ingress-to-route-controller-clusterrole.yaml
@@ -1252,6 +1253,29 @@ func clusterBootstrapClusterVersionNamespaceYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "cluster-bootstrap/cluster-version-namespace.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _clusterBootstrapClusterVersionYaml = []byte(`apiVersion: config.openshift.io/v1
+kind: ClusterVersion
+metadata:
+  name: version
+spec:
+  clusterID: {{ .ClusterUUID }}
+`)
+
+func clusterBootstrapClusterVersionYamlBytes() ([]byte, error) {
+	return _clusterBootstrapClusterVersionYaml, nil
+}
+
+func clusterBootstrapClusterVersionYaml() (*asset, error) {
+	bytes, err := clusterBootstrapClusterVersionYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "cluster-bootstrap/cluster-version.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -5605,6 +5629,7 @@ var _bindata = map[string]func() (*asset, error){
 	"cluster-bootstrap/cluster-network-02-config.yaml":                                   clusterBootstrapClusterNetwork02ConfigYaml,
 	"cluster-bootstrap/cluster-proxy-01-config.yaml":                                     clusterBootstrapClusterProxy01ConfigYaml,
 	"cluster-bootstrap/cluster-version-namespace.yaml":                                   clusterBootstrapClusterVersionNamespaceYaml,
+	"cluster-bootstrap/cluster-version.yaml":                                             clusterBootstrapClusterVersionYaml,
 	"cluster-bootstrap/csr_approver_clusterrole.yaml":                                    clusterBootstrapCsr_approver_clusterroleYaml,
 	"cluster-bootstrap/csr_approver_clusterrolebinding.yaml":                             clusterBootstrapCsr_approver_clusterrolebindingYaml,
 	"cluster-bootstrap/ingress-to-route-controller-clusterrole.yaml":                     clusterBootstrapIngressToRouteControllerClusterroleYaml,
@@ -5728,6 +5753,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"cluster-network-02-config.yaml":                                   {clusterBootstrapClusterNetwork02ConfigYaml, map[string]*bintree{}},
 		"cluster-proxy-01-config.yaml":                                     {clusterBootstrapClusterProxy01ConfigYaml, map[string]*bintree{}},
 		"cluster-version-namespace.yaml":                                   {clusterBootstrapClusterVersionNamespaceYaml, map[string]*bintree{}},
+		"cluster-version.yaml":                                             {clusterBootstrapClusterVersionYaml, map[string]*bintree{}},
 		"csr_approver_clusterrole.yaml":                                    {clusterBootstrapCsr_approver_clusterroleYaml, map[string]*bintree{}},
 		"csr_approver_clusterrolebinding.yaml":                             {clusterBootstrapCsr_approver_clusterrolebindingYaml, map[string]*bintree{}},
 		"ingress-to-route-controller-clusterrole.yaml":                     {clusterBootstrapIngressToRouteControllerClusterroleYaml, map[string]*bintree{}},
