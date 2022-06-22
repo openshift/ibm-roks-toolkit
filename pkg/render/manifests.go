@@ -43,6 +43,7 @@ func newClusterManifestContext(images, versions map[string]string, params interf
 		"mask":              cidrMask,
 		"include":           includeFileFunc(params, ctx.renderContext),
 		"randomString":      randomString,
+		"randomUUID":        randomUUID,
 		"includeData":       includeDataFunc(),
 		"trimTrailingSpace": trimTrailingSpace,
 	})
