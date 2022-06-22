@@ -3,4 +3,4 @@ kind: ClusterVersion
 metadata:
   name: version
 spec:
-  clusterID: {{ .ClusterUUID }}
+  clusterID: {{ randomUUID }}
