@@ -1,6 +1,5 @@
 namespace: master-c7a8rnl20rees1f3dmdg
 clusterID: "c7a8rnl20rees1f3dmdg"
-clusterUUID: "ddcb2c6e-e4bd-4d98-a326-7709f43cd7ac"
 externalAPIDNSName: c100-e.containers.test.cloud.ibm.com
 externalAPIAddress: 172.20.0.1
 serviceCIDR: 172.21.0.0/16

@@ -1262,7 +1262,7 @@ kind: ClusterVersion
 metadata:
   name: version
 spec:
-  clusterID: {{ .ClusterUUID }}
+  clusterID: {{ randomUUID }}
 `)
 
 func clusterBootstrapClusterVersionYamlBytes() ([]byte, error) {
@@ -5525,6 +5525,8 @@ spec:
           done
           oc get secret user-manifest-openshift-browser-client -ojsonpath='{ .data.data }' | base64 -d > "user-manifest-openshift-browser-client.yaml"
           export KUBECONFIG=/etc/openshift/kubeconfig
+          # Do not apply cluster version resource if already exists.
+          oc get ClusterVersion version && rm user-manifest-cluster-version.yaml
           oc apply -f $(pwd)
           # Replace the global certs configmap here because it's too large to oc apply
           oc create configmap -n openshift-controller-manager openshift-global-ca --from-file ca-bundle.crt=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem --dry-run=client -o yaml > /tmp/openshift-global-ca

@@ -9,6 +9,8 @@ import (
 	"net"
 	"strings"
 	"unicode"
+
+	"github.com/google/uuid"
 )
 
 func imageFunc(images map[string]string) func(string) string {
@@ -81,6 +83,10 @@ func randomBytes(size int) []byte {
 		panic(err) // rand should never fail
 	}
 	return b
+}
+
+func randomUUID() string {
+	return uuid.NewString()
 }
 
 func indent(spaces int, v string) string {
