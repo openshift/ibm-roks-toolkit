@@ -1257,7 +1257,10 @@ func clusterBootstrapClusterVersionNamespaceYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapClusterVersionYaml = []byte(`apiVersion: config.openshift.io/v1
+var _clusterBootstrapClusterVersionYaml = []byte(`# NOTE(rtheis): This resource is only applied to the cluster one time even though
+# it is rendered during every bootstrap attempt. As a result, clusterID likely
+# won't match the cluster's actual ID.
+apiVersion: config.openshift.io/v1
 kind: ClusterVersion
 metadata:
   name: version
