@@ -127,6 +127,8 @@ var _clusterBootstrap00000_namespacesNeededForMonitoringYaml = []byte(`---
 apiVersion: v1
 kind: Namespace
 metadata:
+  labels:
+    openshift.io/user-monitoring: "false"
   name: openshift-apiserver
 ---
 apiVersion: v1
@@ -149,6 +151,8 @@ metadata:
 apiVersion: v1
 kind: Namespace
 metadata:
+  labels:
+    openshift.io/user-monitoring: "false"
   name: openshift-kube-controller-manager
 ---
 apiVersion: v1
@@ -167,6 +171,8 @@ metadata:
 apiVersion: v1
 kind: Namespace
 metadata:
+  labels:
+    openshift.io/user-monitoring: "false"
   name: openshift-authentication
 `)
 
