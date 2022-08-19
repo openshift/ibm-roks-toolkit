@@ -21,6 +21,7 @@
 // assets/cluster-bootstrap/namespace-security-allocation-controller-clusterrolebinding.yaml
 // assets/cluster-bootstrap/node-bootstrapper-clusterrolebinding.yaml
 // assets/cluster-bootstrap/openshift-install-configmap.yaml
+// assets/cluster-bootstrap/podsecurity-alert.yaml
 // assets/cluster-bootstrap/trust_distribution_role.yaml
 // assets/cluster-bootstrap/trust_distribution_rolebinding.yaml
 // assets/cluster-version-operator/cluster-version-operator-deployment.yaml
@@ -1607,6 +1608,48 @@ func clusterBootstrapOpenshiftInstallConfigmapYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "cluster-bootstrap/openshift-install-configmap.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _clusterBootstrapPodsecurityAlertYaml = []byte(`# Source: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.11/bindata/assets/alerts/podsecurity-violations.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: podsecurity
+  namespace: openshift-kube-apiserver
+spec:
+  groups:
+  - name: pod-security-violation
+    rules:
+    - alert: PodSecurityViolation
+      annotations:
+        summary: One or more workloads users created in the cluster don't match their Pod Security profile
+        description: >-
+          A workload (pod, deployment, deamonset, ...) was created somewhere in the cluster but it
+          did not match the PodSecurity "{{ ` + "`" + `$labels.policy_level` + "`" + ` }}" profile defined by its namespace either via the cluster-wide
+          configuration (which triggers on a "restricted" profile violations) or by the namespace
+          local Pod Security labels.
+          Refer to Kubernetes documentation on Pod Security Admission to learn more about these
+          violations.
+      expr: |
+        sum(increase(pod_security_evaluations_total{decision="deny",mode="audit",resource="pod"}[1d])) by (policy_level) > 0
+      labels:
+        namespace: openshift-kube-apiserver
+        severity: info
+`)
+
+func clusterBootstrapPodsecurityAlertYamlBytes() ([]byte, error) {
+	return _clusterBootstrapPodsecurityAlertYaml, nil
+}
+
+func clusterBootstrapPodsecurityAlertYaml() (*asset, error) {
+	bytes, err := clusterBootstrapPodsecurityAlertYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "cluster-bootstrap/podsecurity-alert.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -5643,6 +5686,7 @@ var _bindata = map[string]func() (*asset, error){
 	"cluster-bootstrap/namespace-security-allocation-controller-clusterrolebinding.yaml": clusterBootstrapNamespaceSecurityAllocationControllerClusterrolebindingYaml,
 	"cluster-bootstrap/node-bootstrapper-clusterrolebinding.yaml":                        clusterBootstrapNodeBootstrapperClusterrolebindingYaml,
 	"cluster-bootstrap/openshift-install-configmap.yaml":                                 clusterBootstrapOpenshiftInstallConfigmapYaml,
+	"cluster-bootstrap/podsecurity-alert.yaml":                                           clusterBootstrapPodsecurityAlertYaml,
 	"cluster-bootstrap/trust_distribution_role.yaml":                                     clusterBootstrapTrust_distribution_roleYaml,
 	"cluster-bootstrap/trust_distribution_rolebinding.yaml":                              clusterBootstrapTrust_distribution_rolebindingYaml,
 	"cluster-version-operator/cluster-version-operator-deployment.yaml":                  clusterVersionOperatorClusterVersionOperatorDeploymentYaml,
@@ -5767,6 +5811,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"namespace-security-allocation-controller-clusterrolebinding.yaml": {clusterBootstrapNamespaceSecurityAllocationControllerClusterrolebindingYaml, map[string]*bintree{}},
 		"node-bootstrapper-clusterrolebinding.yaml":                        {clusterBootstrapNodeBootstrapperClusterrolebindingYaml, map[string]*bintree{}},
 		"openshift-install-configmap.yaml":                                 {clusterBootstrapOpenshiftInstallConfigmapYaml, map[string]*bintree{}},
+		"podsecurity-alert.yaml":                                           {clusterBootstrapPodsecurityAlertYaml, map[string]*bintree{}},
 		"trust_distribution_role.yaml":                                     {clusterBootstrapTrust_distribution_roleYaml, map[string]*bintree{}},
 		"trust_distribution_rolebinding.yaml":                              {clusterBootstrapTrust_distribution_rolebindingYaml, map[string]*bintree{}},
 	}},
