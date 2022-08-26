@@ -1742,7 +1742,7 @@ spec:
         summary: One or more workloads users created in the cluster don't match their Pod Security profile
         description: >-
           A workload (pod, deployment, deamonset, ...) was created somewhere in the cluster but it
-          did not match the PodSecurity "{{ ` + "`" + `$labels.policy_level` + "`" + ` }}" profile defined by its namespace either via the cluster-wide
+          did not match the PodSecurity "{{ ` + "`" + `{{ $labels.policy_level }}` + "`" + ` }}" profile defined by its namespace either via the cluster-wide
           configuration (which triggers on a "restricted" profile violations) or by the namespace
           local Pod Security labels.
           Refer to Kubernetes documentation on Pod Security Admission to learn more about these
