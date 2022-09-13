@@ -1,6 +1,9 @@
 package release
 
 import (
+	"regexp"
+	"runtime"
+
 	"github.com/pkg/errors"
 
 	"fmt"
@@ -25,6 +28,14 @@ func GetReleaseInfo(image string, originReleasePrefix string, pullSecretFile str
 	}
 	options := release.NewInfoOptions(streams)
 	options.SecurityOptions.RegistryConfig = pullSecretFile
+	options.FilterOptions.DefaultOSFilter = true
+	pattern := fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH)
+	options.FilterOptions.FilterByOS = pattern
+	re, err := regexp.Compile(pattern)
+	if err != nil {
+		return nil, err
+	}
+	options.FilterOptions.OSFilter = re
 	info, err := options.LoadReleaseInfo(image, false)
 	if err != nil {
 		return nil, err
