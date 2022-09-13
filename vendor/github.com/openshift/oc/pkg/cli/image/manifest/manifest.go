@@ -13,6 +13,7 @@ import (
 
 	"github.com/docker/distribution"
 	"github.com/docker/distribution/manifest/manifestlist"
+	"github.com/docker/distribution/manifest/ocischema"
 	"github.com/docker/distribution/manifest/schema1"
 	"github.com/docker/distribution/manifest/schema2"
 	"github.com/docker/distribution/reference"
@@ -24,6 +25,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/klog/v2"
 
+	imagespecv1 "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/openshift/library-go/pkg/image/dockerv1client"
 	imagereference "github.com/openshift/library-go/pkg/image/reference"
 	"github.com/openshift/library-go/pkg/image/registryclient"
@@ -48,7 +50,8 @@ type SecurityOptions struct {
 }
 
 func (o *SecurityOptions) Bind(flags *pflag.FlagSet) {
-	flags.StringVarP(&o.RegistryConfig, "registry-config", "a", o.RegistryConfig, "Path to your registry credentials (defaults to ~/.docker/config.json)")
+	// TODO: fix priority and deprecation notice in 4.12
+	flags.StringVarP(&o.RegistryConfig, "registry-config", "a", o.RegistryConfig, "Path to your registry credentials. Alternatively REGISTRY_AUTH_FILE env variable can be also specified. Defaults to  ~/.docker/config.json, ${XDG_RUNTIME_DIR}/containers/auth.json, ${XDG_CONFIG_HOME}/containers/auth.json, /run/containers/${UID}/auth.json, ${DOCKER_CONFIG}, ~/.dockercfg. The order can be changed via REGISTRY_AUTH_PREFERENCE env variable to docker (current default - deprecated) or podman (prioritizes podman credentials over docker).")
 	flags.BoolVar(&o.Insecure, "insecure", o.Insecure, "Allow push and pull operations to registries to be made over HTTP")
 	flags.BoolVar(&o.SkipVerification, "skip-verification", o.SkipVerification, "Skip verifying the integrity of the retrieved content. This is not recommended, but may be necessary when importing images from older image registries. Only bypass verification if the registry is known to be trustworthy.")
 }
@@ -103,33 +106,34 @@ func (o *SecurityOptions) Context() (*registryclient.Context, error) {
 	if o.CachedContext != nil {
 		return o.CachedContext, nil
 	}
-	context, err := o.NewContext()
+	ctx, err := o.NewContext()
 	if err == nil {
-		o.CachedContext = context
+		o.CachedContext = ctx
 		o.CachedContext.Retries = 3
 	}
-	return context, err
+	return ctx, err
 }
 
 func (o *SecurityOptions) NewContext() (*registryclient.Context, error) {
-	rt, err := rest.TransportFor(&rest.Config{})
+	userAgent := rest.DefaultKubernetesUserAgent()
+	rt, err := rest.TransportFor(&rest.Config{UserAgent: userAgent})
 	if err != nil {
 		return nil, err
 	}
-	insecureRT, err := rest.TransportFor(&rest.Config{TLSClientConfig: rest.TLSClientConfig{Insecure: true}})
+	insecureRT, err := rest.TransportFor(&rest.Config{TLSClientConfig: rest.TLSClientConfig{Insecure: true}, UserAgent: userAgent})
 	if err != nil {
 		return nil, err
 	}
-	creds := dockercredentials.NewLocal()
-	if len(o.RegistryConfig) > 0 {
-		creds, err = dockercredentials.NewFromFile(o.RegistryConfig)
-		if err != nil {
+	credStoreFactory, err := dockercredentials.NewCredentialStoreFactory(o.RegistryConfig)
+	if err != nil {
+		if len(o.RegistryConfig) > 0 {
 			return nil, fmt.Errorf("unable to load --registry-config: %v", err)
 		}
+		return nil, err
 	}
-	context := registryclient.NewContext(rt, insecureRT).WithCredentials(creds)
-	context.DisableDigestVerification = o.SkipVerification
-	return context, nil
+	ctx := registryclient.NewContext(rt, insecureRT).WithCredentialsFactory(credStoreFactory)
+	ctx.DisableDigestVerification = o.SkipVerification
+	return ctx, nil
 }
 
 // FilterOptions assist in filtering out unneeded manifests from ManifestList objects.
@@ -211,6 +215,7 @@ type FilterFunc func(*manifestlist.ManifestDescriptor, bool) bool
 var PreferManifestList = distribution.WithManifestMediaTypes([]string{
 	manifestlist.MediaTypeManifestList,
 	schema2.MediaTypeManifest,
+	imagespecv1.MediaTypeImageManifest,
 })
 
 // AllManifests returns all non-list manifests, the list manifest (if any), the digest the from refers to, or an error.
@@ -246,6 +251,13 @@ type ManifestLocation struct {
 
 func (m ManifestLocation) IsList() bool {
 	return len(m.ManifestList) > 0
+}
+
+func (m ManifestLocation) ManifestListDigest() digest.Digest {
+	if m.IsList() {
+		return m.ManifestList
+	}
+	return ""
 }
 
 func (m ManifestLocation) String() string {
@@ -319,6 +331,29 @@ func ManifestToImageConfig(ctx context.Context, srcManifest distribution.Manifes
 
 		return base, layers, nil
 
+	case *ocischema.DeserializedManifest:
+		if t.Config.MediaType != imagespecv1.MediaTypeImageConfig {
+			return nil, nil, fmt.Errorf("%s does not have the expected image configuration media type: %s", location, t.Config.MediaType)
+		}
+		configJSON, err := blobs.Get(ctx, t.Config.Digest)
+		if err != nil {
+			return nil, nil, fmt.Errorf("cannot retrieve image configuration for %s: %v", location, err)
+		}
+		klog.V(4).Infof("Raw image config json:\n%s", string(configJSON))
+		config := &dockerv1client.DockerImageConfig{}
+		if err := json.Unmarshal(configJSON, &config); err != nil {
+			return nil, nil, fmt.Errorf("unable to parse image configuration: %v", err)
+		}
+
+		base := config
+		layers := t.Layers
+		base.Size = 0
+		for _, layer := range t.Layers {
+			base.Size += layer.Size
+		}
+
+		return base, layers, nil
+
 	case *schema1.SignedManifest:
 		if klog.V(4).Enabled() {
 			_, configJSON, _ := srcManifest.Payload()
@@ -352,6 +387,8 @@ func ManifestToImageConfig(ctx context.Context, srcManifest distribution.Manifes
 
 		return base, layers, nil
 
+	case *manifestlist.DeserializedManifestList:
+		return nil, nil, fmt.Errorf("use --keep-manifest-list option for image manifest type %T from %s", srcManifest, location)
 	default:
 		return nil, nil, fmt.Errorf("unknown image manifest of type %T from %s", srcManifest, location)
 	}
@@ -411,7 +448,7 @@ func ProcessManifestList(ctx context.Context, srcDigest digest.Digest, srcManife
 			if err != nil {
 				return nil, nil, "", err
 			}
-			klog.V(5).Infof("Used only one manifest from the list %s", srcDigest)
+			klog.V(2).Infof("Chose %s/%s manifest from the manifest list.", t.Manifests[0].Platform.OS, t.Manifests[0].Platform.Architecture)
 			return srcManifests, srcManifests[0], manifestDigest, nil
 		default:
 			return append(srcManifests, manifestList), manifestList, manifestDigest, nil
@@ -482,8 +519,8 @@ func PutManifestInCompatibleSchema(
 	if !ok || len(errs) == 0 {
 		return toDigest, err
 	}
-	errcode, ok := errs[0].(errcode.Error)
-	if !ok || errcode.ErrorCode() != v2.ErrorCodeManifestInvalid {
+	errCode, ok := errs[0].(errcode.Error)
+	if !ok || errCode.ErrorCode() != v2.ErrorCodeManifestInvalid {
 		return toDigest, err
 	}
 	// try downconverting to v2-schema1

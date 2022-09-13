@@ -29,17 +29,20 @@ import (
 	"github.com/openshift/oc/pkg/cli/image/archive"
 	"github.com/openshift/oc/pkg/cli/image/imagesource"
 	imagemanifest "github.com/openshift/oc/pkg/cli/image/manifest"
+	"github.com/openshift/oc/pkg/cli/image/strategy"
 	"github.com/openshift/oc/pkg/cli/image/workqueue"
 )
 
 var (
 	desc = templates.LongDesc(`
-		Extract the contents of an image to disk
+		Extract the contents of an image to disk.
 
-		Download an image or parts of an image to the filesystem. Allows users to access the
+		Download an image or parts of an image to the file system. Allows users to access the
 		contents of images without requiring a container runtime engine running.
 
-		Pass images to extract as arguments. The --paths flag allows you to define multiple
+		Unless the --path flag is passed, image contents will be extracted into the current directory.
+
+		Pass images to extract as arguments. The --path flag allows you to define multiple
 		source to destination directory mappings. The source section may be either a file, a
 		directory (ends with a '/'), or a file pattern within a directory. The destination
 		section	is a directory to extract to. Both source and destination must be specified.
@@ -63,14 +66,33 @@ var (
 		# Extract the busybox image into the current directory
 		oc image extract docker.io/library/busybox:latest
 
-		# Extract the busybox image to a temp directory (must exist)
+		# Extract the busybox image into a designated directory (must exist)
 		oc image extract docker.io/library/busybox:latest --path /:/tmp/busybox
+
+		# Extract the busybox image into the current directory for linux/s390x platform
+		# Note: Wildcard filter is not supported with extract. Pass a single os/arch to extract
+		oc image extract docker.io/library/busybox:latest --filter-by-os=linux/s390x
 
 		# Extract a single file from the image into the current directory
 		oc image extract docker.io/library/centos:7 --path /bin/bash:.
 
-		# Extract all .repo files from the image's /etc/yum.repos.d/ folder.
+		# Extract all .repo files from the image's /etc/yum.repos.d/ folder into the current directory
 		oc image extract docker.io/library/centos:7 --path /etc/yum.repos.d/*.repo:.
+
+		# Extract all .repo files from the image's /etc/yum.repos.d/ folder into a designated directory (must exist)
+		# This results in /tmp/yum.repos.d/*.repo on local system
+		oc image extract docker.io/library/centos:7 --path /etc/yum.repos.d/*.repo:/tmp/yum.repos.d
+
+		# Extract an image stored on disk into the current directory ($(pwd)/v2/busybox/blobs,manifests exists)
+		# --confirm is required because the current directory is not empty
+		oc image extract file://busybox:local --confirm
+
+		# Extract an image stored on disk in a directory other than $(pwd)/v2 into the current directory
+		# --confirm is required because the current directory is not empty ($(pwd)/busybox-mirror-dir/v2/busybox exists)
+		oc image extract file://busybox:local --dir busybox-mirror-dir --confirm
+
+		# Extract an image stored on disk in a directory other than $(pwd)/v2 into a designated directory (must exist)
+		oc image extract file://busybox:local --dir busybox-mirror-dir --path /:/tmp/busybox
 
 		# Extract the last layer in the image
 		oc image extract docker.io/library/centos:7[-1]
@@ -109,13 +131,14 @@ type ExtractOptions struct {
 	Confirm bool
 	DryRun  bool
 
-	FileDir string
+	FileDir  string
+	ICSPFile string
 
 	genericclioptions.IOStreams
 
 	// ImageMetadataCallback is invoked once per image retrieved, and may be called in parallel if
 	// MaxPerRegistry is set higher than 1.
-	ImageMetadataCallback func(m *Mapping, dgst, contentDigest digest.Digest, imageConfig *dockerv1client.DockerImageConfig)
+	ImageMetadataCallback func(m *Mapping, dgst, contentDigest digest.Digest, imageConfig *dockerv1client.DockerImageConfig, manifestListDigest digest.Digest)
 	// TarEntryCallback, if set, is passed each entry in the viewed layers. Entries will be filtered
 	// by name and only the entry in the highest layer will be passed to the callback. Returning false
 	// will halt processing of the image.
@@ -140,7 +163,7 @@ func NewExtract(streams genericclioptions.IOStreams) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "extract",
-		Short:   "Copy files from an image to the filesystem",
+		Short:   "Copy files from an image to the file system",
 		Long:    desc,
 		Example: example,
 		Run: func(c *cobra.Command, args []string) {
@@ -157,12 +180,14 @@ func NewExtract(streams genericclioptions.IOStreams) *cobra.Command {
 	flag.BoolVar(&o.Confirm, "confirm", o.Confirm, "Pass to allow extracting to non-empty directories.")
 	flag.BoolVar(&o.DryRun, "dry-run", o.DryRun, "Print the actions that would be taken and exit without writing any contents.")
 
+	flag.StringVar(&o.ICSPFile, "icsp-file", o.ICSPFile, "Path to an ImageContentSourcePolicy file. If set, data from this file will be used to find alternative locations for images.")
+
 	flag.StringSliceVar(&o.Files, "file", o.Files, "Extract the specified files to the current directory.")
-	flag.StringSliceVar(&o.Paths, "path", o.Paths, "Extract only part of an image. Must be SRC:DST where SRC is the path within the image and DST a local directory. If not specified the default is to extract everything to the current directory.")
+	flag.StringSliceVar(&o.Paths, "path", o.Paths, "Extract only part of an image, or, designate the directory on disk to extract image contents into. Must be SRC:DST where SRC is the path within the image and DST a local directory. If not specified the default is to extract everything to the current directory.")
 	flag.BoolVarP(&o.PreservePermissions, "preserve-ownership", "p", o.PreservePermissions, "Preserve the permissions of extracted files.")
 	flag.BoolVar(&o.OnlyFiles, "only-files", o.OnlyFiles, "Only extract regular files and directories from the image.")
 	flag.BoolVar(&o.AllLayers, "all-layers", o.AllLayers, "For dry-run mode, process from lowest to highest layer and don't omit duplicate files.")
-	flag.StringVar(&o.FileDir, "dir", o.FileDir, "The directory on disk that file:// images will be copied under.")
+	flag.StringVar(&o.FileDir, "dir", o.FileDir, "The directory on disk that file:// images will be extracted from.")
 
 	return cmd
 }
@@ -213,7 +238,7 @@ func parseMappings(images, paths, files []string, requireEmpty bool) ([]Mapping,
 			case 2:
 				mapping = Mapping{Image: image, From: parts[0], To: parts[1]}
 			default:
-				return nil, fmt.Errorf("--paths must be of the form SRC:DST")
+				return nil, fmt.Errorf("--path must be of the form SRC:DST")
 			}
 			if len(mapping.From) > 0 {
 				mapping.From = strings.TrimPrefix(mapping.From, "/")
@@ -320,6 +345,9 @@ func (o *ExtractOptions) Run() error {
 	if err != nil {
 		return err
 	}
+	if len(o.ICSPFile) > 0 {
+		fromContext = fromContext.WithAlternateBlobSourceStrategy(strategy.NewICSPOnErrorStrategy(o.ICSPFile))
+	}
 	fromOptions := &imagesource.Options{
 		FileDir:         o.FileDir,
 		Insecure:        o.SecurityOptions.Insecure,
@@ -330,9 +358,14 @@ func (o *ExtractOptions) Run() error {
 	defer close(stopCh)
 	q := workqueue.New(o.ParallelOptions.MaxPerRegistry, stopCh)
 	return q.Try(func(q workqueue.Try) {
+		icspWarned := false
 		for i := range o.Mappings {
 			mapping := o.Mappings[i]
 			from := mapping.ImageRef
+			if !icspWarned && len(o.ICSPFile) > 0 && len(from.Ref.Tag) > 0 {
+				fmt.Fprintf(o.ErrOut, "warning: --icsp-file only applies to images referenced by digest and will be ignored for tags\n")
+				icspWarned = true
+			}
 			q.Try(func() error {
 				repo, err := fromOptions.Repository(ctx, from)
 				if err != nil {
@@ -346,7 +379,7 @@ func (o *ExtractOptions) Run() error {
 						return imagemanifest.NewImageForbidden(msg, err)
 					}
 					if imagemanifest.IsImageNotFound(err) {
-						msg := fmt.Sprintf("image %q does not exist", from)
+						msg := fmt.Sprintf("image %q not found: %s", from, err.Error())
 						return imagemanifest.NewImageNotFound(msg, err)
 					}
 					return fmt.Errorf("unable to read image %s: %v", from, err)
@@ -383,10 +416,13 @@ func (o *ExtractOptions) Run() error {
 						alter = append(alter, newCopyFromDirectory(mapping.From))
 					default:
 						name, parent := path.Base(mapping.From), path.Dir(mapping.From)
-						if name == "." || parent == "." {
+						if name != "." && parent == "." {
+							alter = append(alter, newCopyFromPattern(parent, name, true))
+						} else if name == "." || parent == "." {
 							return fmt.Errorf("unexpected directory from mapping %s", mapping.From)
+						} else {
+							alter = append(alter, newCopyFromPattern(parent, name, false))
 						}
-						alter = append(alter, newCopyFromPattern(parent, name))
 					}
 				}
 
@@ -482,7 +518,7 @@ func (o *ExtractOptions) Run() error {
 				}
 
 				if o.ImageMetadataCallback != nil {
-					o.ImageMetadataCallback(&mapping, location.Manifest, contentDigest, imageConfig)
+					o.ImageMetadataCallback(&mapping, location.Manifest, contentDigest, imageConfig, location.ManifestListDigest())
 				}
 				return nil
 			})
@@ -587,30 +623,55 @@ func (n *copyFromDirectory) Alter(hdr *tar.Header) (bool, error) {
 }
 
 type copyFromPattern struct {
-	Base string
-	Name string
+	Base    string
+	Name    string
+	RootDir bool
 }
 
-func newCopyFromPattern(dir, name string) archive.AlterHeader {
+func newCopyFromPattern(dir, name string, rootDir bool) archive.AlterHeader {
+	if rootDir {
+		return &copyFromPattern{Name: name, RootDir: true}
+	}
 	if !strings.HasSuffix(dir, "/") {
 		dir = dir + "/"
 	}
-	return &copyFromPattern{Base: dir, Name: name}
+	return &copyFromPattern{Base: dir, Name: name, RootDir: false}
 }
 
 func (n *copyFromPattern) Alter(hdr *tar.Header) (bool, error) {
-	if !changeTarEntryParent(hdr, n.Base) {
-		return false, nil
-	}
-	matchName := hdr.Name
-	if i := strings.Index(matchName, "/"); i != -1 {
-		matchName = matchName[:i]
+	var matchName string
+	if n.RootDir {
+		if !changeTarEntryName(hdr, n.Name) {
+			return false, nil
+		}
+		matchName = hdr.Name
+	} else {
+		if !changeTarEntryParent(hdr, n.Base) {
+			return false, nil
+		}
+		matchName = hdr.Name
+		if i := strings.Index(matchName, "/"); i != -1 {
+			matchName = matchName[:i]
+		}
 	}
 	if ok, err := path.Match(n.Name, matchName); !ok || err != nil {
 		klog.V(5).Infof("Excluded %s due to filter %s", hdr.Name, n.Name)
 		return false, err
 	}
 	return true, nil
+}
+
+func changeTarEntryName(hdr *tar.Header, name string) bool {
+	if hdr.Name != name {
+		klog.V(5).Infof("Exclude %s due to name mismatch", hdr.Name)
+		return false
+	}
+	if hdr.Typeflag != tar.TypeReg {
+		klog.V(5).Infof("Exclude %s due to not being a file", hdr.Name)
+		return false
+	}
+	klog.V(5).Infof("Updated name %s", hdr.Name)
+	return true
 }
 
 func changeTarEntryParent(hdr *tar.Header, from string) bool {

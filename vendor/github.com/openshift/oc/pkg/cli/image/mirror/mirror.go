@@ -2,14 +2,17 @@ package mirror
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/docker/distribution"
 	"github.com/docker/distribution/manifest/manifestlist"
+	"github.com/docker/distribution/manifest/ocischema"
 	"github.com/docker/distribution/manifest/schema1"
 	"github.com/docker/distribution/manifest/schema2"
 	"github.com/docker/distribution/reference"
@@ -19,6 +22,7 @@ import (
 	godigest "github.com/opencontainers/go-digest"
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/util/sets"
+	"k8s.io/client-go/util/retry"
 	"k8s.io/klog/v2"
 
 	apirequest "k8s.io/apiserver/pkg/endpoints/request"
@@ -89,19 +93,25 @@ var (
 		oc image mirror myregistry.com/myimage:latest=myregistry.com/other:test \
 			myregistry.com/myimage:new=myregistry.com/other:target
 
-		# Copy manifest list of a multi-architecture image, even if only a single image is found.
+		# Copy manifest list of a multi-architecture image, even if only a single image is found
 		oc image mirror myregistry.com/myimage:latest=myregistry.com/other:test \
 			--keep-manifest-list=true
 
 		# Copy specific os/arch manifest of a multi-architecture image
 		# Run 'oc image info myregistry.com/myimage:latest' to see available os/arch for multi-arch images
+		# Note that with multi-arch images, this results in a new manifest list digest that includes only
+		# the filtered manifests
 		oc image mirror myregistry.com/myimage:latest=myregistry.com/other:test \
 			--filter-by-os=os/arch
 
 		# Copy all os/arch manifests of a multi-architecture image
-		# Run 'oc image info myregistry.com/myimage:latest' to see list of os/arch manifests that will be mirrored.
+		# Run 'oc image info myregistry.com/myimage:latest' to see list of os/arch manifests that will be mirrored
 		oc image mirror myregistry.com/myimage:latest=myregistry.com/other:test \
-			--filter-by-os=/*
+			--keep-manifest-list=true
+
+		# Note the above command is equivalent to
+		oc image mirror myregistry.com/myimage:latest=myregistry.com/other:test \
+			--filter-by-os=.*
 	`)
 )
 
@@ -168,7 +178,7 @@ func NewCmdMirrorImage(streams genericclioptions.IOStreams) *cobra.Command {
 	flag.BoolVar(&o.SkipMount, "skip-mount", o.SkipMount, "Always push layers instead of cross-mounting them")
 	flag.BoolVar(&o.SkipMultipleScopes, "skip-multiple-scopes", o.SkipMultipleScopes, "Some registries do not support multiple scopes passed to the registry login.")
 	flag.BoolVar(&o.Force, "force", o.Force, "Attempt to write all layers and manifests even if they exist in the remote repository.")
-	flag.BoolVar(&o.KeepManifestList, "keep-manifest-list", o.KeepManifestList, "If an image is part of a manifest list, always mirror the list even if only one image is found. The default is to mirror the specific image unless unless --filter-by-os is '.*'.")
+	flag.BoolVar(&o.KeepManifestList, "keep-manifest-list", o.KeepManifestList, "If an image is part of a manifest list, always mirror the list even if only one image is found. The default is to mirror the specific image unless unless --filter-by-os is passed. This flag is equivalent to setting --filter-by-os to '.*' since you cannot preserve the manifest list digest while filtering out any of the manifests included in the list.")
 	flag.IntVar(&o.MaxRegistry, "max-registry", o.MaxRegistry, "Number of concurrent registries to connect to at any one time.")
 	flag.StringSliceVar(&o.AttemptS3BucketCopy, "s3-source-bucket", o.AttemptS3BucketCopy, "A list of bucket/path locations on S3 that may contain already uploaded blobs. Add [store] to the end to use the container image registry path convention.")
 	flag.StringSliceVarP(&o.Filenames, "filename", "f", o.Filenames, "One or more files to read SRC=DST or SRC DST [DST ...] mappings from.")
@@ -179,6 +189,10 @@ func NewCmdMirrorImage(streams genericclioptions.IOStreams) *cobra.Command {
 }
 
 func (o *MirrorImageOptions) Complete(cmd *cobra.Command, args []string) error {
+	if o.KeepManifestList && len(o.FilterOptions.FilterByOS) == 0 {
+		o.FilterOptions.FilterByOS = ".*"
+	}
+
 	if err := o.FilterOptions.Complete(cmd.Flags()); err != nil {
 		return err
 	}
@@ -246,6 +260,9 @@ func (o *MirrorImageOptions) Repository(ctx context.Context, context *registrycl
 }
 
 func (o *MirrorImageOptions) Validate() error {
+	if o.KeepManifestList && len(o.FilterOptions.FilterByOS) > 0 && !o.FilterOptions.IsWildcardFilter() {
+		return fmt.Errorf("--keep-manifest-list=true cannot be passed with --filter-by-os, unless --filter-by-os=.*")
+	}
 	return o.FilterOptions.Validate()
 }
 
@@ -507,6 +524,13 @@ func (o *MirrorImageOptions) plan() (*plan, error) {
 						srcDigest := godigest.Digest(srcDigestString)
 						srcManifest, err := manifests.Get(ctx, godigest.Digest(srcDigest), imagemanifest.PreferManifestList)
 						if err != nil {
+							var unexpectedHTTPResponseError *client.UnexpectedHTTPResponseError
+							if o.SkipMissing && errors.As(err, &unexpectedHTTPResponseError) {
+								if unexpectedHTTPResponseError.StatusCode == 404 {
+									fmt.Fprintf(o.ErrOut, "warning: Image %s does not exist and will not be mirrored\n", err)
+									return
+								}
+							}
 							plan.AddError(retrieverError{src: src.ref, err: fmt.Errorf("unable to retrieve source image %s manifest %s: %v", src.ref, srcDigest, err)})
 							return
 						}
@@ -582,6 +606,7 @@ func (o *MirrorImageOptions) plan() (*plan, error) {
 									switch srcManifest.(type) {
 									case *schema2.DeserializedManifest:
 									case *schema1.SignedManifest:
+									case *ocischema.DeserializedManifest:
 									case *manifestlist.DeserializedManifestList:
 										// we do not need to upload layers in a manifestlist
 										continue
@@ -683,33 +708,33 @@ func copyBlob(ctx context.Context, plan *workPlan, c *repositoryBlobCopy, blob d
 		options = append(options, WithDescriptor(blob))
 	}
 
-	w, err := c.to.Create(ctx, options...)
-	// no-op
-	if err == ErrAlreadyExists {
-		klog.V(5).Infof("Blob already exists %#v", blob)
-		return nil
-	}
-
-	// mount successful
-	if ebm, ok := err.(distribution.ErrBlobMounted); ok {
-		klog.V(5).Infof("Blob mounted %#v", blob)
-		if ebm.From.Digest() != blob.Digest {
-			return fmt.Errorf("unable to push %s: tried to mount blob %s source and got back a different digest %s", c.fromRef, blob.Digest, ebm.From.Digest())
+	copyfn := func() error {
+		w, err := c.to.Create(ctx, options...)
+		// no-op
+		if err == ErrAlreadyExists {
+			klog.V(5).Infof("Blob already exists %#v", blob)
+			return nil
 		}
-		fmt.Fprintf(errOut, "mounted: %s %s %s\n", c.toRef, blob.Digest, units.BytesSize(float64(blob.Size)))
-		return nil
-	}
-	if err != nil {
-		return fmt.Errorf("unable to upload blob %s to %s: %v", blob.Digest, c.toRef, err)
-	}
 
-	if len(expectMount) > 0 {
-		fmt.Fprintf(errOut, "warning: Expected to mount %s from %s/%s but mount was ignored\n", blob.Digest, c.parent.parent.name, expectMount)
-	}
-
-	err = func() error {
-		klog.V(5).Infof("Uploading blob %s (%v)", blob.Digest, blob.URLs)
+		// mount successful
+		if ebm, ok := err.(distribution.ErrBlobMounted); ok {
+			klog.V(5).Infof("Blob mounted %#v", blob)
+			if ebm.From.Digest() != blob.Digest {
+				return fmt.Errorf("unable to push %s: tried to mount blob %s source and got back a different digest %s", c.fromRef, blob.Digest, ebm.From.Digest())
+			}
+			fmt.Fprintf(errOut, "mounted: %s %s %s\n", c.toRef, blob.Digest, units.BytesSize(float64(blob.Size)))
+			return nil
+		}
+		if err != nil {
+			return fmt.Errorf("unable to upload blob %s to %s: %v", blob.Digest, c.toRef, err)
+		}
 		defer w.Cancel(ctx)
+
+		if len(expectMount) > 0 {
+			fmt.Fprintf(errOut, "warning: Expected to mount %s from %s/%s but mount was ignored\n", blob.Digest, c.parent.parent.name, expectMount)
+		}
+
+		klog.V(5).Infof("Uploading blob %s (%v)", blob.Digest, blob.URLs)
 		r, err := from.Open(ctx, blob)
 		if err != nil {
 			return fmt.Errorf("unable to open source layer %s to copy to %s: %v", blob.Digest, c.toRef, err)
@@ -720,6 +745,7 @@ func copyBlob(ctx context.Context, plan *workPlan, c *repositoryBlobCopy, blob d
 
 		n, err := w.ReadFrom(r)
 		if err != nil {
+			klog.V(6).Infof("unable to copy layer %s to %s: %v", blob.Digest, c.toRef, err)
 			return fmt.Errorf("unable to copy layer %s to %s: %v", blob.Digest, c.toRef, err)
 		}
 		if n != blob.Size {
@@ -730,11 +756,15 @@ func copyBlob(ctx context.Context, plan *workPlan, c *repositoryBlobCopy, blob d
 		}
 		plan.BytesCopied(n)
 		return nil
-	}()
-	if err != nil {
-		return err
 	}
-	return nil
+
+	return retry.OnError(
+		retry.DefaultRetry,
+		func(err error) bool {
+			return strings.Contains(err.Error(), "REFUSED_STREAM")
+		},
+		copyfn,
+	)
 }
 
 // descriptorBlobSource abstracts copying blob contents from either a blob service or

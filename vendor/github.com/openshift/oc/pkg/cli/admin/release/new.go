@@ -14,6 +14,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 	"sync"
@@ -38,6 +39,7 @@ import (
 	imageapi "github.com/openshift/api/image/v1"
 	imageclient "github.com/openshift/client-go/image/clientset/versioned"
 	"github.com/openshift/library-go/pkg/image/dockerv1client"
+	"github.com/openshift/library-go/pkg/image/imageutil"
 	imagereference "github.com/openshift/library-go/pkg/image/reference"
 	imageappend "github.com/openshift/oc/pkg/cli/image/append"
 	"github.com/openshift/oc/pkg/cli/image/extract"
@@ -63,7 +65,7 @@ func NewRelease(f kcmdutil.Factory, streams genericclioptions.IOStreams) *cobra.
 		Use:   "new [SRC=DST ...]",
 		Short: "Create a new OpenShift release",
 		Long: templates.LongDesc(`
-			Build a new OpenShift release image that will update a cluster
+			Build a new OpenShift release image that will update a cluster.
 
 			OpenShift uses long-running active management processes called "operators" to
 			keep the cluster running and manage component lifecycle. This command
@@ -77,7 +79,7 @@ func NewRelease(f kcmdutil.Factory, streams genericclioptions.IOStreams) *cobra.
 			cluster version operator when it is time to perform an update. Manifest files are
 			renamed to '0000_70_<image_name>_<filename>' by default, and an operator author that
 			needs to provide a global-ordered file (before or after other operators) should
-			prepend '0000_NN_<component>_' to their filename, which instructs the release builder
+			prepend '0000_NN_<component>_' to their file name, which instructs the release builder
 			to not assign a component prefix. Only images in the input that have the image label
 			'io.openshift.release.operator=true' will have manifests loaded.
 
@@ -130,9 +132,10 @@ func NewRelease(f kcmdutil.Factory, streams genericclioptions.IOStreams) *cobra.
 
 	// properties of the release
 	flags.StringVar(&o.Name, "name", o.Name, "The name of the release. Will default to the current time.")
-	flags.StringSliceVar(&o.PreviousVersions, "previous", o.PreviousVersions, "A list of semantic versions that should preceed this version in the release manifest.")
+	flags.StringSliceVar(&o.PreviousVersions, "previous", o.PreviousVersions, "A list of semantic versions that should precede this version in the release manifest.")
 	flags.StringVar(&o.ReleaseMetadata, "metadata", o.ReleaseMetadata, "A JSON object to attach as the metadata for the release manifest.")
 	flags.BoolVar(&o.ForceManifest, "release-manifest", o.ForceManifest, "If true, a release manifest will be created using --name as the semantic version.")
+	flags.BoolVar(&o.KeepManifestList, "keep-manifest-list", o.KeepManifestList, "If an image is part of a manifest list, always mirror the list even if only one image is found.")
 
 	// validation
 	flags.BoolVar(&o.AllowMissingImages, "allow-missing-images", o.AllowMissingImages, "Ignore errors when an operator references a release image that is not included.")
@@ -187,6 +190,7 @@ type NewOptions struct {
 	ForceManifest    bool
 	ReleaseMetadata  string
 	PreviousVersions []string
+	KeepManifestList bool
 
 	DryRun bool
 
@@ -288,35 +292,6 @@ type imageData struct {
 	Directory     string
 }
 
-func findStatusTagEvents(tags []imageapi.NamedTagEventList, name string) *imageapi.NamedTagEventList {
-	for i := range tags {
-		tag := &tags[i]
-		if tag.Tag != name {
-			continue
-		}
-		return tag
-	}
-	return nil
-}
-
-func findStatusTagEvent(tags []imageapi.NamedTagEventList, name string) *imageapi.TagEvent {
-	events := findStatusTagEvents(tags, name)
-	if events == nil || len(events.Items) == 0 {
-		return nil
-	}
-	return &events.Items[0]
-}
-
-func findSpecTag(tags []imageapi.TagReference, name string) *imageapi.TagReference {
-	for i, tag := range tags {
-		if tag.Name != name {
-			continue
-		}
-		return &tags[i]
-	}
-	return nil
-}
-
 type CincinnatiMetadata struct {
 	Kind string `json:"kind"`
 
@@ -393,6 +368,15 @@ func (o *NewOptions) Run() error {
 		extractOpts := extract.NewExtractOptions(genericclioptions.IOStreams{Out: buf, ErrOut: o.ErrOut})
 		extractOpts.ParallelOptions = o.ParallelOptions
 		extractOpts.SecurityOptions = o.SecurityOptions
+		if o.KeepManifestList {
+			// we'll always use manifests from the linux/amd64 image, since the manifests
+			// won't differ between architectures, at least for now
+			re, err := regexp.Compile("linux/amd64")
+			if err != nil {
+				return err
+			}
+			extractOpts.FilterOptions.OSFilter = re
+		}
 		extractOpts.OnlyFiles = true
 		extractOpts.Mappings = []extract.Mapping{
 			{
@@ -400,7 +384,7 @@ func (o *NewOptions) Run() error {
 				From:     "release-manifests/",
 			},
 		}
-		extractOpts.ImageMetadataCallback = func(m *extract.Mapping, dgst, contentDigest digest.Digest, config *dockerv1client.DockerImageConfig) {
+		extractOpts.ImageMetadataCallback = func(m *extract.Mapping, dgst, contentDigest digest.Digest, config *dockerv1client.DockerImageConfig, manifestListDigest digest.Digest) {
 			verifier.Verify(dgst, contentDigest)
 			releaseDigest = contentDigest
 			if config.Config != nil {
@@ -461,7 +445,8 @@ func (o *NewOptions) Run() error {
 			ordered = append(ordered, tag.Name)
 		}
 
-		// default the base image to a matching release payload digest or error
+		// default the base image to a matching release payload base digest or
+		// if the base digest is invalid use release payload itself as base image.
 		if len(o.ToImageBase) == 0 && len(baseDigest) > 0 {
 			for _, tag := range is.Spec.Tags {
 				if tag.From == nil || tag.From.Kind != "DockerImage" {
@@ -477,7 +462,16 @@ func (o *NewOptions) Run() error {
 				}
 			}
 			if len(o.ToImageBase) == 0 {
-				return fmt.Errorf("unable to find an image within the release that matches the base image manifest %q, please specify --to-image-base", baseDigest)
+				if !o.KeepManifestList {
+					return fmt.Errorf("unable to find an image within the release that matches the base image manifest %q, please specify --to-image-base", baseDigest)
+				}
+
+				o.ToImageBase = o.FromReleaseImage
+				// ToImageBase is set and thereby, metadata is overridden.
+				// To skip verification, we need to set hasMetadataOverrides to true
+				// in order to behave similar when user passes --to-image-base flag.
+				hasMetadataOverrides = true
+				klog.V(2).Infof("unable to find an image within the release that matches the base image manifest %q, using --from-release %q as base image", baseDigest, o.FromReleaseImage)
 			}
 		}
 
@@ -810,6 +804,23 @@ func resolveImageStreamTagsToReferenceMode(inputIS, is *imageapi.ImageStream, re
 				continue
 			}
 
+			statusRef, refOk := imageutil.StatusHasTag(inputIS, ref.Name)
+
+			if ref.Generation != nil {
+				generation := *ref.Generation
+				if refOk && len(statusRef.Items) > 0 {
+					newest := statusRef.Items[0]
+					// spec tags that are waiting for import should prevent release building,
+					if generation > newest.Generation {
+						return fmt.Errorf("the tag %q in the source input stream has not been imported yet", statusRef.Tag)
+					}
+					// status tags should be used over spec tags because a push to a status tag can happen right after a
+					// spec tag was imported, so the status tag items have two images at generation N. Status tags always
+					// win except when the latest status tag hasn't been imported, which means "wait"
+					continue
+				}
+			}
+
 			if ref.From != nil && ref.From.Kind == "DockerImage" {
 				switch from, err := imagereference.Parse(ref.From.Name); {
 				case err != nil:
@@ -828,26 +839,23 @@ func resolveImageStreamTagsToReferenceMode(inputIS, is *imageapi.ImageStream, re
 					covered.Insert(ref.Name)
 
 				case len(from.Tag) > 0:
-					tag := findStatusTagEvents(inputIS.Status.Tags, ref.Name)
-					if tag == nil {
+					if !refOk {
+						klog.V(2).Infof("Can't use spec tag %q because the image has not been imported and all we have is a tag", ref.Name)
 						continue
 					}
-					if len(tag.Items) == 0 {
-						for _, condition := range tag.Conditions {
+					if len(statusRef.Items) == 0 {
+						for _, condition := range statusRef.Conditions {
 							if condition.Type == imageapi.ImportSuccess && condition.Status != metav1.StatusSuccess {
-								return fmt.Errorf("the tag %q in the source input stream has not been imported yet", tag.Tag)
+								return fmt.Errorf("the tag %q in the source input stream has not been imported yet", statusRef.Tag)
 							}
 						}
 						continue
 					}
-					if ref.Generation != nil && *ref.Generation != tag.Items[0].Generation {
-						return fmt.Errorf("the tag %q in the source input stream has not been imported yet", tag.Tag)
-					}
-					if len(tag.Items[0].Image) == 0 {
-						return fmt.Errorf("the tag %q in the source input stream has no image id", tag.Tag)
+					if len(statusRef.Items[0].Image) == 0 {
+						return fmt.Errorf("the tag %q in the source input stream has no image id", statusRef.Tag)
 					}
 
-					source := externalFn(tag.Items[0].DockerImageReference, tag.Items[0].Image)
+					source := externalFn(statusRef.Items[0].DockerImageReference, statusRef.Items[0].Image)
 					ref := ref.DeepCopy()
 					ref.From = &corev1.ObjectReference{Kind: "DockerImage", Name: source}
 					is.Spec.Tags = append(is.Spec.Tags, *ref)
@@ -855,7 +863,7 @@ func resolveImageStreamTagsToReferenceMode(inputIS, is *imageapi.ImageStream, re
 				}
 				continue
 			}
-			// TODO: support ImageStreamTag and ImageStreamImage
+			// all other type of tags are skipped, because we will pull directly from status tags
 		}
 
 		for _, tag := range inputIS.Status.Tags {
@@ -929,8 +937,17 @@ func (o *NewOptions) extractManifests(is *imageapi.ImageStream, name string, met
 	opts := extract.NewExtractOptions(genericclioptions.IOStreams{Out: o.Out, ErrOut: o.ErrOut})
 	opts.ParallelOptions = o.ParallelOptions
 	opts.SecurityOptions = o.SecurityOptions
+	if o.KeepManifestList {
+		// we'll always use manifests from the linux/amd64 image, since the manifests
+		// won't differ between architectures, at least for now
+		re, err := regexp.Compile("linux/amd64")
+		if err != nil {
+			return err
+		}
+		opts.FilterOptions.OSFilter = re
+	}
 	opts.OnlyFiles = true
-	opts.ImageMetadataCallback = func(m *extract.Mapping, dgst, contentDigest digest.Digest, config *dockerv1client.DockerImageConfig) {
+	opts.ImageMetadataCallback = func(m *extract.Mapping, dgst, contentDigest digest.Digest, config *dockerv1client.DockerImageConfig, manifestListDigest digest.Digest) {
 		verifier.Verify(dgst, contentDigest)
 
 		lock.Lock()
@@ -1056,6 +1073,7 @@ func (o *NewOptions) mirrorImages(is *imageapi.ImageStream) error {
 	opts.SkipRelease = true
 	opts.ParallelOptions = o.ParallelOptions
 	opts.SecurityOptions = o.SecurityOptions
+	opts.KeepManifestList = o.KeepManifestList
 
 	if err := opts.Run(); err != nil {
 		return err
@@ -1189,6 +1207,7 @@ func (o *NewOptions) write(r io.Reader, is *imageapi.ImageStream, now time.Time)
 		options.SecurityOptions = o.SecurityOptions
 		options.DryRun = o.DryRun
 		options.From = toImageBase
+		options.KeepManifestList = o.KeepManifestList
 		options.ConfigurationCallback = func(dgst, contentDigest digest.Digest, config *dockerv1client.DockerImageConfig) error {
 			verifier.Verify(dgst, contentDigest)
 			// reset any base image info
