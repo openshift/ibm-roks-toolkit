@@ -1,4 +1,4 @@
-# Source: https://github.com/openshift/cluster-authentication-operator/blob/release-4.11/bindata/oauth-openshift/trust_distribution_rolebinding.yaml
+# Source: https://github.com/openshift/cluster-authentication-operator/blob/release-4.12/bindata/oauth-openshift/trust_distribution_rolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
