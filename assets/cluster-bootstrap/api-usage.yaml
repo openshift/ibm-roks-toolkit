@@ -1,4 +1,4 @@
-# Source: https://github.com/openshift/cluster-kube-apiserver-operator/blob/release-4.11/bindata/assets/alerts/api-usage.yaml
+# Source: https://github.com/openshift/cluster-kube-apiserver-operator/blob/release-4.12/bindata/assets/alerts/api-usage.yaml
 # The ROKS toolkit processes this file as template and the substitution variables must
 # be escaped.
 # See https://github.com/openshift/ibm-roks-toolkit/pull/457#discussion_r841881070
