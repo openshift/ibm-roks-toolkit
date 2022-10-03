@@ -17,6 +17,8 @@
 // assets/cluster-bootstrap/csr_approver_clusterrolebinding.yaml
 // assets/cluster-bootstrap/ingress-to-route-controller-clusterrole.yaml
 // assets/cluster-bootstrap/ingress-to-route-controller-clusterrolebinding.yaml
+// assets/cluster-bootstrap/leader-ingress-to-route-controller-role.yaml
+// assets/cluster-bootstrap/leader-ingress-to-route-controller-rolebinding.yaml
 // assets/cluster-bootstrap/namespace-security-allocation-controller-clusterrole.yaml
 // assets/cluster-bootstrap/namespace-security-allocation-controller-clusterrolebinding.yaml
 // assets/cluster-bootstrap/node-bootstrapper-clusterrolebinding.yaml
@@ -24,6 +26,7 @@
 // assets/cluster-bootstrap/podsecurity-admission-label-syncer-controller-clusterrole.yaml
 // assets/cluster-bootstrap/podsecurity-admission-label-syncer-controller-clusterrolebinding.yaml
 // assets/cluster-bootstrap/podsecurity-alert.yaml
+// assets/cluster-bootstrap/route-controller-ns.yaml
 // assets/cluster-bootstrap/trust_distribution_role.yaml
 // assets/cluster-bootstrap/trust_distribution_rolebinding.yaml
 // assets/cluster-version-operator/cluster-version-operator-deployment.yaml
@@ -1756,6 +1759,67 @@ func clusterBootstrapIngressToRouteControllerClusterrolebindingYaml() (*asset, e
 	return a, nil
 }
 
+var _clusterBootstrapLeaderIngressToRouteControllerRoleYaml = []byte(`apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: system:openshift:openshift-controller-manager:leader-locking-ingress-to-route-controller
+  namespace: openshift-route-controller-manager
+rules:
+- apiGroups:
+  - "coordination.k8s.io"
+  resources:
+  - leases
+  verbs:
+  - get
+  - create
+  - update
+`)
+
+func clusterBootstrapLeaderIngressToRouteControllerRoleYamlBytes() ([]byte, error) {
+	return _clusterBootstrapLeaderIngressToRouteControllerRoleYaml, nil
+}
+
+func clusterBootstrapLeaderIngressToRouteControllerRoleYaml() (*asset, error) {
+	bytes, err := clusterBootstrapLeaderIngressToRouteControllerRoleYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "cluster-bootstrap/leader-ingress-to-route-controller-role.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _clusterBootstrapLeaderIngressToRouteControllerRolebindingYaml = []byte(`apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: system:openshift:openshift-controller-manager:leader-locking-ingress-to-route-controller
+  namespace: openshift-route-controller-manager
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: system:openshift:openshift-controller-manager:leader-locking-ingress-to-route-controller
+subjects:
+- kind: ServiceAccount
+  namespace: openshift-infra
+  name: ingress-to-route-controller
+`)
+
+func clusterBootstrapLeaderIngressToRouteControllerRolebindingYamlBytes() ([]byte, error) {
+	return _clusterBootstrapLeaderIngressToRouteControllerRolebindingYaml, nil
+}
+
+func clusterBootstrapLeaderIngressToRouteControllerRolebindingYaml() (*asset, error) {
+	bytes, err := clusterBootstrapLeaderIngressToRouteControllerRolebindingYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "cluster-bootstrap/leader-ingress-to-route-controller-rolebinding.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _clusterBootstrapNamespaceSecurityAllocationControllerClusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.12/bindata/assets/kube-controller-manager/namespace-security-allocation-controller-clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -2038,6 +2102,32 @@ func clusterBootstrapPodsecurityAlertYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "cluster-bootstrap/podsecurity-alert.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _clusterBootstrapRouteControllerNsYaml = []byte(`apiVersion: v1
+kind: Namespace
+metadata:
+  name: openshift-route-controller-manager
+  annotations:
+    openshift.io/node-selector: ""
+    workload.openshift.io/allowed: "management"
+  labels:
+    openshift.io/cluster-monitoring: "true"
+`)
+
+func clusterBootstrapRouteControllerNsYamlBytes() ([]byte, error) {
+	return _clusterBootstrapRouteControllerNsYaml, nil
+}
+
+func clusterBootstrapRouteControllerNsYaml() (*asset, error) {
+	bytes, err := clusterBootstrapRouteControllerNsYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "cluster-bootstrap/route-controller-ns.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -6070,6 +6160,8 @@ var _bindata = map[string]func() (*asset, error){
 	"cluster-bootstrap/csr_approver_clusterrolebinding.yaml":                                  clusterBootstrapCsr_approver_clusterrolebindingYaml,
 	"cluster-bootstrap/ingress-to-route-controller-clusterrole.yaml":                          clusterBootstrapIngressToRouteControllerClusterroleYaml,
 	"cluster-bootstrap/ingress-to-route-controller-clusterrolebinding.yaml":                   clusterBootstrapIngressToRouteControllerClusterrolebindingYaml,
+	"cluster-bootstrap/leader-ingress-to-route-controller-role.yaml":                          clusterBootstrapLeaderIngressToRouteControllerRoleYaml,
+	"cluster-bootstrap/leader-ingress-to-route-controller-rolebinding.yaml":                   clusterBootstrapLeaderIngressToRouteControllerRolebindingYaml,
 	"cluster-bootstrap/namespace-security-allocation-controller-clusterrole.yaml":             clusterBootstrapNamespaceSecurityAllocationControllerClusterroleYaml,
 	"cluster-bootstrap/namespace-security-allocation-controller-clusterrolebinding.yaml":      clusterBootstrapNamespaceSecurityAllocationControllerClusterrolebindingYaml,
 	"cluster-bootstrap/node-bootstrapper-clusterrolebinding.yaml":                             clusterBootstrapNodeBootstrapperClusterrolebindingYaml,
@@ -6077,6 +6169,7 @@ var _bindata = map[string]func() (*asset, error){
 	"cluster-bootstrap/podsecurity-admission-label-syncer-controller-clusterrole.yaml":        clusterBootstrapPodsecurityAdmissionLabelSyncerControllerClusterroleYaml,
 	"cluster-bootstrap/podsecurity-admission-label-syncer-controller-clusterrolebinding.yaml": clusterBootstrapPodsecurityAdmissionLabelSyncerControllerClusterrolebindingYaml,
 	"cluster-bootstrap/podsecurity-alert.yaml":                                                clusterBootstrapPodsecurityAlertYaml,
+	"cluster-bootstrap/route-controller-ns.yaml":                                              clusterBootstrapRouteControllerNsYaml,
 	"cluster-bootstrap/trust_distribution_role.yaml":                                          clusterBootstrapTrust_distribution_roleYaml,
 	"cluster-bootstrap/trust_distribution_rolebinding.yaml":                                   clusterBootstrapTrust_distribution_rolebindingYaml,
 	"cluster-version-operator/cluster-version-operator-deployment.yaml":                       clusterVersionOperatorClusterVersionOperatorDeploymentYaml,
@@ -6197,6 +6290,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"csr_approver_clusterrolebinding.yaml":                                  {clusterBootstrapCsr_approver_clusterrolebindingYaml, map[string]*bintree{}},
 		"ingress-to-route-controller-clusterrole.yaml":                          {clusterBootstrapIngressToRouteControllerClusterroleYaml, map[string]*bintree{}},
 		"ingress-to-route-controller-clusterrolebinding.yaml":                   {clusterBootstrapIngressToRouteControllerClusterrolebindingYaml, map[string]*bintree{}},
+		"leader-ingress-to-route-controller-role.yaml":                          {clusterBootstrapLeaderIngressToRouteControllerRoleYaml, map[string]*bintree{}},
+		"leader-ingress-to-route-controller-rolebinding.yaml":                   {clusterBootstrapLeaderIngressToRouteControllerRolebindingYaml, map[string]*bintree{}},
 		"namespace-security-allocation-controller-clusterrole.yaml":             {clusterBootstrapNamespaceSecurityAllocationControllerClusterroleYaml, map[string]*bintree{}},
 		"namespace-security-allocation-controller-clusterrolebinding.yaml":      {clusterBootstrapNamespaceSecurityAllocationControllerClusterrolebindingYaml, map[string]*bintree{}},
 		"node-bootstrapper-clusterrolebinding.yaml":                             {clusterBootstrapNodeBootstrapperClusterrolebindingYaml, map[string]*bintree{}},
@@ -6204,6 +6299,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"podsecurity-admission-label-syncer-controller-clusterrole.yaml":        {clusterBootstrapPodsecurityAdmissionLabelSyncerControllerClusterroleYaml, map[string]*bintree{}},
 		"podsecurity-admission-label-syncer-controller-clusterrolebinding.yaml": {clusterBootstrapPodsecurityAdmissionLabelSyncerControllerClusterrolebindingYaml, map[string]*bintree{}},
 		"podsecurity-alert.yaml":                                                {clusterBootstrapPodsecurityAlertYaml, map[string]*bintree{}},
+		"route-controller-ns.yaml":                                              {clusterBootstrapRouteControllerNsYaml, map[string]*bintree{}},
 		"trust_distribution_role.yaml":                                          {clusterBootstrapTrust_distribution_roleYaml, map[string]*bintree{}},
 		"trust_distribution_rolebinding.yaml":                                   {clusterBootstrapTrust_distribution_rolebindingYaml, map[string]*bintree{}},
 	}},
