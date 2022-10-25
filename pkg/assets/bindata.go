@@ -3671,7 +3671,7 @@ func kubeControllerManagerKubeControllerManagerDeploymentYaml() (*asset, error) 
 	return a, nil
 }
 
-var _kubeSchedulerConfigYaml = []byte(`apiVersion: kubescheduler.config.k8s.io/v1beta2
+var _kubeSchedulerConfigYaml = []byte(`apiVersion: kubescheduler.config.k8s.io/v1
 kind: KubeSchedulerConfiguration
 clientConnection:
   kubeconfig: "/etc/kubernetes/secret/kubeconfig"
