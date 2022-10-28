@@ -170,6 +170,11 @@ metadata:
 apiVersion: v1
 kind: Namespace
 metadata:
+  name: openshift-etcd-operator
+---
+apiVersion: v1
+kind: Namespace
+metadata:
   labels:
     network.openshift.io/policy-group: ingress
     openshift.io/cluster-monitoring: "true"
