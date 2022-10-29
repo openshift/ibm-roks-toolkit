@@ -4717,6 +4717,7 @@ aggregatorConfig:
 apiServerArguments:
   minimal-shutdown-duration:
   - 3s
+  audit-log-maxbackup: "10"
 auditConfig:
   auditFilePath: "/var/run/kubernetes/audit.log"
   enabled: true
