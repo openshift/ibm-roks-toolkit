@@ -2551,12 +2551,8 @@ admission:
         kind: PodSecurityConfiguration
         apiVersion: pod-security.admission.config.k8s.io/v1beta1
         defaults:
-          enforce: "privileged"
+          enforce: "restricted"
           enforce-version: "latest"
-          audit: "restricted"
-          audit-version: "latest"
-          warn: "restricted"
-          warn-version: "latest"
         exemptions:
           usernames:
           - system:serviceaccount:openshift-infra:build-controller
