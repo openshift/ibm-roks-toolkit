@@ -4894,7 +4894,7 @@ spec:
 {{ if .MasterPriorityClass }}
       priorityClassName: {{ .MasterPriorityClass }}
 {{ end }}
-      terminationGracePeriodSeconds: 90
+      terminationGracePeriodSeconds: 120
       containers:
       - name: openshift-apiserver
 {{- if .OpenshiftAPIServerSecurityContext }}
