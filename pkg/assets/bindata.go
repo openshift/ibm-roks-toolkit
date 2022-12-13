@@ -2947,7 +2947,7 @@ spec:
 {{ if .MasterPriorityClass }}
       priorityClassName: {{ .MasterPriorityClass }}
 {{ end }}
-      terminationGracePeriodSeconds: 90
+      terminationGracePeriodSeconds: 120
       initContainers:
       - image: {{ imageFor "cluster-config-operator" }}
 {{- if .ClusterConfigOperatorSecurityContext }}
@@ -4894,7 +4894,7 @@ spec:
 {{ if .MasterPriorityClass }}
       priorityClassName: {{ .MasterPriorityClass }}
 {{ end }}
-      terminationGracePeriodSeconds: 120
+      terminationGracePeriodSeconds: 90
       containers:
       - name: openshift-apiserver
 {{- if .OpenshiftAPIServerSecurityContext }}
