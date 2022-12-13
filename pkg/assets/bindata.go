@@ -3178,6 +3178,8 @@ spec:
           value: /healthz
         - name: HEALTHZ_PORT
           value: ":8081"
+        - name: SHUTDOWN_DELAY_IN_SECONDS
+          value: "90"
         volumeMounts:
         - name: kms-socket
           mountPath: /tmp
