@@ -2947,7 +2947,7 @@ spec:
 {{ if .MasterPriorityClass }}
       priorityClassName: {{ .MasterPriorityClass }}
 {{ end }}
-      terminationGracePeriodSeconds: 90
+      terminationGracePeriodSeconds: 120
       initContainers:
       - image: {{ imageFor "cluster-config-operator" }}
 {{- if .ClusterConfigOperatorSecurityContext }}
@@ -3178,6 +3178,8 @@ spec:
           value: /healthz
         - name: HEALTHZ_PORT
           value: ":8081"
+        - name: SHUTDOWN_DELAY_IN_SECONDS
+          value: "90"
         volumeMounts:
         - name: kms-socket
           mountPath: /tmp
