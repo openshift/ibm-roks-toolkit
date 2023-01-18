@@ -84,6 +84,9 @@
 // assets/roks-metrics/roks-metrics-service.yaml
 // assets/roks-metrics/roks-metrics-serviceaccount.yaml
 // assets/roks-metrics/roks-metrics-servicemonitor.yaml
+// assets/route-controller-manager/config.yaml
+// assets/route-controller-manager/route-controller-manager-config-configmap.yaml
+// assets/route-controller-manager/route-controller-manager-deployment.yaml
 // assets/user-manifests-bootstrapper/user-manifest-template.yaml
 // assets/user-manifests-bootstrapper/user-manifests-bootstrapper-pod.yaml
 // DO NOT EDIT!
@@ -5950,6 +5953,204 @@ func roksMetricsRoksMetricsServicemonitorYaml() (*asset, error) {
 	return a, nil
 }
 
+var _routeControllerManagerConfigYaml = []byte(`apiVersion: openshiftcontrolplane.config.openshift.io/v1
+kind: OpenShiftControllerManagerConfig
+build:
+  buildDefaults:
+    resources: {}
+  imageTemplateFormat:
+    format: {{ imageFor "docker-builder" }}
+deployer:
+  imageTemplateFormat:
+    format: {{ imageFor "deployer" }}
+dockerPullSecret:
+  internalRegistryHostname: image-registry.openshift-image-registry.svc:5000
+ingress:
+  ingressIPNetworkCIDR: ''
+kubeClientConfig:
+  kubeConfig: /etc/kubernetes/secret/kubeconfig
+servingInfo:
+  certFile: /etc/kubernetes/secret/server.crt
+  keyFile: /etc/kubernetes/secret/server.key
+  clientCA: /etc/kubernetes/config/serving-ca.crt
+  cipherSuites:
+  - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+  - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+  - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+  - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+  - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305
+  - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
+`)
+
+func routeControllerManagerConfigYamlBytes() ([]byte, error) {
+	return _routeControllerManagerConfigYaml, nil
+}
+
+func routeControllerManagerConfigYaml() (*asset, error) {
+	bytes, err := routeControllerManagerConfigYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "route-controller-manager/config.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _routeControllerManagerRouteControllerManagerConfigConfigmapYaml = []byte(`kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: route-controller-manager-config
+data:
+  config.yaml: |-
+{{ include "route-controller-manager/config.yaml" 4 }}
+`)
+
+func routeControllerManagerRouteControllerManagerConfigConfigmapYamlBytes() ([]byte, error) {
+	return _routeControllerManagerRouteControllerManagerConfigConfigmapYaml, nil
+}
+
+func routeControllerManagerRouteControllerManagerConfigConfigmapYaml() (*asset, error) {
+	bytes, err := routeControllerManagerRouteControllerManagerConfigConfigmapYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "route-controller-manager/route-controller-manager-config-configmap.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _routeControllerManagerRouteControllerManagerDeploymentYaml = []byte(`kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: route-controller-manager
+spec:
+  replicas: {{ .Replicas }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: route-controller-manager
+  minReadySeconds: 30
+  template:
+    metadata:
+      labels:
+        app: route-controller-manager
+        clusterID: "{{ .ClusterID }}"
+{{ if .RestartDate }}
+      annotations:
+        openshift.io/restartedAt: "{{ .RestartDate }}"
+{{ end }}
+    spec:
+      tolerations:
+        - key: "dedicated"
+          operator: "Equal"
+          value: "master-{{ .ClusterID }}"
+          effect: NoSchedule
+        - key: "multi-az-worker"
+          operator: "Equal"
+          value: "true"
+          effect: NoSchedule
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: dedicated
+                operator: In
+                values:
+                - master-{{ .ClusterID }}
+        podAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: clusterID
+                      operator: In
+                      values: ["{{ .ClusterID }}"]
+                topologyKey: "kubernetes.io/hostname"
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: ["route-controller-manager"]
+              topologyKey: "kubernetes.io/hostname"
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values: ["route-controller-manager"]
+              topologyKey: "topology.kubernetes.io/zone"
+      automountServiceAccountToken: false
+{{ if .MasterPriorityClass }}
+      priorityClassName: {{ .MasterPriorityClass }}
+{{ end }}
+      terminationGracePeriodSeconds: 90
+      containers:
+      - name: route-controller-manager
+{{- if .RouteControllerManagerSecurityContext }}
+{{- $securityContext := .RouteControllerManagerSecurityContext }}
+        securityContext:
+          runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
+        image: {{ imageFor "route-controller-manager" }}
+        command:
+        - "route-controller-manager"
+        args:
+        - "start"
+        - "--config=/etc/kubernetes/rcmconfig/config.yaml"
+{{ if .RouteControllerManagerResources }}
+        resources:{{ range .RouteControllerManagerResources }}{{ range .ResourceRequest }}
+          requests: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ range .ResourceLimit }}
+          limits: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
+{{ end }}
+        volumeMounts:
+        - mountPath: /etc/kubernetes/secret
+          name: secret
+        - mountPath: /etc/kubernetes/rcmconfig
+          name: rcmconfig
+        - mountPath: /etc/kubernetes/config
+          name: config
+      volumes:
+      - secret:
+          secretName: route-controller-manager
+          defaultMode: 0640
+        name: secret
+      - configMap:
+          name: route-controller-manager
+        name: config
+      - configMap:
+          name: route-controller-manager-config
+        name: rcmconfig
+`)
+
+func routeControllerManagerRouteControllerManagerDeploymentYamlBytes() ([]byte, error) {
+	return _routeControllerManagerRouteControllerManagerDeploymentYaml, nil
+}
+
+func routeControllerManagerRouteControllerManagerDeploymentYaml() (*asset, error) {
+	bytes, err := routeControllerManagerRouteControllerManagerDeploymentYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "route-controller-manager/route-controller-manager-deployment.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _userManifestsBootstrapperUserManifestTemplateYaml = []byte(`kind: ConfigMap
 apiVersion: v1
 metadata:
@@ -6242,6 +6443,9 @@ var _bindata = map[string]func() (*asset, error){
 	"roks-metrics/roks-metrics-service.yaml":                                                  roksMetricsRoksMetricsServiceYaml,
 	"roks-metrics/roks-metrics-serviceaccount.yaml":                                           roksMetricsRoksMetricsServiceaccountYaml,
 	"roks-metrics/roks-metrics-servicemonitor.yaml":                                           roksMetricsRoksMetricsServicemonitorYaml,
+	"route-controller-manager/config.yaml":                                                    routeControllerManagerConfigYaml,
+	"route-controller-manager/route-controller-manager-config-configmap.yaml":                 routeControllerManagerRouteControllerManagerConfigConfigmapYaml,
+	"route-controller-manager/route-controller-manager-deployment.yaml":                       routeControllerManagerRouteControllerManagerDeploymentYaml,
 	"user-manifests-bootstrapper/user-manifest-template.yaml":                                 userManifestsBootstrapperUserManifestTemplateYaml,
 	"user-manifests-bootstrapper/user-manifests-bootstrapper-pod.yaml":                        userManifestsBootstrapperUserManifestsBootstrapperPodYaml,
 }
@@ -6396,6 +6600,11 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"roks-metrics-service.yaml":                     {roksMetricsRoksMetricsServiceYaml, map[string]*bintree{}},
 		"roks-metrics-serviceaccount.yaml":              {roksMetricsRoksMetricsServiceaccountYaml, map[string]*bintree{}},
 		"roks-metrics-servicemonitor.yaml":              {roksMetricsRoksMetricsServicemonitorYaml, map[string]*bintree{}},
+	}},
+	"route-controller-manager": {nil, map[string]*bintree{
+		"config.yaml": {routeControllerManagerConfigYaml, map[string]*bintree{}},
+		"route-controller-manager-config-configmap.yaml": {routeControllerManagerRouteControllerManagerConfigConfigmapYaml, map[string]*bintree{}},
+		"route-controller-manager-deployment.yaml":       {routeControllerManagerRouteControllerManagerDeploymentYaml, map[string]*bintree{}},
 	}},
 	"user-manifests-bootstrapper": {nil, map[string]*bintree{
 		"user-manifest-template.yaml":          {userManifestsBootstrapperUserManifestTemplateYaml, map[string]*bintree{}},
