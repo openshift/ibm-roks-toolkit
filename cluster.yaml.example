@@ -69,6 +69,13 @@ openshiftControllerManagerResources:
     - resourceLimit:
         - cpu: 200m
           memory: 200Mi
+routeControllerManagerResources:
+    - resourceRequest:
+        - cpu: 23m
+          memory: 78Mi
+    - resourceLimit:
+        - cpu: 200m
+          memory: 200Mi
 clusterVersionOperatorResources:
     - resourceRequest:
         - cpu: 12m
@@ -197,6 +204,8 @@ kubeControllerManagerSecurityContext:
 openshiftAPIServerSecurityContext:
   runAsUser: 1000
 openshiftControllerManagerSecurityContext:
+  runAsUser: 1000
+routeControllerManagerSecurityContext:
   runAsUser: 1000
 clusterPolicyControllerSecurityContext:
   runAsUser: 1000

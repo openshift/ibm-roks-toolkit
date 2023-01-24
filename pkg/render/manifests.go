@@ -58,6 +58,7 @@ func (c *clusterManifestContext) setupManifests(externalOauth, includeRegistry, 
 	c.openshiftAPIServer()
 	c.oauthAPIServer()
 	c.openshiftControllerManager()
+	c.routeControllerManager()
 	if externalOauth {
 		c.oauthOpenshiftServer()
 	}
@@ -196,6 +197,13 @@ func (c *clusterManifestContext) openshiftControllerManager() {
 	c.addUserManifestFiles(
 		"openshift-controller-manager/00-openshift-controller-manager-namespace.yaml",
 		"openshift-controller-manager/openshift-controller-manager-service-ca.yaml",
+	)
+}
+
+func (c *clusterManifestContext) routeControllerManager() {
+	c.addManifestFiles(
+		"route-controller-manager/route-controller-manager-deployment.yaml",
+		"route-controller-manager/route-controller-manager-config-configmap.yaml",
 	)
 }
 

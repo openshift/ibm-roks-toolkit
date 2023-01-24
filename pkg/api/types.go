@@ -33,6 +33,7 @@ type ClusterParams struct {
 	RouterServiceType                         string                 `json:"routerServiceType"`
 	KubeAPIServerResources                    []ResourceRequirements `json:"kubeAPIServerResources"`
 	OpenshiftControllerManagerResources       []ResourceRequirements `json:"openshiftControllerManagerResources"`
+	RouteControllerManagerResources           []ResourceRequirements `json:"routeControllerManagerResources"`
 	ClusterVersionOperatorResources           []ResourceRequirements `json:"clusterVersionOperatorResources"`
 	KubeControllerManagerResources            []ResourceRequirements `json:"kubeControllerManagerResources"`
 	OpenshiftAPIServerResources               []ResourceRequirements `json:"openshiftAPIServerResources"`
@@ -67,6 +68,7 @@ type ClusterParams struct {
 	OpenshiftAPIServerSecurityContext         *SecurityContext       `json:"openshiftAPIServerSecurityContext"`
 	OauthAPIServerSecurityContext             *SecurityContext       `json:"oauthAPIServerSecurityContext"`
 	OpenshiftControllerManagerSecurityContext *SecurityContext       `json:"openshiftControllerManagerSecurityContext"`
+	RouteControllerManagerSecurityContext     *SecurityContext       `json:"routeControllerManagerSecurityContext"`
 	PortierisSecurityContext                  *SecurityContext       `json:"portierisSecurityContext"`
 	ClusterVersionOperatorSecurityContext     *SecurityContext       `json:"clusterVersionOperatorSecurityContext"`
 	KMSSecurityContext                        *SecurityContext       `json:"kmsSecurityContext"`
