@@ -207,8 +207,8 @@ type listerInformer struct {
 	cacheSynced cache.InformerSynced
 }
 
-func (l *listerInformer) AddEventHandler(cache.ResourceEventHandler) {
-	return
+func (l *listerInformer) AddEventHandler(cache.ResourceEventHandler) (cache.ResourceEventHandlerRegistration, error) {
+	return nil, nil
 }
 
 func (l *listerInformer) HasSynced() bool {
