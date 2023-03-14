@@ -1,7 +1,7 @@
 # IBM-ROKS Toolkit
 
 ## Overview
-The IBM-ROKS toolkit is a set of tools and files that enables running OpenShift 4.x on IBM Public Cloud in a hyperscale manner with many control planes hosted on a central management cluster. 
+The IBM-ROKS toolkit is a set of tools and files that enables running OpenShift x on IBM Public Cloud in a hyperscale manner with many control planes hosted on a central management cluster. 
 This tool was jointly developed by RedHat and IBM.
 
 ## Getting Started
