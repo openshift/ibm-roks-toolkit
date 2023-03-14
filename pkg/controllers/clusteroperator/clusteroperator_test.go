@@ -15,7 +15,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kubeclient "k8s.io/client-go/kubernetes"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
-	"sigs.k8s.io/controller-runtime/pkg/envtest/printer"
 )
 
 var (
@@ -29,9 +28,7 @@ var (
 func TestClusterOperator(t *testing.T) {
 	RegisterFailHandler(Fail)
 
-	RunSpecsWithDefaultAndCustomReporters(t,
-		"Control Plane Operator (Cluster Operator Controller) Suite",
-		[]Reporter{printer.NewlineReporter{}})
+	RunSpecs(t, "Control Plane Operator (Cluster Operator Controller) Suite")
 }
 
 var _ = BeforeSuite(func() {
