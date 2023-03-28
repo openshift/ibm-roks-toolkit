@@ -2654,6 +2654,7 @@ apiServerArguments:
   - security.openshift.io/SCCExecRestrictions
   - security.openshift.io/SecurityContextConstraint
   - security.openshift.io/ValidateSecurityContextConstraints
+  - storage.openshift.io/CSIInlineVolumeSecurity
   enable-aggregator-routing:
   - 'true'
   enable-logs-handler:
