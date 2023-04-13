@@ -5597,7 +5597,6 @@ spec:
         image: {{ .ROKSMetricsImage }}
         imagePullPolicy: IfNotPresent
         args:
-        - "--alsologtostderr"
         - "--v=3"
         - "--listen=:8443"
         ports:
