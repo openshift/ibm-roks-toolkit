@@ -1,4 +1,4 @@
-# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.12/bindata/assets/kube-controller-manager/podsecurity-admission-label-syncer-controller-clusterrole.yaml
+# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.13/bindata/assets/kube-controller-manager/podsecurity-admission-label-syncer-controller-clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -36,7 +36,7 @@ rules:
 - apiGroups:
   - security.openshift.io
   resources:
-  - securitycontextconstraings
+  - securitycontextconstraints
   verbs:
   - get
   - list
