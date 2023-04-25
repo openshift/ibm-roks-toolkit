@@ -2040,7 +2040,7 @@ rules:
 - apiGroups:
   - security.openshift.io
   resources:
-  - securitycontextconstraings
+  - securitycontextconstraints
   verbs:
   - get
   - list
