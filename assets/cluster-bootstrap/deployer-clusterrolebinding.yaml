@@ -1,0 +1,16 @@
+# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.13/bindata/v3.11.0/openshift-controller-manager/deployer-clusterrolebinding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  annotations:
+    rbac.authorization.kubernetes.io/autoupdate: "true"
+  creationTimestamp: null
+  name: system:deployer
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:deployer
+subjects:
+  - kind: ServiceAccount
+    name: default-rolebindings-controller
+    namespace: openshift-infra
