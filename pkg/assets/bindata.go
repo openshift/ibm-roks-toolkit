@@ -16,6 +16,8 @@
 // assets/cluster-bootstrap/cluster-version.yaml
 // assets/cluster-bootstrap/csr_approver_clusterrole.yaml
 // assets/cluster-bootstrap/csr_approver_clusterrolebinding.yaml
+// assets/cluster-bootstrap/deployer-clusterrole.yaml
+// assets/cluster-bootstrap/deployer-clusterrolebinding.yaml
 // assets/cluster-bootstrap/ingress-to-route-controller-clusterrole.yaml
 // assets/cluster-bootstrap/ingress-to-route-controller-clusterrolebinding.yaml
 // assets/cluster-bootstrap/leader-ingress-to-route-controller-role.yaml
@@ -1696,6 +1698,121 @@ func clusterBootstrapCsr_approver_clusterrolebindingYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "cluster-bootstrap/csr_approver_clusterrolebinding.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _clusterBootstrapDeployerClusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.13/bindata/v3.11.0/openshift-controller-manager/deployer-clusterrole.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  annotations:
+    openshift.io/description: Grants the right to deploy within a project.  Used
+      primarily with service accounts for automated deployments.
+    rbac.authorization.kubernetes.io/autoupdate: "true"
+  creationTimestamp: null
+  name: system:deployer
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - replicationcontrollers
+    verbs:
+      - delete
+  - apiGroups:
+      - ""
+    resources:
+      - replicationcontrollers
+    verbs:
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - replicationcontrollers/scale
+    verbs:
+      - get
+      - update
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+    verbs:
+      - create
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - pods/log
+    verbs:
+      - get
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create
+      - list
+  - apiGroups:
+      - ""
+      - image.openshift.io
+    resources:
+      - imagestreamtags
+      - imagetags
+    verbs:
+      - create
+      - update
+`)
+
+func clusterBootstrapDeployerClusterroleYamlBytes() ([]byte, error) {
+	return _clusterBootstrapDeployerClusterroleYaml, nil
+}
+
+func clusterBootstrapDeployerClusterroleYaml() (*asset, error) {
+	bytes, err := clusterBootstrapDeployerClusterroleYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "cluster-bootstrap/deployer-clusterrole.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _clusterBootstrapDeployerClusterrolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.13/bindata/v3.11.0/openshift-controller-manager/deployer-clusterrolebinding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  annotations:
+    rbac.authorization.kubernetes.io/autoupdate: "true"
+  creationTimestamp: null
+  name: system:deployer
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:deployer
+subjects:
+  - kind: ServiceAccount
+    name: default-rolebindings-controller
+    namespace: openshift-infra
+`)
+
+func clusterBootstrapDeployerClusterrolebindingYamlBytes() ([]byte, error) {
+	return _clusterBootstrapDeployerClusterrolebindingYaml, nil
+}
+
+func clusterBootstrapDeployerClusterrolebindingYaml() (*asset, error) {
+	bytes, err := clusterBootstrapDeployerClusterrolebindingYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "cluster-bootstrap/deployer-clusterrolebinding.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -6390,6 +6507,8 @@ var _bindata = map[string]func() (*asset, error){
 	"cluster-bootstrap/cluster-version.yaml":                                                  clusterBootstrapClusterVersionYaml,
 	"cluster-bootstrap/csr_approver_clusterrole.yaml":                                         clusterBootstrapCsr_approver_clusterroleYaml,
 	"cluster-bootstrap/csr_approver_clusterrolebinding.yaml":                                  clusterBootstrapCsr_approver_clusterrolebindingYaml,
+	"cluster-bootstrap/deployer-clusterrole.yaml":                                             clusterBootstrapDeployerClusterroleYaml,
+	"cluster-bootstrap/deployer-clusterrolebinding.yaml":                                      clusterBootstrapDeployerClusterrolebindingYaml,
 	"cluster-bootstrap/ingress-to-route-controller-clusterrole.yaml":                          clusterBootstrapIngressToRouteControllerClusterroleYaml,
 	"cluster-bootstrap/ingress-to-route-controller-clusterrolebinding.yaml":                   clusterBootstrapIngressToRouteControllerClusterrolebindingYaml,
 	"cluster-bootstrap/leader-ingress-to-route-controller-role.yaml":                          clusterBootstrapLeaderIngressToRouteControllerRoleYaml,
@@ -6525,6 +6644,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"cluster-version.yaml":                                                  {clusterBootstrapClusterVersionYaml, map[string]*bintree{}},
 		"csr_approver_clusterrole.yaml":                                         {clusterBootstrapCsr_approver_clusterroleYaml, map[string]*bintree{}},
 		"csr_approver_clusterrolebinding.yaml":                                  {clusterBootstrapCsr_approver_clusterrolebindingYaml, map[string]*bintree{}},
+		"deployer-clusterrole.yaml":                                             {clusterBootstrapDeployerClusterroleYaml, map[string]*bintree{}},
+		"deployer-clusterrolebinding.yaml":                                      {clusterBootstrapDeployerClusterrolebindingYaml, map[string]*bintree{}},
 		"ingress-to-route-controller-clusterrole.yaml":                          {clusterBootstrapIngressToRouteControllerClusterroleYaml, map[string]*bintree{}},
 		"ingress-to-route-controller-clusterrolebinding.yaml":                   {clusterBootstrapIngressToRouteControllerClusterrolebindingYaml, map[string]*bintree{}},
 		"leader-ingress-to-route-controller-role.yaml":                          {clusterBootstrapLeaderIngressToRouteControllerRoleYaml, map[string]*bintree{}},
