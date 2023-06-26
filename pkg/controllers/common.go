@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"time"
 
 	"k8s.io/apimachinery/pkg/types"
@@ -17,7 +18,7 @@ const (
 func NamedResourceHandler(names ...string) handler.EventHandler {
 
 	nameSet := sets.NewString(names...)
-	return handler.EnqueueRequestsFromMapFunc(func(obj client.Object) []reconcile.Request {
+	return handler.EnqueueRequestsFromMapFunc(func(ctx context.Context, obj client.Object) []reconcile.Request {
 		if !nameSet.Has(obj.GetName()) {
 			return nil
 		}
