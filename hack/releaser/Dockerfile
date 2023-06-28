@@ -1,4 +1,4 @@
-FROM registry.ci.openshift.org/openshift/release:rhel-8-release-golang-1.19-openshift-4.13
+FROM registry.ci.openshift.org/openshift/release:rhel-8-release-golang-1.20-openshift-4.14
 # TODO(jonesbr): Revert this back to yum install when we figure out why it
 # doesn't work by default on a rhel8 image
 RUN curl -OL https://github.com/github/hub/releases/download/v2.14.2/hub-linux-amd64-2.14.2.tgz && \
