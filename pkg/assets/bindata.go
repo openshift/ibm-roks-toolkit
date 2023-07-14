@@ -2867,12 +2867,12 @@ apiServerArguments:
   - etcd3
   storage-media-type:
   - application/vnd.kubernetes.protobuf
+  strict-transport-security-directives:
+  - max-age=31536000
   tls-cert-file:
   - /etc/kubernetes/secret/server.crt
   tls-private-key-file:
   - /etc/kubernetes/secret/server.key
-  strict-transport-security-directives:
-  - max-age=31536000
 authConfig:
   oauthMetadataFile: "/etc/kubernetes/oauth/oauthMetadata.json"
 consolePublicURL: 'https://console-openshift-console.{{ .IngressSubdomain }}'
