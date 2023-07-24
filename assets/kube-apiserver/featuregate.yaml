@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: FeatureGate
+metadata:
+  name: cluster
+spec:
+  featureSet: CustomNoUpgrade
+  customNoUpgrade:
+    enabled:
+    - RotateKubeletServerCertificate
+    disabled:
+    - RetroactiveDefaultStorageClass
