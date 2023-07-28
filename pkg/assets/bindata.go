@@ -33,8 +33,10 @@
 // assets/cluster-bootstrap/trust_distribution_rolebinding.yaml
 // assets/cluster-version-operator/cluster-version-operator-deployment.yaml
 // assets/control-plane-operator/cp-operator-deployment.yaml
+// assets/kube-apiserver/cluster-featuregate.yaml
 // assets/kube-apiserver/config.yaml
 // assets/kube-apiserver/default-audit-policy.yaml
+// assets/kube-apiserver/featuregate.yaml
 // assets/kube-apiserver/kube-apiserver-config-configmap.yaml
 // assets/kube-apiserver/kube-apiserver-default-audit-policy.yaml
 // assets/kube-apiserver/kube-apiserver-deployment.yaml
@@ -2670,6 +2672,30 @@ func controlPlaneOperatorCpOperatorDeploymentYaml() (*asset, error) {
 	return a, nil
 }
 
+var _kubeApiserverClusterFeaturegateYaml = []byte(`kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: cluster-featuregate
+data:
+  cluster-featuregate.yaml: |-
+{{ include "kube-apiserver/featuregate.yaml" 4 }}
+`)
+
+func kubeApiserverClusterFeaturegateYamlBytes() ([]byte, error) {
+	return _kubeApiserverClusterFeaturegateYaml, nil
+}
+
+func kubeApiserverClusterFeaturegateYaml() (*asset, error) {
+	bytes, err := kubeApiserverClusterFeaturegateYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "kube-apiserver/cluster-featuregate.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _kubeApiserverConfigYaml = []byte(`---
 apiVersion: kubecontrolplane.config.openshift.io/v1
 kind: KubeAPIServerConfig
@@ -2971,6 +2997,34 @@ func kubeApiserverDefaultAuditPolicyYaml() (*asset, error) {
 	return a, nil
 }
 
+var _kubeApiserverFeaturegateYaml = []byte(`apiVersion: v1
+kind: FeatureGate
+metadata:
+  name: cluster
+spec:
+  featureSet: CustomNoUpgrade
+  customNoUpgrade:
+    enabled:
+    - RotateKubeletServerCertificate
+    disabled:
+    - RetroactiveDefaultStorageClass
+`)
+
+func kubeApiserverFeaturegateYamlBytes() ([]byte, error) {
+	return _kubeApiserverFeaturegateYaml, nil
+}
+
+func kubeApiserverFeaturegateYaml() (*asset, error) {
+	bytes, err := kubeApiserverFeaturegateYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "kube-apiserver/featuregate.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _kubeApiserverKubeApiserverConfigConfigmapYaml = []byte(`kind: ConfigMap
 apiVersion: v1
 metadata:
@@ -3111,11 +3165,14 @@ spec:
         - |-
           cd /tmp
           mkdir input output
-          /usr/bin/cluster-config-operator render --config-output-file config --asset-input-dir /tmp/input --asset-output-dir /tmp/output
+          cp /features/cluster-featuregate.yaml /tmp/input
+          /usr/bin/cluster-config-operator render --config-output-file config --asset-input-dir /tmp/input --asset-output-dir /tmp/output --rendered-manifest-files /tmp/input/cluster-featuregate.yaml
           cp /tmp/output/manifests/* /work
         volumeMounts:
         - mountPath: /work
           name: bootstrap-manifests
+        - mountPath: /features
+          name: cluster-featuregate
       containers:
       - image: {{ imageFor "cli" }}
 {{- if .ManifestBootstrapperSecurityContext }}
@@ -3439,6 +3496,10 @@ spec:
       - configMap:
           name: kube-apiserver-oauth-metadata
         name: oauth
+      - configMap:
+          name: cluster-featuregate
+          defaultMode: 0640
+        name: cluster-featuregate
       - secret:
           secretName: kube-apiserver-authentication-token-webhook-config
           defaultMode: 0640
@@ -6526,8 +6587,10 @@ var _bindata = map[string]func() (*asset, error){
 	"cluster-bootstrap/trust_distribution_rolebinding.yaml":                                   clusterBootstrapTrust_distribution_rolebindingYaml,
 	"cluster-version-operator/cluster-version-operator-deployment.yaml":                       clusterVersionOperatorClusterVersionOperatorDeploymentYaml,
 	"control-plane-operator/cp-operator-deployment.yaml":                                      controlPlaneOperatorCpOperatorDeploymentYaml,
+	"kube-apiserver/cluster-featuregate.yaml":                                                 kubeApiserverClusterFeaturegateYaml,
 	"kube-apiserver/config.yaml":                                                              kubeApiserverConfigYaml,
 	"kube-apiserver/default-audit-policy.yaml":                                                kubeApiserverDefaultAuditPolicyYaml,
+	"kube-apiserver/featuregate.yaml":                                                         kubeApiserverFeaturegateYaml,
 	"kube-apiserver/kube-apiserver-config-configmap.yaml":                                     kubeApiserverKubeApiserverConfigConfigmapYaml,
 	"kube-apiserver/kube-apiserver-default-audit-policy.yaml":                                 kubeApiserverKubeApiserverDefaultAuditPolicyYaml,
 	"kube-apiserver/kube-apiserver-deployment.yaml":                                           kubeApiserverKubeApiserverDeploymentYaml,
@@ -6669,8 +6732,10 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"cp-operator-deployment.yaml": {controlPlaneOperatorCpOperatorDeploymentYaml, map[string]*bintree{}},
 	}},
 	"kube-apiserver": {nil, map[string]*bintree{
+		"cluster-featuregate.yaml":                     {kubeApiserverClusterFeaturegateYaml, map[string]*bintree{}},
 		"config.yaml":                                  {kubeApiserverConfigYaml, map[string]*bintree{}},
 		"default-audit-policy.yaml":                    {kubeApiserverDefaultAuditPolicyYaml, map[string]*bintree{}},
+		"featuregate.yaml":                             {kubeApiserverFeaturegateYaml, map[string]*bintree{}},
 		"kube-apiserver-config-configmap.yaml":         {kubeApiserverKubeApiserverConfigConfigmapYaml, map[string]*bintree{}},
 		"kube-apiserver-default-audit-policy.yaml":     {kubeApiserverKubeApiserverDefaultAuditPolicyYaml, map[string]*bintree{}},
 		"kube-apiserver-deployment.yaml":               {kubeApiserverKubeApiserverDeploymentYaml, map[string]*bintree{}},
