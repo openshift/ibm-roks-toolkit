@@ -90,11 +90,14 @@ spec:
         - |-
           cd /tmp
           mkdir input output
-          /usr/bin/cluster-config-operator render --config-output-file config --asset-input-dir /tmp/input --asset-output-dir /tmp/output
+          cp /features/cluster-featuregate.yaml /tmp/input
+          /usr/bin/cluster-config-operator render --config-output-file config --asset-input-dir /tmp/input --asset-output-dir /tmp/output --rendered-manifest-files /tmp/input/cluster-featuregate.yaml
           cp /tmp/output/manifests/* /work
         volumeMounts:
         - mountPath: /work
           name: bootstrap-manifests
+        - mountPath: /features
+          name: cluster-featuregate
       containers:
       - image: {{ imageFor "cli" }}
 {{- if .ManifestBootstrapperSecurityContext }}
@@ -418,6 +421,10 @@ spec:
       - configMap:
           name: kube-apiserver-oauth-metadata
         name: oauth
+      - configMap:
+          name: cluster-featuregate
+          defaultMode: 0640
+        name: cluster-featuregate
       - secret:
           secretName: kube-apiserver-authentication-token-webhook-config
           defaultMode: 0640
