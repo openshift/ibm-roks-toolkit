@@ -87,6 +87,7 @@ func (c *clusterManifestContext) oauthOpenshiftServer() {
 
 func (c *clusterManifestContext) kubeAPIServer() {
 	c.addManifestFiles(
+		"kube-apiserver/cluster-featuregate.yaml",
 		"kube-apiserver/kube-apiserver-deployment.yaml",
 		"kube-apiserver/kube-apiserver-service.yaml",
 		"kube-apiserver/kube-apiserver-config-configmap.yaml",
