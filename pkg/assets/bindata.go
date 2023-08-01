@@ -2997,7 +2997,7 @@ func kubeApiserverDefaultAuditPolicyYaml() (*asset, error) {
 	return a, nil
 }
 
-var _kubeApiserverFeaturegateYaml = []byte(`apiVersion: v1
+var _kubeApiserverFeaturegateYaml = []byte(`apiVersion: config.openshift.io/v1
 kind: FeatureGate
 metadata:
   name: cluster
