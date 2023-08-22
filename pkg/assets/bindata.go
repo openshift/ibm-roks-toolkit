@@ -2790,6 +2790,7 @@ apiServerArguments:
   - StorageObjectInUseProtection
   - TaintNodesByCondition
   - ValidatingAdmissionWebhook
+  - ValidatingAdmissionPolicy
   - authorization.openshift.io/RestrictSubjectBindings
   - authorization.openshift.io/ValidateRoleBindingRestriction
   - config.openshift.io/DenyDeleteClusterConfiguration
