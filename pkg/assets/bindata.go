@@ -3002,13 +3002,17 @@ var _kubeApiserverFeaturegateYaml = []byte(`apiVersion: config.openshift.io/v1
 kind: FeatureGate
 metadata:
   name: cluster
-spec:
+{{ if .ExtraFeatureGates }}spec:
   featureSet: CustomNoUpgrade
   customNoUpgrade:
-    enabled:
-    - RotateKubeletServerCertificate
-    disabled:
-    - RetroactiveDefaultStorageClass
+{{ if .ExtraFeatureGatesEnabled }}{{ printf "%s\n" "    enabled:" }}
+{{- range $featureGateEnabled := .ExtraFeatureGatesEnabled }}{{ printf "%s %s" "    -" $featureGateEnabled }}{{ end }}
+{{ end -}}
+{{ if .ExtraFeatureGatesDisabled }}{{ printf "%s\n" "    disabled:" }}
+{{- range $featureGateDisabled := .ExtraFeatureGatesDisabled }}{{ printf "%s %s" "    -" $featureGateDisabled }}{{ end }}
+{{ end -}}
+{{ else }}spec: {}
+{{ end -}}
 `)
 
 func kubeApiserverFeaturegateYamlBytes() ([]byte, error) {
