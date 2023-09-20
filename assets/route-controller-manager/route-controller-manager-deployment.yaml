@@ -84,6 +84,16 @@ spec:
         args:
         - "start"
         - "--config=/etc/kubernetes/rcmconfig/config.yaml"
+        - "--kubeconfig=/etc/kubernetes/secret/kubeconfig"
+        - "--namespace=openshift-route-controller-manager"
+        env:
+        - name: POD_NAMESPACE
+          value: openshift-route-controller-manager
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
 {{ if .RouteControllerManagerResources }}
         resources:{{ range .RouteControllerManagerResources }}{{ range .ResourceRequest }}
           requests: {{ if .CPU }}
