@@ -3826,6 +3826,7 @@ spec:
         - "--use-service-account-credentials=true"
         - "--cluster-signing-duration=17520h"
         - "--tls-cipher-suites=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,TLS_AES_128_GCM_SHA256,TLS_CHACHA20_POLY1305_SHA256,TLS_AES_256_GCM_SHA384"
+        - "--tls-min-version=VersionTLS12"
 {{ range $featureGate := .DefaultFeatureGates }}
         - "--feature-gates={{ $featureGate }}"
 {{ end }}
@@ -4038,6 +4039,7 @@ spec:
         - "--authentication-kubeconfig=/etc/kubernetes/secret/kubeconfig"
         - "--authorization-kubeconfig=/etc/kubernetes/secret/kubeconfig"
         - "--tls-cipher-suites=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,TLS_AES_128_GCM_SHA256,TLS_CHACHA20_POLY1305_SHA256,TLS_AES_256_GCM_SHA384"
+        - "--tls-min-version=VersionTLS12"
         - "-v=2"
         {{ range $featureGate := .DefaultFeatureGates }}- "--feature-gates={{ $featureGate }}"
         {{ end }}{{ range $featureGate := .ExtraFeatureGates }}- "--feature-gates={{ $featureGate }}"
@@ -4989,6 +4991,7 @@ servingInfo:
   - TLS_AES_128_GCM_SHA256
   - TLS_CHACHA20_POLY1305_SHA256
   - TLS_AES_256_GCM_SHA384
+  minTLSVersion: VersionTLS12
 imagePolicyConfig:
   internalRegistryHostname: image-registry.openshift-image-registry.svc:5000
 projectConfig:
@@ -5502,6 +5505,7 @@ servingInfo:
   - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
   - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305
   - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
+  minTLSVersion: VersionTLS12
 `)
 
 func openshiftControllerManagerConfigYamlBytes() ([]byte, error) {
@@ -6200,6 +6204,7 @@ servingInfo:
   - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
   - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305
   - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
+  minTLSVersion: VersionTLS12
 `)
 
 func routeControllerManagerConfigYamlBytes() ([]byte, error) {

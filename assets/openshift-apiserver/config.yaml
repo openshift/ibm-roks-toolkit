@@ -65,6 +65,7 @@ servingInfo:
   - TLS_AES_128_GCM_SHA256
   - TLS_CHACHA20_POLY1305_SHA256
   - TLS_AES_256_GCM_SHA384
+  minTLSVersion: VersionTLS12
 imagePolicyConfig:
   internalRegistryHostname: image-registry.openshift-image-registry.svc:5000
 projectConfig:
