@@ -10,4 +10,6 @@ FROM quay.io/openshift/origin-base:latest
 
 COPY --from=builder /go/src/github.com/openshift/ibm-roks-toolkit/bin/ibm-roks /usr/bin
 
+USER 1000:1000
+
 ENTRYPOINT ["/usr/bin/ibm-roks"]
