@@ -57,6 +57,8 @@ type ClusterParams struct {
 	ROKSMetricsSecurityContextMaster          *SecurityContext       `json:"roksMetricsSecurityContextMaster"`
 	ROKSMetricsSecurityContextWorker          *SecurityContext       `json:"roksMetricsSecurityContextWorker"`
 	ExtraFeatureGates                         []string               `json:"extraFeatureGates"`
+	ExtraFeatureGatesEnabled                  []string               `json:"extraFeatureGatesEnabled"`
+	ExtraFeatureGatesDisabled                 []string               `json:"extraFeatureGatesDisabled"`
 	ControlPlaneOperatorSecurityContext       *SecurityContext       `json:"controlPlaneOperatorSecurityContext"`
 	MasterPriorityClass                       string                 `json:"masterPriorityClass"`
 	ApiserverLivenessPath                     string                 `json:"apiserverLivenessPath"`
