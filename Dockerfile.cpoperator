@@ -9,4 +9,5 @@ RUN go build -mod=vendor -o ./bin/control-plane-operator ./cmd/control-plane-ope
 # roks-toolkit-base image stream is located here https://github.com/openshift/release/blob/master/clusters/app.ci/supplemental-ci-images/ibm-roks-toolkit-base/ibm-roks-toolkit-base.yaml
 FROM quay.io/openshift/origin-base:latest
 COPY --from=builder /go/src/github.com/openshift/ibm-roks-toolkit/bin/control-plane-operator /usr/bin/control-plane-operator
+USER 1000:1000
 ENTRYPOINT /usr/bin/control-plane-operator
