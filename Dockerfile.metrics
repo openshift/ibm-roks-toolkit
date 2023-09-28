@@ -16,4 +16,5 @@ FROM quay.io/openshift/origin-base:latest
 COPY --from=builder /go/src/github.com/openshift/ibm-roks-toolkit/bin/roks-metrics /usr/bin/roks-metrics
 COPY --from=builder /go/src/github.com/openshift/ibm-roks-toolkit/bin/metrics-pusher /usr/bin/metrics-pusher
 COPY --from=builder /pushgateway /usr/bin/pushgateway
+USER 1000:1000
 ENTRYPOINT /usr/bin/roks-metrics
