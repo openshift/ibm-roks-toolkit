@@ -28,13 +28,9 @@ CURRENT_COMMIT="$(git rev-parse "${RELEASE_BRANCH}")"
 timeout=45
 
 while [ $timeout -gt 0 ]; do
-  # todo remove echo
-  IMG=$(oc get istag ibm-roks-"${RELEASE}":metrics -n hypershift-toolkit -ojson)
-  echo ${IMG}
   URI=$(oc get istag ibm-roks-"${RELEASE}":metrics -n hypershift-toolkit -o jsonpath='{.image.dockerImageManifests[0].digest}')
-  podman pull "$URI"
-  podman inspect "$URI"
-  image_commit=$(podman inspect "$URI" | jq -r .[0].ContainerConfig.Labels.io\.openshift\.build\.commit\.id)
+  image_commit=$(oc get image "$URI" -ojsonpath='{.dockerImageMetadata.Config.Env}' | jq -r '.[]|select(startswith("SOURCE_GIT_COMMIT"))' | cut -d "=" -f 2)
+
   if [[ $image_commit == "$CURRENT_COMMIT" ]]; then
     echo "Tag with expected commit found ${image_commit}"
     break
