@@ -29,9 +29,12 @@ timeout=45
 
 while [ $timeout -gt 0 ]; do
   # todo remove echo
-  echo oc get istag ibm-roks-"${RELEASE}":metrics -n hypershift-toolkit -ojson
+  IMG=$(oc get istag ibm-roks-"${RELEASE}":metrics -n hypershift-toolkit -ojson)
+  echo ${IMG}
   URI=$(oc get istag ibm-roks-"${RELEASE}":metrics -n hypershift-toolkit -o jsonpath='{.image.dockerImageManifests[0].digest}')
-  image_commit=$(docker image inspect "$URI" | jq -r .[0].ContainerConfig.Labels.io\.openshift\.build\.commit\.id)
+  podman pull "$URI"
+  podman inspect "$URI"
+  image_commit=$(podman inspect "$URI" | jq -r .[0].ContainerConfig.Labels.io\.openshift\.build\.commit\.id)
   if [[ $image_commit == "$CURRENT_COMMIT" ]]; then
     echo "Tag with expected commit found ${image_commit}"
     break
