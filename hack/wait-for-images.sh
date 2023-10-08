@@ -49,7 +49,7 @@ while [ $timeout -gt 0 ]; do
   echo "env with jq"
   oc get image "$URI" -ojsonpath='{.dockerImageMetadata.Config.Env}' | jq -r '.[]|select(startswith("SOURCE_GIT_COMMIT"))'
 
-  image_commit=$(oc get image "$URI" -ojsonpath='{.dockerImageMetadata.Config.Env}' | jq -r '.[]|select(startswith("SOURCE_GIT_COMMIT"))' | cut -d "=" -f 2)
+  image_commit=$(oc get image "$URI" -ojsonpath='{.dockerImageMetadata.Config.Labels.io\.openshift\.build\.commit\.id}' # | jq -r '.[]|select(startswith("SOURCE_GIT_COMMIT"))' | cut -d "=" -f 2)
 
   if [[ $image_commit == "$CURRENT_COMMIT" ]]; then
     echo "Tag with expected commit found ${image_commit}"
