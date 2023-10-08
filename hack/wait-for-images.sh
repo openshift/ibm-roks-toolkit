@@ -28,20 +28,10 @@ CURRENT_COMMIT="$(git rev-parse "${RELEASE_BRANCH}")"
 timeout=45
 
 while [ $timeout -gt 0 ]; do
-  echo "---------"
-  echo "full image stream"
-  oc get istag ibm-roks-"${RELEASE}":metrics -n hypershift-toolkit -ojson
-
   # Grab the digest from the first manifest image in the manifest list, which is only amd64
   URI=$(oc get istag ibm-roks-"${RELEASE}":metrics -n hypershift-toolkit -o jsonpath='{.image.dockerImageManifests[0].digest}')
 
-  echo "uri"
-  echo "${URI}"
-
-  echo "full image of digest in json"
-  oc get image "$URI" -ojson
-
-  image_commit=$(oc get image "$URI" -ojsonpath='{.dockerImageMetadata.Config.Labels.io\.openshift\.build\.commit\.id}') # | jq -r '.[]|select(startswith("SOURCE_GIT_COMMIT"))' | cut -d "=" -f 2)
+  image_commit=$(oc get image "$URI" -ojsonpath='{.dockerImageMetadata.Config.Labels.io\.openshift\.build\.commit\.id}')
 
   if [[ $image_commit == "$CURRENT_COMMIT" ]]; then
     echo "Tag with expected commit found ${image_commit}"
@@ -49,7 +39,6 @@ while [ $timeout -gt 0 ]; do
   fi
   echo "${timeout}: Waiting for image commit ${CURRENT_COMMIT}. Current image commit: ${image_commit}"
   sleep 60
-  echo "---------"
   timeout=$(( $timeout - 1 ))
 done
 
