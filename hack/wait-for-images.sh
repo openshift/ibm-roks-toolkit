@@ -31,8 +31,7 @@ while [ $timeout -gt 0 ]; do
   # Grab the digest from the first manifest image in the manifest list, which is only amd64
   URI=$(oc get istag ibm-roks-"${RELEASE}":metrics -n hypershift-toolkit -o jsonpath='{.image.dockerImageManifests[0].digest}')
 
-  # Parse the commit sha from the image related to the digest we just pulled
-  image_commit=$(oc get image "$URI" -ojsonpath='{.dockerImageMetadata.Config.Env}' | jq -r '.[]|select(startswith("SOURCE_GIT_COMMIT"))' | cut -d "=" -f 2)
+  image_commit=$(oc get image "$URI" -ojsonpath='{.dockerImageMetadata.Config.Labels.io\.openshift\.build\.commit\.id}')
 
   if [[ $image_commit == "$CURRENT_COMMIT" ]]; then
     echo "Tag with expected commit found ${image_commit}"
