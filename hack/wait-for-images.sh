@@ -41,15 +41,7 @@ while [ $timeout -gt 0 ]; do
   echo "full image of digest in json"
   oc get image "$URI" -ojson
 
-  # Parse the commit sha from the image related to the digest we just pulled
-  echo "env"
-  oc get image "$URI" -ojsonpath='{.dockerImageMetadata.Config.Env}'
-
-  echo ""
-  echo "env with jq"
-  oc get image "$URI" -ojsonpath='{.dockerImageMetadata.Config.Env}' | jq -r '.[]|select(startswith("SOURCE_GIT_COMMIT"))'
-
-  image_commit=$(oc get image "$URI" -ojsonpath='{.dockerImageMetadata.Config.Labels.io\.openshift\.build\.commit\.id}' # | jq -r '.[]|select(startswith("SOURCE_GIT_COMMIT"))' | cut -d "=" -f 2)
+  image_commit=$(oc get image "$URI" -ojsonpath='{.dockerImageMetadata.Config.Labels.io\.openshift\.build\.commit\.id}') # | jq -r '.[]|select(startswith("SOURCE_GIT_COMMIT"))' | cut -d "=" -f 2)
 
   if [[ $image_commit == "$CURRENT_COMMIT" ]]; then
     echo "Tag with expected commit found ${image_commit}"
