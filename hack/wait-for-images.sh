@@ -28,12 +28,18 @@ CURRENT_COMMIT="$(git rev-parse "${RELEASE_BRANCH}")"
 timeout=45
 
 while [ $timeout -gt 0 ]; do
+  echo "---------"
+  echo "full image stream"
+  oc get istag ibm-roks-"${RELEASE}":metrics -n hypershift-toolkit -ojson
+
   # Grab the digest from the first manifest image in the manifest list, which is only amd64
   URI=$(oc get istag ibm-roks-"${RELEASE}":metrics -n hypershift-toolkit -o jsonpath='{.image.dockerImageManifests[0].digest}')
 
   echo "uri"
   echo "${URI}"
 
+  echo "full image of digest"
+  oc get image "$URI"
 
   # Parse the commit sha from the image related to the digest we just pulled
   echo "env"
@@ -50,6 +56,7 @@ while [ $timeout -gt 0 ]; do
   fi
   echo "${timeout}: Waiting for image commit ${CURRENT_COMMIT}. Current image commit: ${image_commit}"
   sleep 60
+  echo "---------"
   timeout=$(( $timeout - 1 ))
 done
 
