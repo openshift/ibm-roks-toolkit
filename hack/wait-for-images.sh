@@ -38,13 +38,14 @@ while [ $timeout -gt 0 ]; do
   echo "uri"
   echo "${URI}"
 
-  echo "full image of digest"
-  oc get image "$URI"
+  echo "full image of digest in json"
+  oc get image "$URI" -ojson
 
   # Parse the commit sha from the image related to the digest we just pulled
   echo "env"
   oc get image "$URI" -ojsonpath='{.dockerImageMetadata.Config.Env}'
 
+  echo ""
   echo "env with jq"
   oc get image "$URI" -ojsonpath='{.dockerImageMetadata.Config.Env}' | jq -r '.[]|select(startswith("SOURCE_GIT_COMMIT"))'
 
