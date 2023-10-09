@@ -10,7 +10,6 @@ if [[ ! -f "${REPODIR}/release-date" ]]; then
   echo "Release date file (release-date) does not exist. Nothing to do"
 fi
 RELEASE="$(cat "${REPODIR}/release")"
-RELEASE_TAG="v${RELEASE}-$(cat "${REPODIR}/release-date")"
 RELEASE_BRANCH="release-${RELEASE}"
 
 if ! which oc &> /dev/null; then
@@ -29,8 +28,12 @@ CURRENT_COMMIT="$(git rev-parse "${RELEASE_BRANCH}")"
 timeout=45
 
 while [ $timeout -gt 0 ]; do
-  image_commit="$(oc get istag ibm-roks-${RELEASE}:metrics -n hypershift-toolkit -o jsonpath='{ .image.dockerImageMetadata.Config.Labels.io\.openshift\.build\.commit\.id }')"
-  if [[ $image_commit == $CURRENT_COMMIT ]]; then
+  # Grab the digest from the first manifest image in the manifest list, which is only amd64
+  URI=$(oc get istag ibm-roks-"${RELEASE}":metrics -n hypershift-toolkit -o jsonpath='{.image.dockerImageManifests[0].digest}')
+
+  image_commit=$(oc get image "$URI" -ojsonpath='{.dockerImageMetadata.Config.Labels.io\.openshift\.build\.commit\.id}')
+
+  if [[ $image_commit == "$CURRENT_COMMIT" ]]; then
     echo "Tag with expected commit found ${image_commit}"
     break
   fi
@@ -43,5 +46,3 @@ if [ $timeout -eq 0 ]; then
   echo "Timed out waiting for commit"
   exit 1
 fi
-
-
