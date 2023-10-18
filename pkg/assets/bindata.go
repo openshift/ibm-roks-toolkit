@@ -5638,6 +5638,16 @@ spec:
             cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
             memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
 {{ end }}
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: healthz
+            port: 8443
+            scheme: HTTPS
+          initialDelaySeconds: 300
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 160
         volumeMounts:
         - mountPath: /etc/kubernetes/secret
           name: secret
@@ -6177,6 +6187,8 @@ ingress:
   ingressIPNetworkCIDR: ''
 kubeClientConfig:
   kubeConfig: /etc/kubernetes/secret/kubeconfig
+leaderElection:
+  name: openshift-route-controllers
 servingInfo:
   certFile: /etc/kubernetes/secret/server.crt
   keyFile: /etc/kubernetes/secret/server.key
@@ -6334,6 +6346,16 @@ spec:
             cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
             memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
 {{ end }}
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: healthz
+            port: 8443
+            scheme: HTTPS
+          initialDelaySeconds: 300
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 160
         volumeMounts:
         - mountPath: /etc/kubernetes/secret
           name: secret
