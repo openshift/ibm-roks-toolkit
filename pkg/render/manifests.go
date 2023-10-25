@@ -240,7 +240,6 @@ func (c *clusterManifestContext) roksMetrics() {
 
 func (c *clusterManifestContext) apiserverNetworkProxy() {
 	c.addManifestFiles(
-		"konnectivity/konnectivity-server-deployment.yaml",
 		"konnectivity/konnectivity-server-services.yaml",
 		"konnectivity/konnectivity-tugboat-agent-deployment.yaml",
 		"openshift-apiserver/konnectivity-proxy-configmap.yaml",
