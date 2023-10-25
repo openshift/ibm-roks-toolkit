@@ -16,7 +16,8 @@ spec:
       app: konnectivity-agent
   updateStrategy:
     rollingUpdate:
-      maxUnavailable: 10%
+      maxUnavailable: 1
+      maxSurge: 0
   template:
     metadata:
       labels:
@@ -37,13 +38,19 @@ spec:
 {{- end }}
         command: ["/bin/proxy-agent"]
         args: [
-          "--ca-cert=/var/run/secrets/certs/ca.crt",
+          "--logtostderr=true",
+          "--ca-cert=/etc/konnectivity/ca/ca.crt",
           "--proxy-server-host={{ .KonnectivityServerURL }}",
           "--proxy-server-port={{ .KonnectivityServerAgentNodePort }}",
           "--health-server-port={{ .KonnectivityAgentHealthPort }}",
-          "--agent-cert=/var/run/secrets/konnectivity-certs/tls.crt",
-          "--agent-key=/var/run/secrets/konnectivity-certs/tls.key",
-          "--agent-identifiers=ipv4=$(HOST_IP)&default-route=true"
+          "--agent-cert=/etc/konnectivity/agent/tls.crt",
+          "--agent-key=/etc/konnectivity/agent/tls.key",
+          "--agent-identifiers=ipv4=$(HOST_IP)&default-route=true",
+          "--keepalive-time=30s",
+          "--probe-interval=30s",
+          "--sync-interval=1m",
+          "--sync-interval-cap=5m",
+          "--v=3"
           ]
         livenessProbe:
           httpGet:
@@ -64,24 +71,21 @@ spec:
         resources: {{ range .KonnectivityAgentContainerResources }}{{ range .ResourceRequest }}
           requests: {{ if .CPU }}
             cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
-            memory: {{ .Memory }}{{ end }}{{ end }}{{ range .ResourceLimit }}
-          limits: {{ if .CPU }}
-            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
             memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
 {{- end }}
         volumeMounts:
-        - mountPath: /var/run/secrets/certs
-          name: kube-root-ca
-        - mountPath: /var/run/secrets/konnectivity-certs
-          name: konnectivity-agent
+        - mountPath: /etc/konnectivity/ca
+          name: konnectivity-ca
+        - mountPath: /etc/konnectivity/agent
+          name: agent-certs
       tolerations:
       - operator: "Exists"
       volumes:
-      - name: konnectivity-agent
+      - name: agent-certs
         secret:
           secretName: konnectivity-agent
           defaultMode: 416
-      - name: kube-root-ca
+      - name: konnectivity-ca
         configMap:
-          name: kube-root-ca.crt
-          items: []
+          defaultMode: 416
+          name: konnectivity-ca-bundle

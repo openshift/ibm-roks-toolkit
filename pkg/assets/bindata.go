@@ -36,9 +36,7 @@
 // assets/konnectivity/konnectivity-agent-certs.yaml
 // assets/konnectivity/konnectivity-agent.yaml
 // assets/konnectivity/konnectivity-server-certs.yaml
-// assets/konnectivity/konnectivity-server-deployment.yaml
 // assets/konnectivity/konnectivity-server-services.yaml
-// assets/konnectivity/konnectivity-tugboat-agent-certs.yaml
 // assets/konnectivity/konnectivity-tugboat-agent-deployment.yaml
 // assets/kube-apiserver/cluster-featuregate.yaml
 // assets/kube-apiserver/config.yaml
@@ -2753,7 +2751,8 @@ spec:
       app: konnectivity-agent
   updateStrategy:
     rollingUpdate:
-      maxUnavailable: 10%
+      maxUnavailable: 1
+      maxSurge: 0
   template:
     metadata:
       labels:
@@ -2774,13 +2773,19 @@ spec:
 {{- end }}
         command: ["/bin/proxy-agent"]
         args: [
-          "--ca-cert=/var/run/secrets/certs/ca.crt",
+          "--logtostderr=true",
+          "--ca-cert=/etc/konnectivity/ca/ca.crt",
           "--proxy-server-host={{ .KonnectivityServerURL }}",
           "--proxy-server-port={{ .KonnectivityServerAgentNodePort }}",
           "--health-server-port={{ .KonnectivityAgentHealthPort }}",
-          "--agent-cert=/var/run/secrets/konnectivity-certs/tls.crt",
-          "--agent-key=/var/run/secrets/konnectivity-certs/tls.key",
-          "--agent-identifiers=ipv4=$(HOST_IP)&default-route=true"
+          "--agent-cert=/etc/konnectivity/agent/tls.crt",
+          "--agent-key=/etc/konnectivity/agent/tls.key",
+          "--agent-identifiers=ipv4=$(HOST_IP)&default-route=true",
+          "--keepalive-time=30s",
+          "--probe-interval=30s",
+          "--sync-interval=1m",
+          "--sync-interval-cap=5m",
+          "--v=3"
           ]
         livenessProbe:
           httpGet:
@@ -2801,27 +2806,24 @@ spec:
         resources: {{ range .KonnectivityAgentContainerResources }}{{ range .ResourceRequest }}
           requests: {{ if .CPU }}
             cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
-            memory: {{ .Memory }}{{ end }}{{ end }}{{ range .ResourceLimit }}
-          limits: {{ if .CPU }}
-            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
             memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
 {{- end }}
         volumeMounts:
-        - mountPath: /var/run/secrets/certs
-          name: kube-root-ca
-        - mountPath: /var/run/secrets/konnectivity-certs
-          name: konnectivity-agent
+        - mountPath: /etc/konnectivity/ca
+          name: konnectivity-ca
+        - mountPath: /etc/konnectivity/agent
+          name: agent-certs
       tolerations:
       - operator: "Exists"
       volumes:
-      - name: konnectivity-agent
+      - name: agent-certs
         secret:
           secretName: konnectivity-agent
           defaultMode: 416
-      - name: kube-root-ca
+      - name: konnectivity-ca
         configMap:
-          name: kube-root-ca.crt
-          items: []
+          defaultMode: 416
+          name: konnectivity-ca-bundle
 `)
 
 func konnectivityKonnectivityAgentYamlBytes() ([]byte, error) {
@@ -2864,144 +2866,19 @@ func konnectivityKonnectivityServerCertsYaml() (*asset, error) {
 	return a, nil
 }
 
-var _konnectivityKonnectivityServerDeploymentYaml = []byte(`---
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: konnectivity-server
-  labels:
-    app: konnectivity-server
-    clusterID: {{ .ClusterID }}
-spec:
-  selector:
-    matchLabels:
-      app: konnectivity-server
-  replicas: 1
-  strategy:
-    type: RollingUpdate
-  template:
-    metadata:
-      labels:
-        app: konnectivity-server
-        clusterID: {{ .ClusterID }}
-{{- if .RestartDate }}
-      annotations:
-        openshift.io/restartedAt: "{{ .RestartDate }}"
-{{- end }}
-    spec:
-      affinity:
-        podAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-            - weight: 100
-              podAffinityTerm:
-                labelSelector:
-                  matchExpressions:
-                    - key: clusterID
-                      operator: In
-                      values: ["{{ .ClusterID }}"]
-                topologyKey: "kubernetes.io/hostname"
-      automountServiceAccountToken: false
-{{- if .MasterPriorityClass }}
-      priorityClassName: {{ .MasterPriorityClass }}
-{{- end }}
-      containers:
-      - name: konnectivity-server
-{{- if .KonnectivitySecurityContext }}
-{{- $securityContext := .KonnectivitySecurityContext }}
-        securityContext:
-          runAsUser: {{ $securityContext.RunAsUser }}
-{{- end }}
-        image: {{ imageFor "apiserver-network-proxy" }}
-        imagePullPolicy: IfNotPresent
-        command: ["/bin/proxy-server"]
-        args: [
-          "--server-key=/etc/kubernetes/konnectivity-certs/tls.key",
-          "--server-cert=/etc/kubernetes/konnectivity-certs/tls.crt",
-          "--server-ca-cert=/etc/kubernetes/konnectivity-certs/ca.crt",
-          "--cluster-key=/etc/kubernetes/konnectivity-certs/tls.key",
-          "--cluster-cert=/etc/kubernetes/konnectivity-certs/tls.crt",
-          "--cluster-ca-cert=/etc/kubernetes/konnectivity-certs/ca.crt",
-          "--server-port={{ .KonnectivityServerPort }}",
-          "--agent-port={{ .KonnectivityAgentPort }}",
-          "--health-port={{ .KonnectivityServerHealthPort }}",
-          "--admin-port={{ .KonnectivityServerAdminPort }}",
-          "--mode=http-connect",
-          "--proxy-strategies=destHost,defaultRoute",
-          "--cipher-suites={{ .KonnectivityServerCipherSuites }}",
-          "--v=5"
-          ]
-{{- if .KonnectivityServerContainerResources }}
-        resources: {{ range .KonnectivityServerContainerResources }}{{ range .ResourceRequest }}
-          requests: {{ if .CPU }}
-            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
-            memory: {{ .Memory }}{{ end }}{{ end }}{{ range .ResourceLimit }}
-          limits: {{ if .CPU }}
-            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
-            memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
-{{- end }}
-        livenessProbe:
-          httpGet:
-            path: /healthz
-            port: {{ .KonnectivityServerHealthPort }}
-            scheme: HTTP
-          initialDelaySeconds: 300
-          periodSeconds: 120
-          successThreshold: 1
-          failureThreshold: 3
-          timeoutSeconds: 160
-        ports:
-        - name: server
-          containerPort: {{ .KonnectivityServerPort }}
-        - name: agent
-          containerPort: {{ .KonnectivityAgentPort }}
-        - name: health
-          containerPort: {{ .KonnectivityServerHealthPort }}
-        - name: admin
-          containerPort: {{ .KonnectivityServerAdminPort }}
-        volumeMounts:
-        - mountPath: /etc/kubernetes/konnectivity-certs/
-          name: konnectivity-server
-      tolerations:
-        - key: "multi-az-worker"
-          operator: "Equal"
-          value: "true"
-          effect: NoSchedule
-      volumes:
-      - name: konnectivity-server
-        secret:
-          secretName: konnectivity-server
-          defaultMode: 416
-`)
-
-func konnectivityKonnectivityServerDeploymentYamlBytes() ([]byte, error) {
-	return _konnectivityKonnectivityServerDeploymentYaml, nil
-}
-
-func konnectivityKonnectivityServerDeploymentYaml() (*asset, error) {
-	bytes, err := konnectivityKonnectivityServerDeploymentYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "konnectivity/konnectivity-server-deployment.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
 var _konnectivityKonnectivityServerServicesYaml = []byte(`---
 apiVersion: v1
 kind: Service
 metadata:
-  name: konnectivity-server-agentnodeport
+  name: konnectivity-server
   labels:
-    app: konnectivity-server
+    app: kube-apiserver
 spec:
   type: NodePort
   selector:
-    app: konnectivity-server
+    app: kube-apiserver
   ports:
-    - name: konnectivity-agent
-      port: {{ .KonnectivityAgentPort }}
+    - port: {{ .KonnectivityAgentPort }}
       targetPort: {{ .KonnectivityAgentPort }}
 {{- if .KonnectivityServerAgentNodePort }}
       nodePort: {{ .KonnectivityServerAgentNodePort }}
@@ -3011,16 +2888,15 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: konnectivity-server
+  name: konnectivity-server-local
   labels:
-    app: konnectivity-server
+    app: kube-apiserver
 spec:
   type: ClusterIP
   selector:
-    app: konnectivity-server
+    app: kube-apiserver
   ports:
-    - name: konnectivity-server
-      port: {{ .KonnectivityServerPort }}
+    - port: {{ .KonnectivityServerPort }}
       targetPort: {{ .KonnectivityServerPort }}
       protocol: TCP
 `)
@@ -3036,30 +2912,6 @@ func konnectivityKonnectivityServerServicesYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "konnectivity/konnectivity-server-services.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _konnectivityKonnectivityTugboatAgentCertsYaml = []byte(`kind: Secret
-apiVersion: v1
-metadata:
-  name: konnectivity-tugboat-agent
-data:
-  tls.key: {{ pki "konnectivity-agent-key.pem" }}
-  tls.crt: {{ pki "konnectivity-agent.pem" }}
-`)
-
-func konnectivityKonnectivityTugboatAgentCertsYamlBytes() ([]byte, error) {
-	return _konnectivityKonnectivityTugboatAgentCertsYaml, nil
-}
-
-func konnectivityKonnectivityTugboatAgentCertsYaml() (*asset, error) {
-	bytes, err := konnectivityKonnectivityTugboatAgentCertsYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "konnectivity/konnectivity-tugboat-agent-certs.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -3080,6 +2932,9 @@ spec:
     matchLabels:
       app: konnectivity-tugboat-agent
   strategy:
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
     type: RollingUpdate
   template:
     metadata:
@@ -3102,13 +2957,19 @@ spec:
         imagePullPolicy: IfNotPresent
         command: ["/bin/proxy-agent"]
         args: [
-          "--ca-cert=/var/run/secrets/certs/ca.crt",
-          "--proxy-server-host=konnectivity-server-agentnodeport.{{ .Namespace }}.svc",
+          "--logtostderr=true",
+          "--ca-cert=/etc/konnectivity/ca/ca.crt",
+          "--agent-cert=/etc/konnectivity/agent/tls.crt",
+          "--agent-key=/etc/konnectivity/agent/tls.key",
+          "--proxy-server-host=konnectivity-server.{{ .Namespace }}.svc",
           "--proxy-server-port={{ .KonnectivityAgentPort }}",
           "--health-server-port={{ .KonnectivityAgentHealthPort }}",
-          "--agent-cert=/var/run/secrets/konnectivity-certs/tls.crt",
-          "--agent-key=/var/run/secrets/konnectivity-certs/tls.key",
           "--agent-identifiers=ipv4={{ .OpenShiftAPIClusterIP }}&ipv4={{ .OauthAPIClusterIP }}",
+          "--keepalive-time=30s",
+          "--probe-interval=30s",
+          "--sync-interval=1m",
+          "--sync-interval-cap=5m",
+          "--v=3",
           ]
 {{- if .KonnectivityAgentContainerResources }}
         resources: {{ range .KonnectivityAgentContainerResources }}{{ range .ResourceRequest }}
@@ -3130,24 +2991,25 @@ spec:
           successThreshold: 1
           timeoutSeconds: 30
         volumeMounts:
-        - mountPath: /var/run/secrets/certs
-          name: kube-apiserver
-        - mountPath: /var/run/secrets/konnectivity-certs
-          name: konnectivity-tugboat-agent
+        - mountPath: /etc/konnectivity/ca
+          name: konnectivity-ca
+        - mountPath: /etc/konnectivity/agent
+          name: agent-certs
       tolerations:
       - key: "multi-az-worker"
         operator: "Equal"
         value: "true"
         effect: NoSchedule
       volumes:
-      - name: konnectivity-tugboat-agent
+      - name: agent-certs
         secret:
           defaultMode: 416
-          secretName: konnectivity-tugboat-agent
-      - name: kube-apiserver
-        secret:
-          defaultMode: 416
-          secretName: kube-apiserver
+          secretName: konnectivity-agent
+      - name: konnectivity-ca
+        configMap:
+          defaultMode: 420
+          name: konnectivity-ca-bundle
+
 `)
 
 func konnectivityKonnectivityTugboatAgentDeploymentYamlBytes() ([]byte, error) {
@@ -4034,7 +3896,90 @@ spec:
           name: portieris-certs
           readOnly: true
 {{ end }}
+      - name: konnectivity-server
+{{- if .KonnectivitySecurityContext }}
+{{- $securityContext := .KonnectivitySecurityContext }}
+        securityContext:
+          runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
+        image: {{ imageFor "apiserver-network-proxy" }}
+        imagePullPolicy: IfNotPresent
+        command: ["/bin/proxy-server"]
+        args: [
+          "--logtostderr=true",
+          "--log-file-max-size=0",
+          "--server-key=/etc/konnectivity/server/tls.key",
+          "--server-cert=/etc/konnectivity/server/tls.crt",
+          "--server-ca-cert=/etc/konnectivity/ca/ca.crt",
+          "--cluster-key=/etc/konnectivity/cluster/tls.key",
+          "--cluster-cert=/etc/konnectivity/cluster/tls.crt",
+          "--cluster-ca-cert=/etc/konnectivity/ca/ca.crt",
+          "--server-port={{ .KonnectivityServerPort }}",
+          "--agent-port={{ .KonnectivityAgentPort }}",
+          "--health-port={{ .KonnectivityServerHealthPort }}",
+          "--admin-port={{ .KonnectivityServerAdminPort }}",
+          "--mode=http-connect",
+          "--proxy-strategies=destHost,defaultRoute",
+          "--cipher-suites={{ .KonnectivityServerCipherSuites }}",
+          "--v=5",
+          "--keepalive-time=30s",
+          "--frontend-keepalive-time=30s",
+          "--server-count=3"
+          ]
+{{- if .KonnectivityServerContainerResources }}
+        resources: {{ range .KonnectivityServerContainerResources }}{{ range .ResourceRequest }}
+          requests: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ range .ResourceLimit }}
+          limits: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
+{{- end }}
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: {{ .KonnectivityServerHealthPort }}
+            scheme: HTTP
+          initialDelaySeconds: 120
+          periodSeconds: 60
+          successThreshold: 1
+          failureThreshold: 3
+          timeoutSeconds: 30
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: healthz
+            port: {{ .KonnectivityServerHealthPort }}
+            scheme: HTTP
+          initialDelaySeconds: 15
+          periodSeconds: 60
+          successThreshold: 1
+          timeoutSeconds: 5
+        volumeMounts:
+        - mountPath: /etc/konnectivity/cluster
+          name: cluster-certs
+        - mountPath: /etc/konnectivity/ca
+          name: konnectivity-ca
+        - mountPath: /etc/konnectivity/server
+          name: server-certs
+      tolerations:
+        - key: "multi-az-worker"
+          operator: "Equal"
+          value: "true"
+          effect: NoSchedule
       volumes:
+      - name: server-certs
+        secret:
+          secretName: konnectivity-server
+          defaultMode: 416
+      - name: konnectivity-ca
+        configMap:
+          defaultMode: 416
+          name: konnectivity-ca-bundle
+      - name: cluster-certs
+        secret:
+          defaultMode: 416
+          secretName: konnectivity-cluster
       - name: bootstrap-manifests
         emptyDir: {}
       - secret:
@@ -7320,9 +7265,7 @@ var _bindata = map[string]func() (*asset, error){
 	"konnectivity/konnectivity-agent-certs.yaml":                                              konnectivityKonnectivityAgentCertsYaml,
 	"konnectivity/konnectivity-agent.yaml":                                                    konnectivityKonnectivityAgentYaml,
 	"konnectivity/konnectivity-server-certs.yaml":                                             konnectivityKonnectivityServerCertsYaml,
-	"konnectivity/konnectivity-server-deployment.yaml":                                        konnectivityKonnectivityServerDeploymentYaml,
 	"konnectivity/konnectivity-server-services.yaml":                                          konnectivityKonnectivityServerServicesYaml,
-	"konnectivity/konnectivity-tugboat-agent-certs.yaml":                                      konnectivityKonnectivityTugboatAgentCertsYaml,
 	"konnectivity/konnectivity-tugboat-agent-deployment.yaml":                                 konnectivityKonnectivityTugboatAgentDeploymentYaml,
 	"kube-apiserver/cluster-featuregate.yaml":                                                 kubeApiserverClusterFeaturegateYaml,
 	"kube-apiserver/config.yaml":                                                              kubeApiserverConfigYaml,
@@ -7476,9 +7419,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"konnectivity-agent-certs.yaml":              {konnectivityKonnectivityAgentCertsYaml, map[string]*bintree{}},
 		"konnectivity-agent.yaml":                    {konnectivityKonnectivityAgentYaml, map[string]*bintree{}},
 		"konnectivity-server-certs.yaml":             {konnectivityKonnectivityServerCertsYaml, map[string]*bintree{}},
-		"konnectivity-server-deployment.yaml":        {konnectivityKonnectivityServerDeploymentYaml, map[string]*bintree{}},
 		"konnectivity-server-services.yaml":          {konnectivityKonnectivityServerServicesYaml, map[string]*bintree{}},
-		"konnectivity-tugboat-agent-certs.yaml":      {konnectivityKonnectivityTugboatAgentCertsYaml, map[string]*bintree{}},
 		"konnectivity-tugboat-agent-deployment.yaml": {konnectivityKonnectivityTugboatAgentDeploymentYaml, map[string]*bintree{}},
 	}},
 	"kube-apiserver": {nil, map[string]*bintree{

@@ -14,6 +14,9 @@ spec:
     matchLabels:
       app: konnectivity-tugboat-agent
   strategy:
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
     type: RollingUpdate
   template:
     metadata:
@@ -36,13 +39,19 @@ spec:
         imagePullPolicy: IfNotPresent
         command: ["/bin/proxy-agent"]
         args: [
-          "--ca-cert=/var/run/secrets/certs/ca.crt",
-          "--proxy-server-host=konnectivity-server-agentnodeport.{{ .Namespace }}.svc",
+          "--logtostderr=true",
+          "--ca-cert=/etc/konnectivity/ca/ca.crt",
+          "--agent-cert=/etc/konnectivity/agent/tls.crt",
+          "--agent-key=/etc/konnectivity/agent/tls.key",
+          "--proxy-server-host=konnectivity-server.{{ .Namespace }}.svc",
           "--proxy-server-port={{ .KonnectivityAgentPort }}",
           "--health-server-port={{ .KonnectivityAgentHealthPort }}",
-          "--agent-cert=/var/run/secrets/konnectivity-certs/tls.crt",
-          "--agent-key=/var/run/secrets/konnectivity-certs/tls.key",
           "--agent-identifiers=ipv4={{ .OpenShiftAPIClusterIP }}&ipv4={{ .OauthAPIClusterIP }}",
+          "--keepalive-time=30s",
+          "--probe-interval=30s",
+          "--sync-interval=1m",
+          "--sync-interval-cap=5m",
+          "--v=3",
           ]
 {{- if .KonnectivityAgentContainerResources }}
         resources: {{ range .KonnectivityAgentContainerResources }}{{ range .ResourceRequest }}
@@ -64,21 +73,22 @@ spec:
           successThreshold: 1
           timeoutSeconds: 30
         volumeMounts:
-        - mountPath: /var/run/secrets/certs
-          name: kube-apiserver
-        - mountPath: /var/run/secrets/konnectivity-certs
-          name: konnectivity-tugboat-agent
+        - mountPath: /etc/konnectivity/ca
+          name: konnectivity-ca
+        - mountPath: /etc/konnectivity/agent
+          name: agent-certs
       tolerations:
       - key: "multi-az-worker"
         operator: "Equal"
         value: "true"
         effect: NoSchedule
       volumes:
-      - name: konnectivity-tugboat-agent
+      - name: agent-certs
         secret:
           defaultMode: 416
-          secretName: konnectivity-tugboat-agent
-      - name: kube-apiserver
-        secret:
-          defaultMode: 416
-          secretName: kube-apiserver
+          secretName: konnectivity-agent
+      - name: konnectivity-ca
+        configMap:
+          defaultMode: 420
+          name: konnectivity-ca-bundle
+

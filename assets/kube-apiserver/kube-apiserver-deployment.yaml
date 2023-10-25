@@ -414,7 +414,90 @@ spec:
           name: portieris-certs
           readOnly: true
 {{ end }}
+      - name: konnectivity-server
+{{- if .KonnectivitySecurityContext }}
+{{- $securityContext := .KonnectivitySecurityContext }}
+        securityContext:
+          runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
+        image: {{ imageFor "apiserver-network-proxy" }}
+        imagePullPolicy: IfNotPresent
+        command: ["/bin/proxy-server"]
+        args: [
+          "--logtostderr=true",
+          "--log-file-max-size=0",
+          "--server-key=/etc/konnectivity/server/tls.key",
+          "--server-cert=/etc/konnectivity/server/tls.crt",
+          "--server-ca-cert=/etc/konnectivity/ca/ca.crt",
+          "--cluster-key=/etc/konnectivity/cluster/tls.key",
+          "--cluster-cert=/etc/konnectivity/cluster/tls.crt",
+          "--cluster-ca-cert=/etc/konnectivity/ca/ca.crt",
+          "--server-port={{ .KonnectivityServerPort }}",
+          "--agent-port={{ .KonnectivityAgentPort }}",
+          "--health-port={{ .KonnectivityServerHealthPort }}",
+          "--admin-port={{ .KonnectivityServerAdminPort }}",
+          "--mode=http-connect",
+          "--proxy-strategies=destHost,defaultRoute",
+          "--cipher-suites={{ .KonnectivityServerCipherSuites }}",
+          "--v=5",
+          "--keepalive-time=30s",
+          "--frontend-keepalive-time=30s",
+          "--server-count=3"
+          ]
+{{- if .KonnectivityServerContainerResources }}
+        resources: {{ range .KonnectivityServerContainerResources }}{{ range .ResourceRequest }}
+          requests: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ range .ResourceLimit }}
+          limits: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
+{{- end }}
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: {{ .KonnectivityServerHealthPort }}
+            scheme: HTTP
+          initialDelaySeconds: 120
+          periodSeconds: 60
+          successThreshold: 1
+          failureThreshold: 3
+          timeoutSeconds: 30
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: healthz
+            port: {{ .KonnectivityServerHealthPort }}
+            scheme: HTTP
+          initialDelaySeconds: 15
+          periodSeconds: 60
+          successThreshold: 1
+          timeoutSeconds: 5
+        volumeMounts:
+        - mountPath: /etc/konnectivity/cluster
+          name: cluster-certs
+        - mountPath: /etc/konnectivity/ca
+          name: konnectivity-ca
+        - mountPath: /etc/konnectivity/server
+          name: server-certs
+      tolerations:
+        - key: "multi-az-worker"
+          operator: "Equal"
+          value: "true"
+          effect: NoSchedule
       volumes:
+      - name: server-certs
+        secret:
+          secretName: konnectivity-server
+          defaultMode: 416
+      - name: konnectivity-ca
+        configMap:
+          defaultMode: 416
+          name: konnectivity-ca-bundle
+      - name: cluster-certs
+        secret:
+          defaultMode: 416
+          secretName: konnectivity-cluster
       - name: bootstrap-manifests
         emptyDir: {}
       - secret:
