@@ -5,8 +5,9 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -66,7 +67,7 @@ func (p *MetricsPusher) pushMetrics() {
 		var err error
 		if p.Clientca != "" {
 			var caCert []byte
-			caCert, err = ioutil.ReadFile(p.Clientca)
+			caCert, err = os.ReadFile(p.Clientca)
 			if err != nil {
 				p.Log.Error(err, "Unable to read CA cert for fetching metrics: Please provide valid CA cert or path")
 				return
@@ -100,7 +101,7 @@ func (p *MetricsPusher) pushMetrics() {
 			return
 		}
 
-		metricsBody, err = ioutil.ReadAll(resp.Body)
+		metricsBody, err = io.ReadAll(resp.Body)
 		if err != nil {
 			p.Log.Error(err, "Failed to read metrics body from source URL")
 			return

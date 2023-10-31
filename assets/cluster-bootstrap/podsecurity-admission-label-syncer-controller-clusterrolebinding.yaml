@@ -1,4 +1,4 @@
-# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.13/bindata/bootkube/manifests/00_podsecurity-admission-label-syncer-controller-clusterrolebinding.yaml
+# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.14/bindata/bootkube/manifests/00_podsecurity-admission-label-syncer-controller-clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
