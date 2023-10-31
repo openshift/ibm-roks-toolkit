@@ -236,7 +236,7 @@ func clusterBootstrap00000_routeControllerNsYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapApiUsageYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-apiserver-operator/blob/release-4.13/bindata/assets/alerts/api-usage.yaml
+var _clusterBootstrapApiUsageYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-apiserver-operator/blob/release-4.14/bindata/assets/alerts/api-usage.yaml
 # The ROKS toolkit processes this file as template and the substitution variables must
 # be escaped.
 # See https://github.com/openshift/ibm-roks-toolkit/pull/457#discussion_r841881070
@@ -258,7 +258,7 @@ spec:
               a successful upgrade to the next cluster version with Kubernetes {{ ` + "`" + `{{ $labels.removed_release }}` + "`" + ` }}.
               Refer to ` + "`" + `oc get apirequestcounts {{ ` + "`" + `{{ $labels.resource }}.{{ $labels.version }}.{{ $labels.group }}` + "`" + ` }} -o yaml` + "`" + ` to identify the workload.
           expr: >-
-            group by (group,version,resource,removed_release) (apiserver_requested_deprecated_apis{removed_release="1.27"})
+            group by (group,version,resource,removed_release) (apiserver_requested_deprecated_apis{removed_release="1.28"})
             * on (group,version,resource) group_left ()
             sum by (group,version,resource) (
             rate(apiserver_request_total{system_client!="kube-controller-manager",system_client!="cluster-policy-controller"}[4h])
@@ -276,7 +276,7 @@ spec:
               a successful upgrade to the next EUS cluster version with Kubernetes {{ ` + "`" + `{{ $labels.removed_release }}` + "`" + ` }}.
               Refer to ` + "`" + `oc get apirequestcounts {{ ` + "`" + `{{ $labels.resource }}.{{ $labels.version }}.{{ $labels.group }}` + "`" + ` }} -o yaml` + "`" + ` to identify the workload.
           expr: >-
-            group by (group,version,resource,removed_release) (apiserver_requested_deprecated_apis{removed_release=~"1[.]2[7]"})
+            group by (group,version,resource,removed_release) (apiserver_requested_deprecated_apis{removed_release=~"1[.]2[89]"})
             * on (group,version,resource) group_left ()
             sum by (group,version,resource) (
             rate(apiserver_request_total{system_client!="kube-controller-manager",system_client!="cluster-policy-controller"}[4h])
@@ -302,7 +302,7 @@ func clusterBootstrapApiUsageYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapApiserverApirequestcountsCrdYaml = []byte(`# Source: https://github.com/openshift/api/blob/release-4.13/apiserver/v1/apiserver.openshift.io_apirequestcount.yaml
+var _clusterBootstrapApiserverApirequestcountsCrdYaml = []byte(`# Source: https://github.com/openshift/api/blob/release-4.14/apiserver/v1/apiserver.openshift.io_apirequestcount.yaml
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -737,7 +737,7 @@ var _clusterBootstrapClusterNetwork01CrdYaml = []byte(`---
 # This is the advanced network configuration CRD
 # Only necessary if you need to tweak certain settings.
 # See https://github.com/openshift/cluster-network-operator#configuring
-# Source: https://github.com/openshift/cluster-network-operator/blob/release-4.13/manifests/0000_70_cluster-network-operator_01_crd.yaml
+# Source: https://github.com/openshift/cluster-network-operator/blob/release-4.14/manifests/0000_70_cluster-network-operator_01_crd.yaml
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -952,7 +952,8 @@ spec:
                           to the MTU of the nodes network and Neutron has to allow
                           creation of tenant networks with such MTU. If unset Pod
                           networks will be created with the same MTU as the nodes
-                          network has.
+                          network has. This also affects the services network created
+                          by cluster-network-operator.
                         format: int32
                         minimum: 0
                         type: integer
@@ -1061,6 +1062,17 @@ spec:
                         description: gatewayConfig holds the configuration for node
                           gateway options.
                         properties:
+                          ipForwarding:
+                            description: IPForwarding controls IP forwarding for all
+                              traffic on OVN-Kubernetes managed interfaces (such as
+                              br-ex). By default this is set to Restricted, and Kubernetes
+                              related traffic is still forwarded appropriately, but
+                              other IP traffic will not be routed by the OCP node.
+                              If there is a desire to allow the host to forward traffic
+                              across OVN-Kubernetes managed interfaces, then set this
+                              field to "Global". The supported values are "Restricted"
+                              and "Global".
+                            type: string
                           routingViaHost:
                             default: false
                             description: RoutingViaHost allows pod egress traffic
@@ -1141,6 +1153,13 @@ spec:
                             description: maxFilesSize is the max size an ACL_audit
                               log file is allowed to reach before rotation occurs
                               Units are in MB and the Default is 50MB
+                            format: int32
+                            minimum: 1
+                            type: integer
+                          maxLogFiles:
+                            default: 5
+                            description: maxLogFiles specifies the maximum number
+                              of ACL_audit log files that can be present.
                             format: int32
                             minimum: 1
                             type: integer
@@ -1406,10 +1425,13 @@ spec:
                   type: string
                 type: array
               unsupportedConfigOverrides:
-                description: 'unsupportedConfigOverrides holds a sparse config that
-                  will override any previously set options.  It only needs to be the
-                  fields to override it will end up overlaying in the following order:
-                  1. hardcoded defaults 2. observedConfig 3. unsupportedConfigOverrides'
+                description: unsupportedConfigOverrides overrides the final configuration
+                  that was computed by the operator. Red Hat does not support the
+                  use of this field. Misuse of this field could lead to unexpected
+                  behavior or conflict with other configuration options. Seek guidance
+                  from the Red Hat support before using this field. Use of this property
+                  blocks cluster upgrades, it must be removed before upgrading your
+                  cluster.
                 nullable: true
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
@@ -1617,7 +1639,7 @@ func clusterBootstrapClusterVersionYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapCsr_approver_clusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.13/bindata/assets/kube-controller-manager/csr_approver_clusterrole.yaml
+var _clusterBootstrapCsr_approver_clusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.14/bindata/assets/kube-controller-manager/csr_approver_clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -1672,7 +1694,7 @@ func clusterBootstrapCsr_approver_clusterroleYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapCsr_approver_clusterrolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.13/bindata/assets/kube-controller-manager/csr_approver_clusterrolebinding.yaml
+var _clusterBootstrapCsr_approver_clusterrolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.14/bindata/assets/kube-controller-manager/csr_approver_clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -1704,7 +1726,7 @@ func clusterBootstrapCsr_approver_clusterrolebindingYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapDeployerClusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.13/bindata/v3.11.0/openshift-controller-manager/deployer-clusterrole.yaml
+var _clusterBootstrapDeployerClusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.14/bindata/v3.11.0/openshift-controller-manager/deployer-clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -1786,7 +1808,7 @@ func clusterBootstrapDeployerClusterroleYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapDeployerClusterrolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.13/bindata/v3.11.0/openshift-controller-manager/deployer-clusterrolebinding.yaml
+var _clusterBootstrapDeployerClusterrolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.14/bindata/v3.11.0/openshift-controller-manager/deployer-clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -1981,7 +2003,7 @@ func clusterBootstrapLeaderIngressToRouteControllerRolebindingYaml() (*asset, er
 	return a, nil
 }
 
-var _clusterBootstrapNamespaceSecurityAllocationControllerClusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.13/bindata/assets/kube-controller-manager/namespace-security-allocation-controller-clusterrole.yaml
+var _clusterBootstrapNamespaceSecurityAllocationControllerClusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.14/bindata/assets/kube-controller-manager/namespace-security-allocation-controller-clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -2034,7 +2056,7 @@ func clusterBootstrapNamespaceSecurityAllocationControllerClusterroleYaml() (*as
 	return a, nil
 }
 
-var _clusterBootstrapNamespaceSecurityAllocationControllerClusterrolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.13/bindata/assets/kube-controller-manager/namespace-security-allocation-controller-clusterrolebinding.yaml
+var _clusterBootstrapNamespaceSecurityAllocationControllerClusterrolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.14/bindata/assets/kube-controller-manager/namespace-security-allocation-controller-clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -2121,7 +2143,7 @@ func clusterBootstrapOpenshiftInstallConfigmapYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapPodsecurityAdmissionLabelSyncerControllerClusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.13/bindata/assets/kube-controller-manager/podsecurity-admission-label-syncer-controller-clusterrole.yaml
+var _clusterBootstrapPodsecurityAdmissionLabelSyncerControllerClusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.14/bindata/assets/kube-controller-manager/podsecurity-admission-label-syncer-controller-clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -2192,7 +2214,7 @@ func clusterBootstrapPodsecurityAdmissionLabelSyncerControllerClusterroleYaml() 
 	return a, nil
 }
 
-var _clusterBootstrapPodsecurityAdmissionLabelSyncerControllerClusterrolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.13/bindata/bootkube/manifests/00_podsecurity-admission-label-syncer-controller-clusterrolebinding.yaml
+var _clusterBootstrapPodsecurityAdmissionLabelSyncerControllerClusterrolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.14/bindata/bootkube/manifests/00_podsecurity-admission-label-syncer-controller-clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -2225,7 +2247,7 @@ func clusterBootstrapPodsecurityAdmissionLabelSyncerControllerClusterrolebinding
 	return a, nil
 }
 
-var _clusterBootstrapPodsecurityAlertYaml = []byte(`# Source: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.13/bindata/assets/alerts/podsecurity-violations.yaml
+var _clusterBootstrapPodsecurityAlertYaml = []byte(`# Source: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.14/bindata/assets/alerts/podsecurity-violations.yaml
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
@@ -2282,7 +2304,7 @@ func clusterBootstrapPodsecurityAlertYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapTrust_distribution_roleYaml = []byte(`# Source: https://github.com/openshift/cluster-authentication-operator/blob/release-4.13/bindata/oauth-openshift/trust_distribution_role.yaml
+var _clusterBootstrapTrust_distribution_roleYaml = []byte(`# Source: https://github.com/openshift/cluster-authentication-operator/blob/release-4.14/bindata/oauth-openshift/trust_distribution_role.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -2316,7 +2338,7 @@ func clusterBootstrapTrust_distribution_roleYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapTrust_distribution_rolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-authentication-operator/blob/release-4.13/bindata/oauth-openshift/trust_distribution_rolebinding.yaml
+var _clusterBootstrapTrust_distribution_rolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-authentication-operator/blob/release-4.14/bindata/oauth-openshift/trust_distribution_rolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
