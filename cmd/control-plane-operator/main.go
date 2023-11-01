@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -121,7 +120,7 @@ func (o *ControlPlaneOperator) Validate() error {
 func (o *ControlPlaneOperator) Complete() error {
 	var err error
 	if len(o.InitialCAFile) > 0 {
-		o.initialCA, err = ioutil.ReadFile(o.InitialCAFile)
+		o.initialCA, err = os.ReadFile(o.InitialCAFile)
 		if err != nil {
 			return err
 		}
