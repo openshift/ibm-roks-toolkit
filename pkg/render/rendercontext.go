@@ -2,7 +2,7 @@ package render
 
 import (
 	"bytes"
-	"io/ioutil"
+	"os"
 	"path"
 	"path/filepath"
 	"text/template"
@@ -40,12 +40,12 @@ func (c *renderContext) renderManifests() error {
 		if err != nil {
 			return errors.Wrapf(err, "cannot render %s", f)
 		}
-		ioutil.WriteFile(outputFile, []byte(content), 0600)
+		os.WriteFile(outputFile, []byte(content), 0600)
 	}
 
 	for name, content := range c.manifests {
 		outputFile := filepath.Join(c.outputDir, name)
-		ioutil.WriteFile(outputFile, []byte(content), 0600)
+		os.WriteFile(outputFile, []byte(content), 0600)
 	}
 
 	return nil
