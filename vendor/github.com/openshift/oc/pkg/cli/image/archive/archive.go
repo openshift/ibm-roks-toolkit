@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"os/user"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -15,6 +16,7 @@ import (
 	"github.com/docker/docker/pkg/idtools"
 	"github.com/docker/docker/pkg/pools"
 	"github.com/docker/docker/pkg/system"
+	"github.com/moby/sys/sequential"
 )
 
 type (
@@ -109,6 +111,8 @@ func unpackLayer(dest string, layer io.Reader, options *TarOptions) (size int64,
 	}
 	// idMappings := idtools.NewIDMappingsFromMaps(options.UIDMaps, options.GIDMaps)
 
+	currentUser, _ := user.Current()
+
 	aufsTempdir := ""
 	aufsHardlinks := make(map[string]*tar.Header)
 
@@ -188,7 +192,7 @@ func unpackLayer(dest string, layer io.Reader, options *TarOptions) (size int64,
 					}
 					defer os.RemoveAll(aufsTempdir)
 				}
-				if err := createTarFile(filepath.Join(aufsTempdir, basename), dest, hdr, tr, options.Chown, options.ChownOpts, options.InUserNS); err != nil {
+				if err := createTarFile(filepath.Join(aufsTempdir, basename), dest, hdr, tr, options.Chown, options.ChownOpts, options.InUserNS, currentUser); err != nil {
 					return 0, err
 				}
 			}
@@ -280,7 +284,7 @@ func unpackLayer(dest string, layer io.Reader, options *TarOptions) (size int64,
 			// 	return 0, err
 			// }
 
-			if err := createTarFile(path, dest, srcHdr, srcData, options.Chown, options.ChownOpts, options.InUserNS); err != nil {
+			if err := createTarFile(path, dest, srcHdr, srcData, options.Chown, options.ChownOpts, options.InUserNS, currentUser); err != nil {
 				return 0, err
 			}
 
@@ -303,7 +307,7 @@ func unpackLayer(dest string, layer io.Reader, options *TarOptions) (size int64,
 	return size, nil
 }
 
-func createTarFile(path, extractDir string, hdr *tar.Header, reader io.Reader, Lchown bool, chownOpts *idtools.Identity, inUserns bool) error {
+func createTarFile(path, extractDir string, hdr *tar.Header, reader io.Reader, Lchown bool, chownOpts *idtools.Identity, inUserns bool, currentUser *user.User) error {
 	// hdr.Mode is in linux format, which we can use for sycalls,
 	// but for os.Foo() calls we need the mode converted to os.FileMode,
 	// so use hdrInfo.Mode() (they differ for e.g. setuid bits)
@@ -323,7 +327,7 @@ func createTarFile(path, extractDir string, hdr *tar.Header, reader io.Reader, L
 		// Source is regular file. We use system.OpenFileSequential to use sequential
 		// file access to avoid depleting the standby list on Windows.
 		// On Linux, this equates to a regular os.OpenFile
-		file, err := system.OpenFileSequential(path, os.O_CREATE|os.O_WRONLY, hdrInfo.Mode())
+		file, err := sequential.OpenFile(path, os.O_CREATE|os.O_WRONLY, hdrInfo.Mode())
 		if err != nil {
 			return err
 		}
@@ -389,15 +393,23 @@ func createTarFile(path, extractDir string, hdr *tar.Header, reader io.Reader, L
 		}
 	}
 
-	var errors []string
 	for key, value := range hdr.Xattrs {
+		// exclude security.capability unless you're root, Lsetxattr only works
+		// for linux based systems so that's fine
+		if key == "security.capability" && currentUser != nil && currentUser.Username != "root" {
+			continue
+		}
 		if err := system.Lsetxattr(path, key, []byte(value), 0); err != nil {
+			if err == system.ErrNotSupportedPlatform {
+				// we ignore not supported platform errors
+				// to proceed archiving on platforms like darwin.
+				continue
+			}
 			if err == syscall.ENOTSUP {
 				// We ignore errors here because not all graphdrivers support
 				// xattrs *cough* old versions of AUFS *cough*. However only
 				// ENOTSUP should be emitted in that case, otherwise we still
 				// bail.
-				errors = append(errors, err.Error())
 				continue
 			}
 			return err
