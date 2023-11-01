@@ -1841,7 +1841,8 @@ func clusterBootstrapDeployerClusterrolebindingYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapIngressToRouteControllerClusterroleYaml = []byte(`apiVersion: rbac.authorization.k8s.io/v1
+var _clusterBootstrapIngressToRouteControllerClusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.14/bindata/v3.11.0/openshift-controller-manager/route-controller-manager-ingress-to-route-controller-clusterrole.yaml
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: system:openshift:openshift-controller-manager:ingress-to-route-controller
@@ -1858,7 +1859,8 @@ rules:
 - apiGroups:
   - networking.k8s.io
   resources:
-  - ingress
+  - ingresses
+  - ingressclasses
   verbs:
   - get
   - list
@@ -1890,6 +1892,7 @@ rules:
   - update
 - apiGroups:
   - ""
+  - events.k8s.io
   resources:
   - events
   verbs:
@@ -1913,14 +1916,14 @@ func clusterBootstrapIngressToRouteControllerClusterroleYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapIngressToRouteControllerClusterrolebindingYaml = []byte(`apiVersion: rbac.authorization.k8s.io/v1
+var _clusterBootstrapIngressToRouteControllerClusterrolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.14/bindata/v3.11.0/openshift-controller-manager/route-controller-manager-ingress-to-route-controller-clusterrolebinding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: system:openshift:openshift-controller-manager:ingress-to-route-controller
 roleRef:
   kind: ClusterRole
   name: system:openshift:openshift-controller-manager:ingress-to-route-controller
-  apiGroup: rbac.authorization.k8s.io 
 subjects:
 - kind: ServiceAccount
   namespace: openshift-infra
@@ -1942,7 +1945,8 @@ func clusterBootstrapIngressToRouteControllerClusterrolebindingYaml() (*asset, e
 	return a, nil
 }
 
-var _clusterBootstrapLeaderIngressToRouteControllerRoleYaml = []byte(`apiVersion: rbac.authorization.k8s.io/v1
+var _clusterBootstrapLeaderIngressToRouteControllerRoleYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.14/bindata/v3.11.0/openshift-controller-manager/leader-ingress-to-route-controller-role.yaml
+apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: system:openshift:openshift-controller-manager:leader-locking-ingress-to-route-controller
@@ -1973,7 +1977,8 @@ func clusterBootstrapLeaderIngressToRouteControllerRoleYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapLeaderIngressToRouteControllerRolebindingYaml = []byte(`apiVersion: rbac.authorization.k8s.io/v1
+var _clusterBootstrapLeaderIngressToRouteControllerRolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.14/bindata/v3.11.0/openshift-controller-manager/leader-ingress-to-route-controller-rolebinding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: system:openshift:openshift-controller-manager:leader-locking-ingress-to-route-controller
