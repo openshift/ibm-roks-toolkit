@@ -1,3 +1,4 @@
+# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.14/bindata/v3.11.0/openshift-controller-manager/route-controller-manager-ingress-to-route-controller-clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -15,7 +16,8 @@ rules:
 - apiGroups:
   - networking.k8s.io
   resources:
-  - ingress
+  - ingresses
+  - ingressclasses
   verbs:
   - get
   - list
@@ -47,6 +49,7 @@ rules:
   - update
 - apiGroups:
   - ""
+  - events.k8s.io
   resources:
   - events
   verbs:
