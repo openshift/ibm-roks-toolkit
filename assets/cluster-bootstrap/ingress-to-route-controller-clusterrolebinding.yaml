@@ -1,3 +1,4 @@
+# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.14/bindata/v3.11.0/openshift-controller-manager/route-controller-manager-ingress-to-route-controller-clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -5,7 +6,6 @@ metadata:
 roleRef:
   kind: ClusterRole
   name: system:openshift:openshift-controller-manager:ingress-to-route-controller
-  apiGroup: rbac.authorization.k8s.io 
 subjects:
 - kind: ServiceAccount
   namespace: openshift-infra
