@@ -97,6 +97,7 @@ func (c *clusterManifestContext) kubeAPIServer() {
 		"kube-apiserver/kube-apiserver-config-configmap.yaml",
 		"kube-apiserver/kube-apiserver-oauth-metadata-configmap.yaml",
 		"kube-apiserver/kube-apiserver-default-audit-policy.yaml",
+		"kube-apiserver/kube-apiserver-egress-config-configmap.yaml",
 	)
 }
 
