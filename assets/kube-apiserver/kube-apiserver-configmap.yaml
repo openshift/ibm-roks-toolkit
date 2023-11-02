@@ -28,3 +28,4 @@ data:
                 CABundle: /etc/kubernetes/secret/ca.crt
                 ClientKey: /etc/kubernetes/secret/konnectivity-client-key.pem
                 ClientCert: /etc/kubernetes/secret/konnectivity-client.pem
+{{- end }}

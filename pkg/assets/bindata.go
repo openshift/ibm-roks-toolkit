@@ -3662,6 +3662,7 @@ data:
                 CABundle: /etc/kubernetes/secret/ca.crt
                 ClientKey: /etc/kubernetes/secret/konnectivity-client-key.pem
                 ClientCert: /etc/kubernetes/secret/konnectivity-client.pem
+{{- end }}
 `)
 
 func kubeApiserverKubeApiserverConfigmapYamlBytes() ([]byte, error) {
@@ -4185,24 +4186,19 @@ spec:
           name: konnectivity-ca
         - mountPath: /etc/konnectivity/server
           name: server-certs
-      tolerations:
-        - key: "multi-az-worker"
-          operator: "Equal"
-          value: "true"
-          effect: NoSchedule
       volumes:
       - name: server-certs
         secret:
           secretName: konnectivity-server
-          defaultMode: 416
+          defaultMode: 0640
       - name: konnectivity-ca
         configMap:
-          defaultMode: 416
           name: konnectivity-ca-bundle
+          defaultMode: 0640
       - name: cluster-certs
         secret:
-          defaultMode: 416
           secretName: konnectivity-cluster
+          defaultMode: 0640
       - name: bootstrap-manifests
         emptyDir: {}
       - secret:
