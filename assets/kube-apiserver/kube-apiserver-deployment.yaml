@@ -160,7 +160,7 @@ spec:
         - "--encryption-provider-config=/etc/kubernetes/kms-config/config.yaml"
 {{- end }}
 {{- if .KonnectivityEnabled }}
-        - "--egress-selector-config-file=/etc/kubernetes/config/egress-config.yaml"
+        - "--egress-selector-config-file=/etc/kubernetes/apiserver-egress-config/egress-config.yaml"
 {{- end }}
 {{- if .KubeAPIServerVerbosity }}
         - "--v={{ .KubeAPIServerVerbosity }}"
@@ -232,6 +232,10 @@ spec:
           name: secret
         - mountPath: /etc/kubernetes/apiserver-config/
           name: apiserver-config
+{{- if .KonnectivityEnabled }}
+        - mountPath: /etc/kubernetes/apiserver-egress-config/
+          name: apiserver-egress-config
+{{- end }}
         - mountPath: /etc/kubernetes/config/
           name: config
         - mountPath: /etc/kubernetes/oauth/
@@ -414,6 +418,7 @@ spec:
           name: portieris-certs
           readOnly: true
 {{ end }}
+{{- if .KonnectivityEnabled }}
       - name: konnectivity-server
 {{- if .KonnectivitySecurityContext }}
 {{- $securityContext := .KonnectivitySecurityContext }}
@@ -475,24 +480,13 @@ spec:
           timeoutSeconds: 5
         volumeMounts:
         - mountPath: /etc/konnectivity/cluster
-          name: cluster-certs
+          name:   
         - mountPath: /etc/konnectivity/ca
           name: konnectivity-ca
         - mountPath: /etc/konnectivity/server
           name: server-certs
+{{- end }}
       volumes:
-      - name: server-certs
-        secret:
-          secretName: konnectivity-server
-          defaultMode: 0640
-      - name: konnectivity-ca
-        configMap:
-          name: konnectivity-ca-bundle
-          defaultMode: 0640
-      - name: cluster-certs
-        secret:
-          secretName: konnectivity-cluster
-          defaultMode: 0640
       - name: bootstrap-manifests
         emptyDir: {}
       - secret:
@@ -548,4 +542,22 @@ spec:
         secret:
           defaultMode: 0640
           secretName: portieris-certs
+{{ end }}
+{{- if .KonnectivityEnabled }}
+      - name: apiserver-egress-config
+        configMap:
+          name: kube-apiserver-egress-config
+          defaultMode: 0640
+      - name: server-certs
+        secret:
+          secretName: konnectivity-server
+          defaultMode: 0640
+      - name: konnectivity-ca
+        configMap:
+          name: konnectivity-ca-bundle
+          defaultMode: 0640
+      - name: cluster-certs
+        secret:
+          secretName: konnectivity-cluster
+          defaultMode: 0640
 {{ end }}
