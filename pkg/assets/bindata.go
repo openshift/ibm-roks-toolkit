@@ -34,9 +34,7 @@
 // assets/cluster-bootstrap/trust_distribution_rolebinding.yaml
 // assets/cluster-version-operator/cluster-version-operator-deployment.yaml
 // assets/control-plane-operator/cp-operator-deployment.yaml
-// assets/konnectivity/konnectivity-agent-certs.yaml
 // assets/konnectivity/konnectivity-agent.yaml
-// assets/konnectivity/konnectivity-server-certs.yaml
 // assets/konnectivity/konnectivity-server-services.yaml
 // assets/konnectivity/konnectivity-tugboat-agent-deployment.yaml
 // assets/kube-apiserver/cluster-featuregate.yaml
@@ -44,11 +42,10 @@
 // assets/kube-apiserver/default-audit-policy.yaml
 // assets/kube-apiserver/featuregate.yaml
 // assets/kube-apiserver/kube-apiserver-config-configmap.yaml
-// assets/kube-apiserver/kube-apiserver-configmap.yaml
 // assets/kube-apiserver/kube-apiserver-default-audit-policy.yaml
 // assets/kube-apiserver/kube-apiserver-deployment.yaml
+// assets/kube-apiserver/kube-apiserver-egress-config-configmap.yaml
 // assets/kube-apiserver/kube-apiserver-oauth-metadata-configmap.yaml
-// assets/kube-apiserver/kube-apiserver-secret.yaml
 // assets/kube-apiserver/kube-apiserver-service.yaml
 // assets/kube-apiserver/oauthMetadata.json
 // assets/kube-controller-manager/config.yaml
@@ -75,7 +72,6 @@
 // assets/oauth-openshift/v4-0-config-system-session.json
 // assets/openshift-apiserver/config.yaml
 // assets/openshift-apiserver/konnectivity-proxy-configmap.yaml
-// assets/openshift-apiserver/konnectivity-proxy-secret.yaml
 // assets/openshift-apiserver/openshift-apiserver-config-configmap.yaml
 // assets/openshift-apiserver/openshift-apiserver-deployment.yaml
 // assets/openshift-apiserver/openshift-apiserver-service.yaml
@@ -2931,31 +2927,6 @@ func controlPlaneOperatorCpOperatorDeploymentYaml() (*asset, error) {
 	return a, nil
 }
 
-var _konnectivityKonnectivityAgentCertsYaml = []byte(`apiVersion: v1
-kind: Secret
-metadata:
-  name: konnectivity-agent
-  namespace: kube-system
-data:
-  tls.crt: {{ pki "konnectivity-agent.pem" }}
-  tls.key: {{ pki "konnectivity-agent-key.pem" }}
-`)
-
-func konnectivityKonnectivityAgentCertsYamlBytes() ([]byte, error) {
-	return _konnectivityKonnectivityAgentCertsYaml, nil
-}
-
-func konnectivityKonnectivityAgentCertsYaml() (*asset, error) {
-	bytes, err := konnectivityKonnectivityAgentCertsYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "konnectivity/konnectivity-agent-certs.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
 var _konnectivityKonnectivityAgentYaml = []byte(`---
 apiVersion: apps/v1
 kind: DaemonSet
@@ -3060,31 +3031,6 @@ func konnectivityKonnectivityAgentYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "konnectivity/konnectivity-agent.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _konnectivityKonnectivityServerCertsYaml = []byte(`kind: Secret
-apiVersion: v1
-metadata:
-  name: konnectivity-server
-data:
-  tls.key: {{ pki "konnectivity-server-key.pem" }}
-  tls.crt: {{ pki "konnectivity-server.pem" }}
-  ca.crt: {{ pki "root-ca.crt" }}
-`)
-
-func konnectivityKonnectivityServerCertsYamlBytes() ([]byte, error) {
-	return _konnectivityKonnectivityServerCertsYaml, nil
-}
-
-func konnectivityKonnectivityServerCertsYaml() (*asset, error) {
-	bytes, err := konnectivityKonnectivityServerCertsYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "konnectivity/konnectivity-server-certs.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -3632,54 +3578,6 @@ func kubeApiserverKubeApiserverConfigConfigmapYaml() (*asset, error) {
 	return a, nil
 }
 
-var _kubeApiserverKubeApiserverConfigmapYaml = []byte(`apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: kube-apiserver
-data:
-  aggregator-client-ca.crt: |-
-{{ include_pki "root-ca.crt" 4 }}
-  kubelet-client-ca.crt: |-
-{{ include_pki "combined-ca.crt" 4 }}
-  service-account.pub: |-
-{{ include_pki "service-account.pub" 4 }}
-  serving-ca.crt: |-
-{{ include_pki "combined-ca.crt" 4 }}
-  etcd-ca.crt: |-
-{{ include_pki "root-ca.crt" 4 }}
-{{- if .KonnectivityEnabled }}
-  egress-config.yaml: |
-      apiVersion: apiserver.k8s.io/v1beta1
-      kind: EgressSelectorConfiguration
-      egressSelections:
-      - name: cluster
-        connection:
-          proxyProtocol: HTTPConnect
-          transport:
-            TCP:
-              URL: https://konnectivity-server.{{ .Namespace }}.svc:{{ .KonnectivityServerPort }}
-              TLSConfig:
-                CABundle: /etc/kubernetes/secret/ca.crt
-                ClientKey: /etc/kubernetes/secret/konnectivity-client-key.pem
-                ClientCert: /etc/kubernetes/secret/konnectivity-client.pem
-{{- end }}
-`)
-
-func kubeApiserverKubeApiserverConfigmapYamlBytes() ([]byte, error) {
-	return _kubeApiserverKubeApiserverConfigmapYaml, nil
-}
-
-func kubeApiserverKubeApiserverConfigmapYaml() (*asset, error) {
-	bytes, err := kubeApiserverKubeApiserverConfigmapYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "kube-apiserver/kube-apiserver-configmap.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
 var _kubeApiserverKubeApiserverDefaultAuditPolicyYaml = []byte(`kind: ConfigMap
 apiVersion: v1
 metadata:
@@ -3866,7 +3764,7 @@ spec:
         - "--encryption-provider-config=/etc/kubernetes/kms-config/config.yaml"
 {{- end }}
 {{- if .KonnectivityEnabled }}
-        - "--egress-selector-config-file=/etc/kubernetes/config/egress-config.yaml"
+        - "--egress-selector-config-file=/etc/kubernetes/apiserver-egress-config/egress-config.yaml"
 {{- end }}
 {{- if .KubeAPIServerVerbosity }}
         - "--v={{ .KubeAPIServerVerbosity }}"
@@ -3938,6 +3836,10 @@ spec:
           name: secret
         - mountPath: /etc/kubernetes/apiserver-config/
           name: apiserver-config
+{{- if .KonnectivityEnabled }}
+        - mountPath: /etc/kubernetes/apiserver-egress-config/
+          name: apiserver-egress-config
+{{- end }}
         - mountPath: /etc/kubernetes/config/
           name: config
         - mountPath: /etc/kubernetes/oauth/
@@ -4120,6 +4022,7 @@ spec:
           name: portieris-certs
           readOnly: true
 {{ end }}
+{{- if .KonnectivityEnabled }}
       - name: konnectivity-server
 {{- if .KonnectivitySecurityContext }}
 {{- $securityContext := .KonnectivitySecurityContext }}
@@ -4181,24 +4084,13 @@ spec:
           timeoutSeconds: 5
         volumeMounts:
         - mountPath: /etc/konnectivity/cluster
-          name: cluster-certs
+          name:   
         - mountPath: /etc/konnectivity/ca
           name: konnectivity-ca
         - mountPath: /etc/konnectivity/server
           name: server-certs
+{{- end }}
       volumes:
-      - name: server-certs
-        secret:
-          secretName: konnectivity-server
-          defaultMode: 0640
-      - name: konnectivity-ca
-        configMap:
-          name: konnectivity-ca-bundle
-          defaultMode: 0640
-      - name: cluster-certs
-        secret:
-          secretName: konnectivity-cluster
-          defaultMode: 0640
       - name: bootstrap-manifests
         emptyDir: {}
       - secret:
@@ -4255,6 +4147,24 @@ spec:
           defaultMode: 0640
           secretName: portieris-certs
 {{ end }}
+{{- if .KonnectivityEnabled }}
+      - name: apiserver-egress-config
+        configMap:
+          name: kube-apiserver-egress-config
+          defaultMode: 0640
+      - name: server-certs
+        secret:
+          secretName: konnectivity-server
+          defaultMode: 0640
+      - name: konnectivity-ca
+        configMap:
+          name: konnectivity-ca-bundle
+          defaultMode: 0640
+      - name: cluster-certs
+        secret:
+          secretName: konnectivity-cluster
+          defaultMode: 0640
+{{ end }}
 `)
 
 func kubeApiserverKubeApiserverDeploymentYamlBytes() ([]byte, error) {
@@ -4268,6 +4178,48 @@ func kubeApiserverKubeApiserverDeploymentYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "kube-apiserver/kube-apiserver-deployment.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _kubeApiserverKubeApiserverEgressConfigConfigmapYaml = []byte(`apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kube-apiserver-egress-config
+data:
+  egress-config.yaml: |
+      apiVersion: apiserver.k8s.io/v1beta1
+      kind: EgressSelectorConfiguration
+      egressSelections:
+      - name: controlplane
+        connection:
+          proxyProtocol: Direct
+      - name: etcd
+        connection:
+          proxyProtocol: Direct
+      - name: cluster
+        connection:
+          proxyProtocol: HTTPConnect
+          transport:
+            TCP:
+              URL: https://127.0.0.1:{{ .KonnectivityServerPort }}
+              TLSConfig:
+                CABundle: /etc/kubernetes/secret/ca.crt
+                ClientKey: /etc/kubernetes/secret/konnectivity-client.key
+                ClientCert: /etc/kubernetes/secret/konnectivity-client.crt
+`)
+
+func kubeApiserverKubeApiserverEgressConfigConfigmapYamlBytes() ([]byte, error) {
+	return _kubeApiserverKubeApiserverEgressConfigConfigmapYaml, nil
+}
+
+func kubeApiserverKubeApiserverEgressConfigConfigmapYaml() (*asset, error) {
+	bytes, err := kubeApiserverKubeApiserverEgressConfigConfigmapYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "kube-apiserver/kube-apiserver-egress-config-configmap.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -4292,41 +4244,6 @@ func kubeApiserverKubeApiserverOauthMetadataConfigmapYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "kube-apiserver/kube-apiserver-oauth-metadata-configmap.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _kubeApiserverKubeApiserverSecretYaml = []byte(`apiVersion: v1
-kind: Secret
-metadata:
-  name: kube-apiserver
-data:
-  server.crt: {{ pki "kube-apiserver-server.crt" }}
-  server.key: {{ pki "kube-apiserver-server.key" }}
-  kubelet-client.crt: {{ pki "kube-apiserver-kubelet.crt" }}
-  kubelet-client.key: {{ pki "kube-apiserver-kubelet.key" }}
-  etcd-client.crt: {{ pki "etcd-client.crt" }}
-  etcd-client.key: {{ pki "etcd-client.key" }}
-  proxy-client.crt: {{ pki "kube-apiserver-aggregator-proxy-client.crt" }}
-  proxy-client.key: {{ pki "kube-apiserver-aggregator-proxy-client.key" }}
-  service-account.key: {{ pki "service-account.key" }}
-{{- if .KonnectivityEnabled }}
-  konnectivity-client-key.pem: {{ pki "konnectivity-client-key.pem" }}
-  konnectivity-client.pem: {{ pki "konnectivity-client.pem" }}
-{{- end }}
-`)
-
-func kubeApiserverKubeApiserverSecretYamlBytes() ([]byte, error) {
-	return _kubeApiserverKubeApiserverSecretYaml, nil
-}
-
-func kubeApiserverKubeApiserverSecretYaml() (*asset, error) {
-	bytes, err := kubeApiserverKubeApiserverSecretYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "kube-apiserver/kube-apiserver-secret.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -5793,30 +5710,6 @@ func openshiftApiserverKonnectivityProxyConfigmapYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "openshift-apiserver/konnectivity-proxy-configmap.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _openshiftApiserverKonnectivityProxySecretYaml = []byte(`kind: Secret
-apiVersion: v1
-metadata:
-  name: konnectivity-proxy
-data:
-  konnectivity-proxy-combined.pem: {{ pki "konnectivity-proxy-combined.pem }}
-  ca.crt: {{ pki "root-ca.crt" }}
-`)
-
-func openshiftApiserverKonnectivityProxySecretYamlBytes() ([]byte, error) {
-	return _openshiftApiserverKonnectivityProxySecretYaml, nil
-}
-
-func openshiftApiserverKonnectivityProxySecretYaml() (*asset, error) {
-	bytes, err := openshiftApiserverKonnectivityProxySecretYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "openshift-apiserver/konnectivity-proxy-secret.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -7483,9 +7376,7 @@ var _bindata = map[string]func() (*asset, error){
 	"cluster-bootstrap/trust_distribution_rolebinding.yaml":                                   clusterBootstrapTrust_distribution_rolebindingYaml,
 	"cluster-version-operator/cluster-version-operator-deployment.yaml":                       clusterVersionOperatorClusterVersionOperatorDeploymentYaml,
 	"control-plane-operator/cp-operator-deployment.yaml":                                      controlPlaneOperatorCpOperatorDeploymentYaml,
-	"konnectivity/konnectivity-agent-certs.yaml":                                              konnectivityKonnectivityAgentCertsYaml,
 	"konnectivity/konnectivity-agent.yaml":                                                    konnectivityKonnectivityAgentYaml,
-	"konnectivity/konnectivity-server-certs.yaml":                                             konnectivityKonnectivityServerCertsYaml,
 	"konnectivity/konnectivity-server-services.yaml":                                          konnectivityKonnectivityServerServicesYaml,
 	"konnectivity/konnectivity-tugboat-agent-deployment.yaml":                                 konnectivityKonnectivityTugboatAgentDeploymentYaml,
 	"kube-apiserver/cluster-featuregate.yaml":                                                 kubeApiserverClusterFeaturegateYaml,
@@ -7493,11 +7384,10 @@ var _bindata = map[string]func() (*asset, error){
 	"kube-apiserver/default-audit-policy.yaml":                                                kubeApiserverDefaultAuditPolicyYaml,
 	"kube-apiserver/featuregate.yaml":                                                         kubeApiserverFeaturegateYaml,
 	"kube-apiserver/kube-apiserver-config-configmap.yaml":                                     kubeApiserverKubeApiserverConfigConfigmapYaml,
-	"kube-apiserver/kube-apiserver-configmap.yaml":                                            kubeApiserverKubeApiserverConfigmapYaml,
 	"kube-apiserver/kube-apiserver-default-audit-policy.yaml":                                 kubeApiserverKubeApiserverDefaultAuditPolicyYaml,
 	"kube-apiserver/kube-apiserver-deployment.yaml":                                           kubeApiserverKubeApiserverDeploymentYaml,
+	"kube-apiserver/kube-apiserver-egress-config-configmap.yaml":                              kubeApiserverKubeApiserverEgressConfigConfigmapYaml,
 	"kube-apiserver/kube-apiserver-oauth-metadata-configmap.yaml":                             kubeApiserverKubeApiserverOauthMetadataConfigmapYaml,
-	"kube-apiserver/kube-apiserver-secret.yaml":                                               kubeApiserverKubeApiserverSecretYaml,
 	"kube-apiserver/kube-apiserver-service.yaml":                                              kubeApiserverKubeApiserverServiceYaml,
 	"kube-apiserver/oauthMetadata.json":                                                       kubeApiserverOauthmetadataJson,
 	"kube-controller-manager/config.yaml":                                                     kubeControllerManagerConfigYaml,
@@ -7524,7 +7414,6 @@ var _bindata = map[string]func() (*asset, error){
 	"oauth-openshift/v4-0-config-system-session.json":                                         oauthOpenshiftV40ConfigSystemSessionJson,
 	"openshift-apiserver/config.yaml":                                                         openshiftApiserverConfigYaml,
 	"openshift-apiserver/konnectivity-proxy-configmap.yaml":                                   openshiftApiserverKonnectivityProxyConfigmapYaml,
-	"openshift-apiserver/konnectivity-proxy-secret.yaml":                                      openshiftApiserverKonnectivityProxySecretYaml,
 	"openshift-apiserver/openshift-apiserver-config-configmap.yaml":                           openshiftApiserverOpenshiftApiserverConfigConfigmapYaml,
 	"openshift-apiserver/openshift-apiserver-deployment.yaml":                                 openshiftApiserverOpenshiftApiserverDeploymentYaml,
 	"openshift-apiserver/openshift-apiserver-service.yaml":                                    openshiftApiserverOpenshiftApiserverServiceYaml,
@@ -7638,9 +7527,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"cp-operator-deployment.yaml": {controlPlaneOperatorCpOperatorDeploymentYaml, map[string]*bintree{}},
 	}},
 	"konnectivity": {nil, map[string]*bintree{
-		"konnectivity-agent-certs.yaml":              {konnectivityKonnectivityAgentCertsYaml, map[string]*bintree{}},
 		"konnectivity-agent.yaml":                    {konnectivityKonnectivityAgentYaml, map[string]*bintree{}},
-		"konnectivity-server-certs.yaml":             {konnectivityKonnectivityServerCertsYaml, map[string]*bintree{}},
 		"konnectivity-server-services.yaml":          {konnectivityKonnectivityServerServicesYaml, map[string]*bintree{}},
 		"konnectivity-tugboat-agent-deployment.yaml": {konnectivityKonnectivityTugboatAgentDeploymentYaml, map[string]*bintree{}},
 	}},
@@ -7650,11 +7537,10 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"default-audit-policy.yaml":                    {kubeApiserverDefaultAuditPolicyYaml, map[string]*bintree{}},
 		"featuregate.yaml":                             {kubeApiserverFeaturegateYaml, map[string]*bintree{}},
 		"kube-apiserver-config-configmap.yaml":         {kubeApiserverKubeApiserverConfigConfigmapYaml, map[string]*bintree{}},
-		"kube-apiserver-configmap.yaml":                {kubeApiserverKubeApiserverConfigmapYaml, map[string]*bintree{}},
 		"kube-apiserver-default-audit-policy.yaml":     {kubeApiserverKubeApiserverDefaultAuditPolicyYaml, map[string]*bintree{}},
 		"kube-apiserver-deployment.yaml":               {kubeApiserverKubeApiserverDeploymentYaml, map[string]*bintree{}},
+		"kube-apiserver-egress-config-configmap.yaml":  {kubeApiserverKubeApiserverEgressConfigConfigmapYaml, map[string]*bintree{}},
 		"kube-apiserver-oauth-metadata-configmap.yaml": {kubeApiserverKubeApiserverOauthMetadataConfigmapYaml, map[string]*bintree{}},
-		"kube-apiserver-secret.yaml":                   {kubeApiserverKubeApiserverSecretYaml, map[string]*bintree{}},
 		"kube-apiserver-service.yaml":                  {kubeApiserverKubeApiserverServiceYaml, map[string]*bintree{}},
 		"oauthMetadata.json":                           {kubeApiserverOauthmetadataJson, map[string]*bintree{}},
 	}},
@@ -7691,7 +7577,6 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	"openshift-apiserver": {nil, map[string]*bintree{
 		"config.yaml":                               {openshiftApiserverConfigYaml, map[string]*bintree{}},
 		"konnectivity-proxy-configmap.yaml":         {openshiftApiserverKonnectivityProxyConfigmapYaml, map[string]*bintree{}},
-		"konnectivity-proxy-secret.yaml":            {openshiftApiserverKonnectivityProxySecretYaml, map[string]*bintree{}},
 		"openshift-apiserver-config-configmap.yaml": {openshiftApiserverOpenshiftApiserverConfigConfigmapYaml, map[string]*bintree{}},
 		"openshift-apiserver-deployment.yaml":       {openshiftApiserverOpenshiftApiserverDeploymentYaml, map[string]*bintree{}},
 		"openshift-apiserver-service.yaml":          {openshiftApiserverOpenshiftApiserverServiceYaml, map[string]*bintree{}},
