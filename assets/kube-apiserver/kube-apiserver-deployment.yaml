@@ -444,10 +444,10 @@ spec:
           "--mode=http-connect",
           "--proxy-strategies=destHost,defaultRoute",
           "--cipher-suites={{ .KonnectivityServerCipherSuites }}",
-          "--v=5",
           "--keepalive-time=30s",
           "--frontend-keepalive-time=30s",
-          "--server-count=3"
+          "--server-count=3",
+          "--v=3"
           ]
 {{- if .KonnectivityServerContainerResources }}
         resources: {{ range .KonnectivityServerContainerResources }}{{ range .ResourceRequest }}
@@ -471,7 +471,7 @@ spec:
         readinessProbe:
           failureThreshold: 3
           httpGet:
-            path: healthz
+            path: /readyz
             port: {{ .KonnectivityServerHealthPort }}
             scheme: HTTP
           initialDelaySeconds: 15
@@ -480,7 +480,7 @@ spec:
           timeoutSeconds: 5
         volumeMounts:
         - mountPath: /etc/konnectivity/cluster
-          name:   
+          name: cluster-certs
         - mountPath: /etc/konnectivity/ca
           name: konnectivity-ca
         - mountPath: /etc/konnectivity/server

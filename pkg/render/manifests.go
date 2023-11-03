@@ -97,7 +97,6 @@ func (c *clusterManifestContext) kubeAPIServer() {
 		"kube-apiserver/kube-apiserver-config-configmap.yaml",
 		"kube-apiserver/kube-apiserver-oauth-metadata-configmap.yaml",
 		"kube-apiserver/kube-apiserver-default-audit-policy.yaml",
-		"kube-apiserver/kube-apiserver-egress-config-configmap.yaml",
 	)
 }
 
@@ -241,9 +240,9 @@ func (c *clusterManifestContext) roksMetrics() {
 
 func (c *clusterManifestContext) apiserverNetworkProxy() {
 	c.addManifestFiles(
+		"kube-apiserver/kube-apiserver-egress-config-configmap.yaml",
 		"konnectivity/konnectivity-server-services.yaml",
 		"konnectivity/konnectivity-tugboat-agent-deployment.yaml",
-		"openshift-apiserver/konnectivity-proxy-configmap.yaml",
 	)
 	c.addUserManifestFiles(
 		"konnectivity/konnectivity-agent.yaml",
