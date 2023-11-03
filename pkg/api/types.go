@@ -102,10 +102,8 @@ type ClusterParams struct {
 	KonnectivityServerAgentNodePort           uint                   `json:"konnectivityServerAgentNodePort"`
 	KonnectivityAgentHealthPort               uint                   `json:"konnectivityAgentHealthPort"`
 	KonnectivityServerCipherSuites            string                 `json:"konnectivityServerCipherSuites"`
-	OpenshiftHAProxySecurityContext           *SecurityContext       `json:"openshiftHAProxySecurityContext"`
-	OpenshiftHAProxyContainerResources        []ResourceRequirements `json:"openshiftHAProxyContainerResources"`
-	OpenshiftHAProxyImage                     string                 `json:"openshiftHAProxyImage"`
-	OpenshiftHAProxyNoProxyHosts              string                 `json:"openshiftHAProxyNoProxyHosts"`
+	Socks5ProxyContainerResources             []ResourceRequirements `json:"socks5ProxyContainerResources"`
+	OpenshiftAPIServerNoProxyHosts            string                 `json:"openshiftAPIServerNoProxyHosts"`
 }
 
 type NamedCert struct {
