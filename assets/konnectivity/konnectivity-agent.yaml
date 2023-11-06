@@ -84,8 +84,8 @@ spec:
       - name: agent-certs
         secret:
           secretName: konnectivity-agent
-          defaultMode: 416
+          defaultMode: 0640
       - name: konnectivity-ca
         configMap:
-          defaultMode: 416
+          defaultMode: 0640
           name: konnectivity-ca-bundle
