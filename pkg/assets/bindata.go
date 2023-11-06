@@ -2789,10 +2789,10 @@ spec:
       - name: agent-certs
         secret:
           secretName: konnectivity-agent
-          defaultMode: 416
+          defaultMode: 0640
       - name: konnectivity-ca
         configMap:
-          defaultMode: 416
+          defaultMode: 0640
           name: konnectivity-ca-bundle
 `)
 
@@ -2871,7 +2871,7 @@ metadata:
     clusterID: {{ .ClusterID }}
 spec:
   progressDeadlineSeconds: 600
-  replicas: 1
+  replicas: 3
   revisionHistoryLimit: 10
   selector:
     matchLabels:
@@ -2948,11 +2948,11 @@ spec:
       volumes:
       - name: agent-certs
         secret:
-          defaultMode: 416
+          defaultMode: 0640
           secretName: konnectivity-agent
       - name: konnectivity-ca
         configMap:
-          defaultMode: 420
+          defaultMode: 0640
           name: konnectivity-ca-bundle
 
 `)
