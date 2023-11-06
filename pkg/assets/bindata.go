@@ -3851,7 +3851,7 @@ spec:
         readinessProbe:
           failureThreshold: 3
           httpGet:
-            path: /readyz
+            path: /healthz
             port: {{ .KonnectivityServerHealthPort }}
             scheme: HTTP
           initialDelaySeconds: 15
