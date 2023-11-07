@@ -12,15 +12,14 @@ import (
 )
 
 // ClusterManifests renders manifests for a hosted control plane cluster
-func ClusterManifests(params *api.ClusterParams, pullSecretFile, outputDir string, externalOauth, includeRegistry, konnectivityEnabled bool) error {
+func ClusterManifests(params *api.ClusterParams, pullSecretFile, outputDir string, externalOauth, includeRegistry bool) error {
 	releaseInfo, err := release.GetReleaseInfo(params.ReleaseImage, params.OriginReleasePrefix, pullSecretFile)
 	if err != nil {
 		return err
 	}
 	includeMetrics := len(params.ROKSMetricsImage) > 0
-	includeKonnectivity := params.KonnectivityEnabled
 	ctx := newClusterManifestContext(releaseInfo.Images, releaseInfo.Versions, params, outputDir)
-	ctx.setupManifests(externalOauth, includeRegistry, includeMetrics, includeKonnectivity)
+	ctx.setupManifests(externalOauth, includeRegistry, includeMetrics, params.KonnectivityEnabled)
 	return ctx.renderManifests()
 }
 
