@@ -46,7 +46,7 @@ func (o *ManifestsOptions) Run() error {
 		params.ExternalOauthDNSName = params.ExternalAPIDNSName
 	}
 
-	err = render.ClusterManifests(params, o.PullSecretFile, o.OutputDir, externalOauth, o.IncludeRegistry, params.KonnectivityEnabled)
+	err = render.ClusterManifests(params, o.PullSecretFile, o.OutputDir, externalOauth, o.IncludeRegistry)
 	if err != nil {
 		return err
 	}
