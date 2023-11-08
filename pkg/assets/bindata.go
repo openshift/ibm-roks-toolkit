@@ -2864,7 +2864,7 @@ apiServerArguments:
   {{ end }}{{ range $featureGate := .ExtraFeatureGates }}- {{ $featureGate }}
   {{ end }}
   goaway-chance:
-  - '0'
+  - '0.001'
   http2-max-streams-per-connection:
   - '2000'
   profiling:
