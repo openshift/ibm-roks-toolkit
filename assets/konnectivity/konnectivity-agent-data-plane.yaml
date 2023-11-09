@@ -6,9 +6,6 @@ metadata:
   namespace: kube-system
   labels:
     app: konnectivity-agent
-    kubernetes-dashboard-policy: allow
-    dashboard-metrics-scraper-policy: allow
-    addonmanager.kubernetes.io/mode: Reconcile
     kubernetes.io/cluster-service: "true"
 spec:
   selector:
@@ -22,8 +19,6 @@ spec:
     metadata:
       labels:
         app: konnectivity-agent
-        kubernetes-dashboard-policy: allow
-        dashboard-metrics-scraper-policy: allow
     spec:
       automountServiceAccountToken: false
       priorityClassName: system-node-critical
