@@ -2,9 +2,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: konnectivity-tugboat-agent
+  name: konnectivity-agent
   labels:
-    app: konnectivity-tugboat-agent
+    app: konnectivity-agent
     clusterID: {{ .ClusterID }}
 spec:
   progressDeadlineSeconds: 600
@@ -12,7 +12,7 @@ spec:
   revisionHistoryLimit: 10
   selector:
     matchLabels:
-      app: konnectivity-tugboat-agent
+      app: konnectivity-agent
   strategy:
     rollingUpdate:
       maxSurge: 0
@@ -21,7 +21,7 @@ spec:
   template:
     metadata:
       labels:
-        app: konnectivity-tugboat-agent
+        app: konnectivity-agent
         clusterID: {{ .ClusterID }}
     spec:
       automountServiceAccountToken: false
@@ -29,7 +29,7 @@ spec:
       priorityClassName: {{ .MasterPriorityClass }}
 {{- end }}
       containers:
-      - name: konnectivity-tugboat-agent
+      - name: konnectivity-agent
 {{- if .KonnectivitySecurityContext }}
 {{- $securityContext := .KonnectivitySecurityContext }}
         securityContext:
