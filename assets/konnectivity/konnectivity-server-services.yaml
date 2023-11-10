@@ -10,10 +10,10 @@ spec:
   selector:
     app: kube-apiserver
   ports:
-    - port: {{ .KonnectivityAgentPort }}
-      targetPort: {{ .KonnectivityAgentPort }}
-{{- if .KonnectivityServerAgentNodePort }}
-      nodePort: {{ .KonnectivityServerAgentNodePort }}
+    - port: {{ .KonnectivityAgentClusterPort }}
+      targetPort: {{ .KonnectivityAgentClusterPort }}
+{{- if .KonnectivityServerNodePort }}
+      nodePort: {{ .KonnectivityServerNodePort }}
 {{- end }}
       protocol: TCP
 ---
@@ -28,6 +28,6 @@ spec:
   selector:
     app: kube-apiserver
   ports:
-    - port: {{ .KonnectivityServerPort }}
-      targetPort: {{ .KonnectivityServerPort }}
+    - port: {{ .KonnectivityServerClusterPort }}
+      targetPort: {{ .KonnectivityServerClusterPort }}
       protocol: TCP

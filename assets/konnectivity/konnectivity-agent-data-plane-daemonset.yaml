@@ -1,94 +1,79 @@
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: DaemonSet
 metadata:
   name: konnectivity-agent
+  namespace: kube-system
   labels:
     app: konnectivity-agent
-    clusterID: {{ .ClusterID }}
 spec:
-  progressDeadlineSeconds: 600
-  replicas: 3
-  revisionHistoryLimit: 10
   selector:
     matchLabels:
       app: konnectivity-agent
-  strategy:
+  updateStrategy:
     rollingUpdate:
-      maxSurge: 0
-      maxUnavailable: 1
+      maxUnavailable: 10%
     type: RollingUpdate
   template:
     metadata:
       labels:
         app: konnectivity-agent
-        clusterID: {{ .ClusterID }}
     spec:
       automountServiceAccountToken: false
-{{- if .MasterPriorityClass }}
-      priorityClassName: {{ .MasterPriorityClass }}
-{{- end }}
+      priorityClassName: system-node-critical
       containers:
       - name: konnectivity-agent
+        image: {{ imageFor "apiserver-network-proxy" }}
+        imagePullPolicy: IfNotPresent
 {{- if .KonnectivitySecurityContext }}
 {{- $securityContext := .KonnectivitySecurityContext }}
         securityContext:
           runAsUser: {{ $securityContext.RunAsUser }}
 {{- end }}
-        image: {{ imageFor "apiserver-network-proxy" }}
-        imagePullPolicy: IfNotPresent
         command: ["/bin/proxy-agent"]
         args: [
           "--logtostderr=true",
           "--ca-cert=/etc/konnectivity/ca/ca.crt",
+          "--proxy-server-host={{ .KonnectivityServerURL }}",
+          "--proxy-server-port={{ .KonnectivityServerNodePort }}",
+          "--health-server-port={{ .KonnectivityAgentHealthPort }}",
           "--agent-cert=/etc/konnectivity/agent/tls.crt",
           "--agent-key=/etc/konnectivity/agent/tls.key",
-          "--proxy-server-host=konnectivity-server.{{ .Namespace }}.svc",
-          "--proxy-server-port={{ .KonnectivityAgentPort }}",
-          "--health-server-port={{ .KonnectivityAgentHealthPort }}",
-          "--agent-identifiers=ipv4={{ .OpenShiftAPIClusterIP }}&ipv4={{ .OauthAPIClusterIP }}",
+          "--agent-identifiers=default-route=true",
           "--keepalive-time=30s",
           "--probe-interval=30s",
           "--sync-interval=1m",
           "--sync-interval-cap=5m",
-          "--v=3",
+          "--v=3"
           ]
-{{- if .KonnectivityAgentContainerResources }}
-        resources: {{ range .KonnectivityAgentContainerResources }}{{ range .ResourceRequest }}
-          requests: {{ if .CPU }}
-            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
-            memory: {{ .Memory }}{{ end }}{{ end }}{{ range .ResourceLimit }}
-          limits: {{ if .CPU }}
-            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
-            memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
-{{- end }}
         livenessProbe:
-          failureThreshold: 3
           httpGet:
             path: /healthz
             port: {{ .KonnectivityAgentHealthPort }}
             scheme: HTTP
           initialDelaySeconds: 120
           periodSeconds: 60
-          successThreshold: 1
+          failureThreshold: 3
           timeoutSeconds: 30
+{{- if .KonnectivityAgentContainerResources }}
+        resources: {{ range .KonnectivityAgentContainerResources }}{{ range .ResourceRequest }}
+          requests: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
+{{- end }}
         volumeMounts:
         - mountPath: /etc/konnectivity/ca
           name: konnectivity-ca
         - mountPath: /etc/konnectivity/agent
           name: agent-certs
       tolerations:
-      - key: "multi-az-worker"
-        operator: "Equal"
-        value: "true"
-        effect: NoSchedule
+      - operator: "Exists"
       volumes:
       - name: agent-certs
         secret:
-          defaultMode: 0640
           secretName: konnectivity-agent
+          defaultMode: 0640
       - name: konnectivity-ca
         configMap:
           defaultMode: 0640
           name: konnectivity-ca-bundle
-

@@ -98,6 +98,13 @@ spec:
             cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
             memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
 {{- end }}
+        lifecycle:
+          preStop:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - sleep 70
         volumeMounts:
         - mountPath: /etc/kubernetes/secrets/kubeconfig
           name: kubeconfig
@@ -156,9 +163,9 @@ spec:
 {{- if .KonnectivityEnabled }}
         env:
         - name: "HTTP_PROXY"
-          value: "socks5://127.0.0.1:8090"
+          value: "socks5://127.0.0.1:{{ .KonnectivityServerClusterPort }}"
         - name: "HTTPS_PROXY"
-          value: "socks5://127.0.0.1:8090"
+          value: "socks5://127.0.0.1:{{ .KonnectivityServerClusterPort }}"
         - name: "NO_PROXY"
           value: "{{ .OpenshiftAPIServerNoProxyHosts }}"
 {{- end }}

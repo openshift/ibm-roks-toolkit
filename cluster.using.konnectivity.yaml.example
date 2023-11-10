@@ -252,11 +252,11 @@ konnectivityEnabled: true
 konnectivityServerURL: 'c100-e.containers.test.cloud.ibm.com'
 konnectivityServerImage: 'registry.ng.bluemix.net/armada-master/ocp-release:4.9.8-x86_64'
 konnectivityAgentImage: 'registry.ng.bluemix.net/armada-master/ocp-release:4.9.8-x86_64'
-konnectivityServerPort: 8090
-konnectivityAgentPort: 8091
+konnectivityServerClusterPort: 8090
+konnectivityAgentClusterPort: 8091
 konnectivityServerHealthPort: 8092
 konnectivityAgentHealthPort: 8093
 konnectivityServerAdminPort: 8095
-konnectivityServerAgentNodePort: 32321
+konnectivityServerNodePort: 32321
 konnectivityServerCipherSuites: 'TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,TLS_AES_128_GCM_SHA256,TLS_CHACHA20_POLY1305_SHA256,TLS_AES_256_GCM_SHA384'
 openshiftAPIServerNoProxyHosts: "kube-apiserver,etcd,quay.io,registry.redhat.io"

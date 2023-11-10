@@ -241,10 +241,10 @@ func (c *clusterManifestContext) apiserverNetworkProxy() {
 	c.addManifestFiles(
 		"kube-apiserver/kube-apiserver-egress-config-configmap.yaml",
 		"konnectivity/konnectivity-server-services.yaml",
-		"konnectivity/konnectivity-agent-control-plane.yaml",
+		"konnectivity/konnectivity-agent-control-plane-deployment.yaml",
 	)
 	c.addUserManifestFiles(
-		"konnectivity/konnectivity-agent-data-plane.yaml",
+		"konnectivity/konnectivity-agent-data-plane-daemonset.yaml",
 	)
 }
 

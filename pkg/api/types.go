@@ -95,12 +95,12 @@ type ClusterParams struct {
 	KonnectivitySecurityContext               *SecurityContext       `json:"konnectivitySecurityContext"`
 	KonnectivityServerContainerResources      []ResourceRequirements `json:"konnectivityServerContainerResources"`
 	KonnectivityAgentContainerResources       []ResourceRequirements `json:"konnectivityAgentContainerResources"`
-	KonnectivityServerPort                    uint                   `json:"konnectivityServerPort"`
-	KonnectivityAgentPort                     uint                   `json:"konnectivityAgentPort"`
+	KonnectivityServerClusterPort             uint                   `json:"konnectivityServerClusterPort"`
+	KonnectivityAgentClusterPort              uint                   `json:"konnectivityAgentClusterPort"`
+	KonnectivityServerNodePort                uint                   `json:"konnectivityServerNodePort"`
+	KonnectivityAgentHealthPort               uint                   `json:"konnectivityAgentHealthPort"`
 	KonnectivityServerHealthPort              uint                   `json:"konnectivityServerHealthPort"`
 	KonnectivityServerAdminPort               uint                   `json:"konnectivityServerAdminPort"`
-	KonnectivityServerAgentNodePort           uint                   `json:"konnectivityServerAgentNodePort"`
-	KonnectivityAgentHealthPort               uint                   `json:"konnectivityAgentHealthPort"`
 	KonnectivityServerCipherSuites            string                 `json:"konnectivityServerCipherSuites"`
 	Socks5ProxyContainerResources             []ResourceRequirements `json:"socks5ProxyContainerResources"`
 	OpenshiftAPIServerNoProxyHosts            string                 `json:"openshiftAPIServerNoProxyHosts"`
