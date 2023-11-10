@@ -2796,8 +2796,8 @@ spec:
           "--sync-interval-cap=5m",
           "--v=3",
           ]
-{{- if .KonnectivityAgentContainerResources }}
-        resources: {{ range .KonnectivityAgentContainerResources }}{{ range .ResourceRequest }}
+{{- if .KonnectivityAgentControlPlaneContainerResources }}
+        resources: {{ range .KonnectivityAgentControlPlaneContainerResources }}{{ range .ResourceRequest }}
           requests: {{ if .CPU }}
             cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
             memory: {{ .Memory }}{{ end }}{{ end }}{{ range .ResourceLimit }}
@@ -2913,8 +2913,8 @@ spec:
           periodSeconds: 60
           failureThreshold: 3
           timeoutSeconds: 30
-{{- if .KonnectivityAgentContainerResources }}
-        resources: {{ range .KonnectivityAgentContainerResources }}{{ range .ResourceRequest }}
+{{- if .KonnectivityAgentDataPlaneContainerResources }}
+        resources: {{ range .KonnectivityAgentDataPlaneContainerResources }}{{ range .ResourceRequest }}
           requests: {{ if .CPU }}
             cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
             memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
