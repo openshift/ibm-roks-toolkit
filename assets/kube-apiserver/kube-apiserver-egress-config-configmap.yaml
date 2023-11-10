@@ -18,7 +18,7 @@ data:
           proxyProtocol: HTTPConnect
           transport:
             TCP:
-              URL: https://127.0.0.1:{{ .KonnectivityServerPort }}
+              URL: https://127.0.0.1:{{ .KonnectivityServerClusterPort }}
               TLSConfig:
                 CABundle: /etc/kubernetes/secret/ca.crt
                 ClientKey: /etc/kubernetes/secret/konnectivity-client.key

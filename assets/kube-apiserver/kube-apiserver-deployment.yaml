@@ -437,8 +437,8 @@ spec:
           "--cluster-key=/etc/konnectivity/cluster/tls.key",
           "--cluster-cert=/etc/konnectivity/cluster/tls.crt",
           "--cluster-ca-cert=/etc/konnectivity/ca/ca.crt",
-          "--server-port={{ .KonnectivityServerPort }}",
-          "--agent-port={{ .KonnectivityAgentPort }}",
+          "--server-port={{ .KonnectivityServerClusterPort }}",
+          "--agent-port={{ .KonnectivityAgentClusterPort }}",
           "--health-port={{ .KonnectivityServerHealthPort }}",
           "--admin-port={{ .KonnectivityServerAdminPort }}",
           "--mode=http-connect",
@@ -478,6 +478,13 @@ spec:
           periodSeconds: 60
           successThreshold: 1
           timeoutSeconds: 5
+        lifecycle:
+          preStop:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - sleep 70
         volumeMounts:
         - mountPath: /etc/konnectivity/cluster
           name: cluster-certs
