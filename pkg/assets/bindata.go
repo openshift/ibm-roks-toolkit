@@ -5826,8 +5826,9 @@ spec:
     metadata:
       labels:
         app: metrics
-{{ if .RestartDate }}
       annotations:
+        openshift.io/required-scc: restricted-v2
+{{ if .RestartDate }}
         openshift.io/restartedAt: "{{ .RestartDate }}"
 {{ end }}
     spec:
