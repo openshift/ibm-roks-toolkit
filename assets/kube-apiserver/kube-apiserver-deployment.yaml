@@ -159,6 +159,9 @@ spec:
 {{- if .KPInfo }}
         - "--encryption-provider-config=/etc/kubernetes/kms-config/config.yaml"
 {{- end }}
+{{- if .KonnectivityEnabled }}
+        - "--egress-selector-config-file=/etc/kubernetes/apiserver-egress-config/egress-config.yaml"
+{{- end }}
 {{- if .KubeAPIServerVerbosity }}
         - "--v={{ .KubeAPIServerVerbosity }}"
 {{- end }}
@@ -229,6 +232,10 @@ spec:
           name: secret
         - mountPath: /etc/kubernetes/apiserver-config/
           name: apiserver-config
+{{- if .KonnectivityEnabled }}
+        - mountPath: /etc/kubernetes/apiserver-egress-config/
+          name: apiserver-egress-config
+{{- end }}
         - mountPath: /etc/kubernetes/config/
           name: config
         - mountPath: /etc/kubernetes/oauth/
@@ -411,6 +418,81 @@ spec:
           name: portieris-certs
           readOnly: true
 {{ end }}
+{{- if .KonnectivityEnabled }}
+      - name: konnectivity-server
+{{- if .KonnectivitySecurityContext }}
+{{- $securityContext := .KonnectivitySecurityContext }}
+        securityContext:
+          runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
+        image: {{ imageFor "apiserver-network-proxy" }}
+        imagePullPolicy: IfNotPresent
+        command: ["/bin/proxy-server"]
+        args: [
+          "--logtostderr=true",
+          "--log-file-max-size=0",
+          "--server-key=/etc/konnectivity/server/tls.key",
+          "--server-cert=/etc/konnectivity/server/tls.crt",
+          "--server-ca-cert=/etc/konnectivity/ca/ca.crt",
+          "--cluster-key=/etc/konnectivity/cluster/tls.key",
+          "--cluster-cert=/etc/konnectivity/cluster/tls.crt",
+          "--cluster-ca-cert=/etc/konnectivity/ca/ca.crt",
+          "--server-port={{ .KonnectivityServerClusterPort }}",
+          "--agent-port={{ .KonnectivityAgentClusterPort }}",
+          "--health-port={{ .KonnectivityServerHealthPort }}",
+          "--admin-port={{ .KonnectivityServerAdminPort }}",
+          "--mode=http-connect",
+          "--proxy-strategies=destHost,defaultRoute",
+          "--cipher-suites={{ .KonnectivityServerCipherSuites }}",
+          "--keepalive-time=30s",
+          "--frontend-keepalive-time=30s",
+          "--server-count=3",
+          "--v=3"
+          ]
+{{- if .KonnectivityServerContainerResources }}
+        resources: {{ range .KonnectivityServerContainerResources }}{{ range .ResourceRequest }}
+          requests: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ range .ResourceLimit }}
+          limits: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
+{{- end }}
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: {{ .KonnectivityServerHealthPort }}
+            scheme: HTTP
+          initialDelaySeconds: 120
+          periodSeconds: 60
+          successThreshold: 1
+          failureThreshold: 3
+          timeoutSeconds: 30
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthz
+            port: {{ .KonnectivityServerHealthPort }}
+            scheme: HTTP
+          initialDelaySeconds: 15
+          periodSeconds: 60
+          successThreshold: 1
+          timeoutSeconds: 5
+        lifecycle:
+          preStop:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - sleep 70
+        volumeMounts:
+        - mountPath: /etc/konnectivity/cluster
+          name: cluster-certs
+        - mountPath: /etc/konnectivity/ca
+          name: konnectivity-ca
+        - mountPath: /etc/konnectivity/server
+          name: server-certs
+{{- end }}
       volumes:
       - name: bootstrap-manifests
         emptyDir: {}
@@ -467,4 +549,22 @@ spec:
         secret:
           defaultMode: 0640
           secretName: portieris-certs
+{{ end }}
+{{- if .KonnectivityEnabled }}
+      - name: apiserver-egress-config
+        configMap:
+          name: kube-apiserver-egress-config
+          defaultMode: 0640
+      - name: server-certs
+        secret:
+          secretName: konnectivity-server
+          defaultMode: 0640
+      - name: konnectivity-ca
+        configMap:
+          name: konnectivity-ca-bundle
+          defaultMode: 0640
+      - name: cluster-certs
+        secret:
+          secretName: konnectivity-cluster
+          defaultMode: 0640
 {{ end }}

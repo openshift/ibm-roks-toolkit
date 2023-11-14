@@ -19,7 +19,7 @@ func ClusterManifests(params *api.ClusterParams, pullSecretFile, outputDir strin
 	}
 	includeMetrics := len(params.ROKSMetricsImage) > 0
 	ctx := newClusterManifestContext(releaseInfo.Images, releaseInfo.Versions, params, outputDir)
-	ctx.setupManifests(externalOauth, includeRegistry, includeMetrics)
+	ctx.setupManifests(externalOauth, includeRegistry, includeMetrics, params.KonnectivityEnabled)
 	return ctx.renderManifests()
 }
 
@@ -50,7 +50,7 @@ func newClusterManifestContext(images, versions map[string]string, params interf
 	return ctx
 }
 
-func (c *clusterManifestContext) setupManifests(externalOauth, includeRegistry, includeMetrics bool) {
+func (c *clusterManifestContext) setupManifests(externalOauth, includeRegistry, includeMetrics, includeKonnectivity bool) {
 	c.kubeAPIServer()
 	c.kubeControllerManager()
 	c.kubeScheduler()
@@ -68,6 +68,9 @@ func (c *clusterManifestContext) setupManifests(externalOauth, includeRegistry, 
 	}
 	if includeMetrics {
 		c.roksMetrics()
+	}
+	if includeKonnectivity {
+		c.apiserverNetworkProxy()
 	}
 	c.userManifestsBootstrapper()
 	c.controlPlaneOperator()
@@ -231,6 +234,17 @@ func (c *clusterManifestContext) roksMetrics() {
 		"roks-metrics/roks-metrics-push-gateway-deployment.yaml",
 		"roks-metrics/roks-metrics-push-gateway-service.yaml",
 		"roks-metrics/roks-metrics-push-gateway-servicemonitor.yaml",
+	)
+}
+
+func (c *clusterManifestContext) apiserverNetworkProxy() {
+	c.addManifestFiles(
+		"kube-apiserver/kube-apiserver-egress-config-configmap.yaml",
+		"konnectivity/konnectivity-server-services.yaml",
+		"konnectivity/konnectivity-agent-control-plane-deployment.yaml",
+	)
+	c.addUserManifestFiles(
+		"konnectivity/konnectivity-agent-data-plane-daemonset.yaml",
 	)
 }
 

@@ -9,6 +9,7 @@
 .vscode
 
 /manifests
+/manifests-konnectivity
 /pki
 /bin
 /pull-secret.txt
