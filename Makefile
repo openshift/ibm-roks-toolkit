@@ -47,6 +47,7 @@ roks-metrics:
 .PHONY: test-render
 test-render: build
 	./bin/ibm-roks render --config cluster.yaml.example --output-dir manifests --pull-secret empty-pull-secret.txt
+	./bin/ibm-roks render --config cluster.using.konnectivity.yaml.example --output-dir manifests-konnectivity --pull-secret empty-pull-secret.txt
 
 .PHONY: create-release
 create-release:
