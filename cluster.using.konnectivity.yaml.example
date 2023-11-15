@@ -232,8 +232,6 @@ konnectivityEnabled: true
 konnectivitySecurityContext:
   runAsUser: 1000
 konnectivityServerURL: 'c100-e.containers.test.cloud.ibm.com'
-konnectivityServerImage: 'registry.ng.bluemix.net/armada-master/ocp-release:4.9.8-x86_64'
-konnectivityAgentImage: 'registry.ng.bluemix.net/armada-master/ocp-release:4.9.8-x86_64'
 konnectivityServerClusterPort: 8090
 konnectivityAgentClusterPort: 8091
 konnectivityServerHealthPort: 8092
