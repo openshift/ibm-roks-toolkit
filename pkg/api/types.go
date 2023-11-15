@@ -89,9 +89,7 @@ type ClusterParams struct {
 	PortierisLivenessProbe                          *Probe                 `json:"portierisLivenessProbe,omitempty"`
 	KubeAPIServerVerbosity                          uint                   `json:"kubeAPIServerVerbosity"`
 	KonnectivityEnabled                             bool                   `json:"konnectivityEnabled"`
-	KonnectivityServerImage                         string                 `json:"konnectivityServerImage"`
 	KonnectivityServerURL                           string                 `json:"konnectivityServerURL"`
-	KonnectivityAgentImage                          string                 `json:"konnectivityAgentImage"`
 	KonnectivitySecurityContext                     *SecurityContext       `json:"konnectivitySecurityContext"`
 	KonnectivityServerContainerResources            []ResourceRequirements `json:"konnectivityServerContainerResources"`
 	KonnectivityAgentControlPlaneContainerResources []ResourceRequirements `json:"konnectivityAgentControlPlaneContainerResources"`
