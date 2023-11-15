@@ -3180,8 +3180,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: konnectivity-server
-  labels:
-    app: kube-apiserver
 spec:
   type: NodePort
   selector:
@@ -3198,8 +3196,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: konnectivity-server-local
-  labels:
-    app: kube-apiserver
 spec:
   type: ClusterIP
   selector:
@@ -4097,7 +4093,7 @@ spec:
             port: {{ .KonnectivityServerHealthPort }}
             scheme: HTTP
           initialDelaySeconds: 120
-          periodSeconds: 60
+          periodSeconds: 90
           successThreshold: 1
           failureThreshold: 3
           timeoutSeconds: 30
@@ -4110,7 +4106,7 @@ spec:
           initialDelaySeconds: 15
           periodSeconds: 60
           successThreshold: 1
-          timeoutSeconds: 5
+          timeoutSeconds: 30
         lifecycle:
           preStop:
             exec:
