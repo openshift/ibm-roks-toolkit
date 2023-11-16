@@ -13,8 +13,10 @@ aggregatorConfig:
   usernameHeaders:
   - X-Remote-User
 apiServerArguments:
-  minimal-shutdown-duration:
-  - 3s
+  shutdown-delay-duration:
+  - 15s
+  shutdown-send-retry-after:
+  - "true"
 auditConfig:
   auditFilePath: "/var/run/kubernetes/audit.log"
   enabled: true
