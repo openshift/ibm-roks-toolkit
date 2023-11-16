@@ -51,6 +51,8 @@
 // assets/kube-controller-manager/config.yaml
 // assets/kube-controller-manager/kube-controller-manager-config-configmap.yaml
 // assets/kube-controller-manager/kube-controller-manager-deployment.yaml
+// assets/kube-controller-manager/podsecurity-admission-label-privileged-namespaces-syncer-controller-clusterrole.yaml
+// assets/kube-controller-manager/podsecurity-admission-label-privileged-namespaces-syncer-controller-clusterrolebinding.yaml
 // assets/kube-scheduler/config.yaml
 // assets/kube-scheduler/kube-scheduler-config-configmap.yaml
 // assets/kube-scheduler/kube-scheduler-deployment.yaml
@@ -4590,6 +4592,76 @@ func kubeControllerManagerKubeControllerManagerDeploymentYaml() (*asset, error) 
 	return a, nil
 }
 
+var _kubeControllerManagerPodsecurityAdmissionLabelPrivilegedNamespacesSyncerControllerClusterroleYaml = []byte(`apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  annotations:
+  name: system:openshift:controller:privileged-namespaces-psa-label-syncer
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - namespaces
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resourceNames:
+  - default
+  - kube-system
+  - kube-public
+  resources:
+  - namespaces
+  verbs:
+  - patch
+`)
+
+func kubeControllerManagerPodsecurityAdmissionLabelPrivilegedNamespacesSyncerControllerClusterroleYamlBytes() ([]byte, error) {
+	return _kubeControllerManagerPodsecurityAdmissionLabelPrivilegedNamespacesSyncerControllerClusterroleYaml, nil
+}
+
+func kubeControllerManagerPodsecurityAdmissionLabelPrivilegedNamespacesSyncerControllerClusterroleYaml() (*asset, error) {
+	bytes, err := kubeControllerManagerPodsecurityAdmissionLabelPrivilegedNamespacesSyncerControllerClusterroleYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "kube-controller-manager/podsecurity-admission-label-privileged-namespaces-syncer-controller-clusterrole.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _kubeControllerManagerPodsecurityAdmissionLabelPrivilegedNamespacesSyncerControllerClusterrolebindingYaml = []byte(`apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: system:openshift:controller:privileged-namespaces-psa-label-syncer
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:openshift:controller:privileged-namespaces-psa-label-syncer
+subjects:
+- kind: ServiceAccount
+  name: privileged-namespaces-psa-label-syncer
+  namespace: openshift-infra
+`)
+
+func kubeControllerManagerPodsecurityAdmissionLabelPrivilegedNamespacesSyncerControllerClusterrolebindingYamlBytes() ([]byte, error) {
+	return _kubeControllerManagerPodsecurityAdmissionLabelPrivilegedNamespacesSyncerControllerClusterrolebindingYaml, nil
+}
+
+func kubeControllerManagerPodsecurityAdmissionLabelPrivilegedNamespacesSyncerControllerClusterrolebindingYaml() (*asset, error) {
+	bytes, err := kubeControllerManagerPodsecurityAdmissionLabelPrivilegedNamespacesSyncerControllerClusterrolebindingYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "kube-controller-manager/podsecurity-admission-label-privileged-namespaces-syncer-controller-clusterrolebinding.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _kubeSchedulerConfigYaml = []byte(`apiVersion: kubescheduler.config.k8s.io/v1
 kind: KubeSchedulerConfiguration
 clientConnection:
@@ -7360,104 +7432,106 @@ func AssetNames() []string {
 
 // _bindata is a table, holding each asset generator, mapped to its name.
 var _bindata = map[string]func() (*asset, error){
-	"cluster-bootstrap/00000_namespaces-needed-for-monitoring.yaml":                           clusterBootstrap00000_namespacesNeededForMonitoringYaml,
-	"cluster-bootstrap/00000_route-controller-ns.yaml":                                        clusterBootstrap00000_routeControllerNsYaml,
-	"cluster-bootstrap/api-usage.yaml":                                                        clusterBootstrapApiUsageYaml,
-	"cluster-bootstrap/apiserver-apirequestcounts-crd.yaml":                                   clusterBootstrapApiserverApirequestcountsCrdYaml,
-	"cluster-bootstrap/cluster-config-v1-configmap.yaml":                                      clusterBootstrapClusterConfigV1ConfigmapYaml,
-	"cluster-bootstrap/cluster-dns-02-config.yaml":                                            clusterBootstrapClusterDns02ConfigYaml,
-	"cluster-bootstrap/cluster-infrastructure-02-config.yaml":                                 clusterBootstrapClusterInfrastructure02ConfigYaml,
-	"cluster-bootstrap/cluster-ingress-02-config.yaml":                                        clusterBootstrapClusterIngress02ConfigYaml,
-	"cluster-bootstrap/cluster-ingresscontrollers-02-config.yaml":                             clusterBootstrapClusterIngresscontrollers02ConfigYaml,
-	"cluster-bootstrap/cluster-network-01-crd.yaml":                                           clusterBootstrapClusterNetwork01CrdYaml,
-	"cluster-bootstrap/cluster-network-02-config.yaml":                                        clusterBootstrapClusterNetwork02ConfigYaml,
-	"cluster-bootstrap/cluster-proxy-01-config.yaml":                                          clusterBootstrapClusterProxy01ConfigYaml,
-	"cluster-bootstrap/cluster-version-namespace.yaml":                                        clusterBootstrapClusterVersionNamespaceYaml,
-	"cluster-bootstrap/cluster-version.yaml":                                                  clusterBootstrapClusterVersionYaml,
-	"cluster-bootstrap/csr_approver_clusterrole.yaml":                                         clusterBootstrapCsr_approver_clusterroleYaml,
-	"cluster-bootstrap/csr_approver_clusterrolebinding.yaml":                                  clusterBootstrapCsr_approver_clusterrolebindingYaml,
-	"cluster-bootstrap/deployer-clusterrole.yaml":                                             clusterBootstrapDeployerClusterroleYaml,
-	"cluster-bootstrap/deployer-clusterrolebinding.yaml":                                      clusterBootstrapDeployerClusterrolebindingYaml,
-	"cluster-bootstrap/etcd-operator-config.yaml":                                             clusterBootstrapEtcdOperatorConfigYaml,
-	"cluster-bootstrap/ingress-to-route-controller-clusterrole.yaml":                          clusterBootstrapIngressToRouteControllerClusterroleYaml,
-	"cluster-bootstrap/ingress-to-route-controller-clusterrolebinding.yaml":                   clusterBootstrapIngressToRouteControllerClusterrolebindingYaml,
-	"cluster-bootstrap/leader-ingress-to-route-controller-role.yaml":                          clusterBootstrapLeaderIngressToRouteControllerRoleYaml,
-	"cluster-bootstrap/leader-ingress-to-route-controller-rolebinding.yaml":                   clusterBootstrapLeaderIngressToRouteControllerRolebindingYaml,
-	"cluster-bootstrap/namespace-security-allocation-controller-clusterrole.yaml":             clusterBootstrapNamespaceSecurityAllocationControllerClusterroleYaml,
-	"cluster-bootstrap/namespace-security-allocation-controller-clusterrolebinding.yaml":      clusterBootstrapNamespaceSecurityAllocationControllerClusterrolebindingYaml,
-	"cluster-bootstrap/node-bootstrapper-clusterrolebinding.yaml":                             clusterBootstrapNodeBootstrapperClusterrolebindingYaml,
-	"cluster-bootstrap/openshift-install-configmap.yaml":                                      clusterBootstrapOpenshiftInstallConfigmapYaml,
-	"cluster-bootstrap/podsecurity-admission-label-syncer-controller-clusterrole.yaml":        clusterBootstrapPodsecurityAdmissionLabelSyncerControllerClusterroleYaml,
-	"cluster-bootstrap/podsecurity-admission-label-syncer-controller-clusterrolebinding.yaml": clusterBootstrapPodsecurityAdmissionLabelSyncerControllerClusterrolebindingYaml,
-	"cluster-bootstrap/podsecurity-alert.yaml":                                                clusterBootstrapPodsecurityAlertYaml,
-	"cluster-bootstrap/trust_distribution_role.yaml":                                          clusterBootstrapTrust_distribution_roleYaml,
-	"cluster-bootstrap/trust_distribution_rolebinding.yaml":                                   clusterBootstrapTrust_distribution_rolebindingYaml,
-	"cluster-version-operator/cluster-version-operator-deployment.yaml":                       clusterVersionOperatorClusterVersionOperatorDeploymentYaml,
-	"control-plane-operator/cp-operator-deployment.yaml":                                      controlPlaneOperatorCpOperatorDeploymentYaml,
-	"konnectivity/konnectivity-agent-control-plane-deployment.yaml":                           konnectivityKonnectivityAgentControlPlaneDeploymentYaml,
-	"konnectivity/konnectivity-agent-data-plane-daemonset.yaml":                               konnectivityKonnectivityAgentDataPlaneDaemonsetYaml,
-	"konnectivity/konnectivity-server-services.yaml":                                          konnectivityKonnectivityServerServicesYaml,
-	"kube-apiserver/cluster-featuregate.yaml":                                                 kubeApiserverClusterFeaturegateYaml,
-	"kube-apiserver/config.yaml":                                                              kubeApiserverConfigYaml,
-	"kube-apiserver/default-audit-policy.yaml":                                                kubeApiserverDefaultAuditPolicyYaml,
-	"kube-apiserver/featuregate.yaml":                                                         kubeApiserverFeaturegateYaml,
-	"kube-apiserver/kube-apiserver-config-configmap.yaml":                                     kubeApiserverKubeApiserverConfigConfigmapYaml,
-	"kube-apiserver/kube-apiserver-default-audit-policy.yaml":                                 kubeApiserverKubeApiserverDefaultAuditPolicyYaml,
-	"kube-apiserver/kube-apiserver-deployment.yaml":                                           kubeApiserverKubeApiserverDeploymentYaml,
-	"kube-apiserver/kube-apiserver-egress-config-configmap.yaml":                              kubeApiserverKubeApiserverEgressConfigConfigmapYaml,
-	"kube-apiserver/kube-apiserver-oauth-metadata-configmap.yaml":                             kubeApiserverKubeApiserverOauthMetadataConfigmapYaml,
-	"kube-apiserver/kube-apiserver-service.yaml":                                              kubeApiserverKubeApiserverServiceYaml,
-	"kube-apiserver/oauthMetadata.json":                                                       kubeApiserverOauthmetadataJson,
-	"kube-controller-manager/config.yaml":                                                     kubeControllerManagerConfigYaml,
-	"kube-controller-manager/kube-controller-manager-config-configmap.yaml":                   kubeControllerManagerKubeControllerManagerConfigConfigmapYaml,
-	"kube-controller-manager/kube-controller-manager-deployment.yaml":                         kubeControllerManagerKubeControllerManagerDeploymentYaml,
-	"kube-scheduler/config.yaml":                                                              kubeSchedulerConfigYaml,
-	"kube-scheduler/kube-scheduler-config-configmap.yaml":                                     kubeSchedulerKubeSchedulerConfigConfigmapYaml,
-	"kube-scheduler/kube-scheduler-deployment.yaml":                                           kubeSchedulerKubeSchedulerDeploymentYaml,
-	"oauth-apiserver/audit-policy.yaml":                                                       oauthApiserverAuditPolicyYaml,
-	"oauth-apiserver/oauth-apiserver-auditpolicy.yaml":                                        oauthApiserverOauthApiserverAuditpolicyYaml,
-	"oauth-apiserver/oauth-apiserver-deployment.yaml":                                         oauthApiserverOauthApiserverDeploymentYaml,
-	"oauth-apiserver/oauth-apiserver-service.yaml":                                            oauthApiserverOauthApiserverServiceYaml,
-	"oauth-apiserver/oauth-apiserver-user-endpoint.yaml":                                      oauthApiserverOauthApiserverUserEndpointYaml,
-	"oauth-apiserver/oauth-apiserver-user-service.yaml":                                       oauthApiserverOauthApiserverUserServiceYaml,
-	"oauth-apiserver/service-template.yaml":                                                   oauthApiserverServiceTemplateYaml,
-	"oauth-openshift/oauth-browser-client.yaml":                                               oauthOpenshiftOauthBrowserClientYaml,
-	"oauth-openshift/oauth-challenging-client.yaml":                                           oauthOpenshiftOauthChallengingClientYaml,
-	"oauth-openshift/oauth-server-config-configmap.yaml":                                      oauthOpenshiftOauthServerConfigConfigmapYaml,
-	"oauth-openshift/oauth-server-config.yaml":                                                oauthOpenshiftOauthServerConfigYaml,
-	"oauth-openshift/oauth-server-deployment.yaml":                                            oauthOpenshiftOauthServerDeploymentYaml,
-	"oauth-openshift/oauth-server-service.yaml":                                               oauthOpenshiftOauthServerServiceYaml,
-	"oauth-openshift/oauth-server-sessionsecret-secret.yaml":                                  oauthOpenshiftOauthServerSessionsecretSecretYaml,
-	"oauth-openshift/v4-0-config-system-branding.yaml":                                        oauthOpenshiftV40ConfigSystemBrandingYaml,
-	"oauth-openshift/v4-0-config-system-session.json":                                         oauthOpenshiftV40ConfigSystemSessionJson,
-	"openshift-apiserver/config.yaml":                                                         openshiftApiserverConfigYaml,
-	"openshift-apiserver/openshift-apiserver-config-configmap.yaml":                           openshiftApiserverOpenshiftApiserverConfigConfigmapYaml,
-	"openshift-apiserver/openshift-apiserver-deployment.yaml":                                 openshiftApiserverOpenshiftApiserverDeploymentYaml,
-	"openshift-apiserver/openshift-apiserver-service.yaml":                                    openshiftApiserverOpenshiftApiserverServiceYaml,
-	"openshift-apiserver/openshift-apiserver-user-endpoint.yaml":                              openshiftApiserverOpenshiftApiserverUserEndpointYaml,
-	"openshift-apiserver/openshift-apiserver-user-service.yaml":                               openshiftApiserverOpenshiftApiserverUserServiceYaml,
-	"openshift-apiserver/service-template.yaml":                                               openshiftApiserverServiceTemplateYaml,
-	"openshift-controller-manager/00-openshift-controller-manager-namespace.yaml":             openshiftControllerManager00OpenshiftControllerManagerNamespaceYaml,
-	"openshift-controller-manager/cluster-policy-controller-deployment.yaml":                  openshiftControllerManagerClusterPolicyControllerDeploymentYaml,
-	"openshift-controller-manager/config.yaml":                                                openshiftControllerManagerConfigYaml,
-	"openshift-controller-manager/openshift-controller-manager-config-configmap.yaml":         openshiftControllerManagerOpenshiftControllerManagerConfigConfigmapYaml,
-	"openshift-controller-manager/openshift-controller-manager-deployment.yaml":               openshiftControllerManagerOpenshiftControllerManagerDeploymentYaml,
-	"openshift-controller-manager/openshift-controller-manager-service-ca.yaml":               openshiftControllerManagerOpenshiftControllerManagerServiceCaYaml,
-	"registry/cluster-imageregistry-config.yaml":                                              registryClusterImageregistryConfigYaml,
-	"roks-metrics/roks-metrics-00-namespace.yaml":                                             roksMetricsRoksMetrics00NamespaceYaml,
-	"roks-metrics/roks-metrics-deployment.yaml":                                               roksMetricsRoksMetricsDeploymentYaml,
-	"roks-metrics/roks-metrics-push-gateway-deployment.yaml":                                  roksMetricsRoksMetricsPushGatewayDeploymentYaml,
-	"roks-metrics/roks-metrics-push-gateway-service.yaml":                                     roksMetricsRoksMetricsPushGatewayServiceYaml,
-	"roks-metrics/roks-metrics-push-gateway-servicemonitor.yaml":                              roksMetricsRoksMetricsPushGatewayServicemonitorYaml,
-	"roks-metrics/roks-metrics-rbac.yaml":                                                     roksMetricsRoksMetricsRbacYaml,
-	"roks-metrics/roks-metrics-service.yaml":                                                  roksMetricsRoksMetricsServiceYaml,
-	"roks-metrics/roks-metrics-serviceaccount.yaml":                                           roksMetricsRoksMetricsServiceaccountYaml,
-	"roks-metrics/roks-metrics-servicemonitor.yaml":                                           roksMetricsRoksMetricsServicemonitorYaml,
-	"route-controller-manager/config.yaml":                                                    routeControllerManagerConfigYaml,
-	"route-controller-manager/route-controller-manager-config-configmap.yaml":                 routeControllerManagerRouteControllerManagerConfigConfigmapYaml,
-	"route-controller-manager/route-controller-manager-deployment.yaml":                       routeControllerManagerRouteControllerManagerDeploymentYaml,
-	"user-manifests-bootstrapper/user-manifest-template.yaml":                                 userManifestsBootstrapperUserManifestTemplateYaml,
-	"user-manifests-bootstrapper/user-manifests-bootstrapper-pod.yaml":                        userManifestsBootstrapperUserManifestsBootstrapperPodYaml,
+	"cluster-bootstrap/00000_namespaces-needed-for-monitoring.yaml":                                                       clusterBootstrap00000_namespacesNeededForMonitoringYaml,
+	"cluster-bootstrap/00000_route-controller-ns.yaml":                                                                    clusterBootstrap00000_routeControllerNsYaml,
+	"cluster-bootstrap/api-usage.yaml":                                                                                    clusterBootstrapApiUsageYaml,
+	"cluster-bootstrap/apiserver-apirequestcounts-crd.yaml":                                                               clusterBootstrapApiserverApirequestcountsCrdYaml,
+	"cluster-bootstrap/cluster-config-v1-configmap.yaml":                                                                  clusterBootstrapClusterConfigV1ConfigmapYaml,
+	"cluster-bootstrap/cluster-dns-02-config.yaml":                                                                        clusterBootstrapClusterDns02ConfigYaml,
+	"cluster-bootstrap/cluster-infrastructure-02-config.yaml":                                                             clusterBootstrapClusterInfrastructure02ConfigYaml,
+	"cluster-bootstrap/cluster-ingress-02-config.yaml":                                                                    clusterBootstrapClusterIngress02ConfigYaml,
+	"cluster-bootstrap/cluster-ingresscontrollers-02-config.yaml":                                                         clusterBootstrapClusterIngresscontrollers02ConfigYaml,
+	"cluster-bootstrap/cluster-network-01-crd.yaml":                                                                       clusterBootstrapClusterNetwork01CrdYaml,
+	"cluster-bootstrap/cluster-network-02-config.yaml":                                                                    clusterBootstrapClusterNetwork02ConfigYaml,
+	"cluster-bootstrap/cluster-proxy-01-config.yaml":                                                                      clusterBootstrapClusterProxy01ConfigYaml,
+	"cluster-bootstrap/cluster-version-namespace.yaml":                                                                    clusterBootstrapClusterVersionNamespaceYaml,
+	"cluster-bootstrap/cluster-version.yaml":                                                                              clusterBootstrapClusterVersionYaml,
+	"cluster-bootstrap/csr_approver_clusterrole.yaml":                                                                     clusterBootstrapCsr_approver_clusterroleYaml,
+	"cluster-bootstrap/csr_approver_clusterrolebinding.yaml":                                                              clusterBootstrapCsr_approver_clusterrolebindingYaml,
+	"cluster-bootstrap/deployer-clusterrole.yaml":                                                                         clusterBootstrapDeployerClusterroleYaml,
+	"cluster-bootstrap/deployer-clusterrolebinding.yaml":                                                                  clusterBootstrapDeployerClusterrolebindingYaml,
+	"cluster-bootstrap/etcd-operator-config.yaml":                                                                         clusterBootstrapEtcdOperatorConfigYaml,
+	"cluster-bootstrap/ingress-to-route-controller-clusterrole.yaml":                                                      clusterBootstrapIngressToRouteControllerClusterroleYaml,
+	"cluster-bootstrap/ingress-to-route-controller-clusterrolebinding.yaml":                                               clusterBootstrapIngressToRouteControllerClusterrolebindingYaml,
+	"cluster-bootstrap/leader-ingress-to-route-controller-role.yaml":                                                      clusterBootstrapLeaderIngressToRouteControllerRoleYaml,
+	"cluster-bootstrap/leader-ingress-to-route-controller-rolebinding.yaml":                                               clusterBootstrapLeaderIngressToRouteControllerRolebindingYaml,
+	"cluster-bootstrap/namespace-security-allocation-controller-clusterrole.yaml":                                         clusterBootstrapNamespaceSecurityAllocationControllerClusterroleYaml,
+	"cluster-bootstrap/namespace-security-allocation-controller-clusterrolebinding.yaml":                                  clusterBootstrapNamespaceSecurityAllocationControllerClusterrolebindingYaml,
+	"cluster-bootstrap/node-bootstrapper-clusterrolebinding.yaml":                                                         clusterBootstrapNodeBootstrapperClusterrolebindingYaml,
+	"cluster-bootstrap/openshift-install-configmap.yaml":                                                                  clusterBootstrapOpenshiftInstallConfigmapYaml,
+	"cluster-bootstrap/podsecurity-admission-label-syncer-controller-clusterrole.yaml":                                    clusterBootstrapPodsecurityAdmissionLabelSyncerControllerClusterroleYaml,
+	"cluster-bootstrap/podsecurity-admission-label-syncer-controller-clusterrolebinding.yaml":                             clusterBootstrapPodsecurityAdmissionLabelSyncerControllerClusterrolebindingYaml,
+	"cluster-bootstrap/podsecurity-alert.yaml":                                                                            clusterBootstrapPodsecurityAlertYaml,
+	"cluster-bootstrap/trust_distribution_role.yaml":                                                                      clusterBootstrapTrust_distribution_roleYaml,
+	"cluster-bootstrap/trust_distribution_rolebinding.yaml":                                                               clusterBootstrapTrust_distribution_rolebindingYaml,
+	"cluster-version-operator/cluster-version-operator-deployment.yaml":                                                   clusterVersionOperatorClusterVersionOperatorDeploymentYaml,
+	"control-plane-operator/cp-operator-deployment.yaml":                                                                  controlPlaneOperatorCpOperatorDeploymentYaml,
+	"konnectivity/konnectivity-agent-control-plane-deployment.yaml":                                                       konnectivityKonnectivityAgentControlPlaneDeploymentYaml,
+	"konnectivity/konnectivity-agent-data-plane-daemonset.yaml":                                                           konnectivityKonnectivityAgentDataPlaneDaemonsetYaml,
+	"konnectivity/konnectivity-server-services.yaml":                                                                      konnectivityKonnectivityServerServicesYaml,
+	"kube-apiserver/cluster-featuregate.yaml":                                                                             kubeApiserverClusterFeaturegateYaml,
+	"kube-apiserver/config.yaml":                                                                                          kubeApiserverConfigYaml,
+	"kube-apiserver/default-audit-policy.yaml":                                                                            kubeApiserverDefaultAuditPolicyYaml,
+	"kube-apiserver/featuregate.yaml":                                                                                     kubeApiserverFeaturegateYaml,
+	"kube-apiserver/kube-apiserver-config-configmap.yaml":                                                                 kubeApiserverKubeApiserverConfigConfigmapYaml,
+	"kube-apiserver/kube-apiserver-default-audit-policy.yaml":                                                             kubeApiserverKubeApiserverDefaultAuditPolicyYaml,
+	"kube-apiserver/kube-apiserver-deployment.yaml":                                                                       kubeApiserverKubeApiserverDeploymentYaml,
+	"kube-apiserver/kube-apiserver-egress-config-configmap.yaml":                                                          kubeApiserverKubeApiserverEgressConfigConfigmapYaml,
+	"kube-apiserver/kube-apiserver-oauth-metadata-configmap.yaml":                                                         kubeApiserverKubeApiserverOauthMetadataConfigmapYaml,
+	"kube-apiserver/kube-apiserver-service.yaml":                                                                          kubeApiserverKubeApiserverServiceYaml,
+	"kube-apiserver/oauthMetadata.json":                                                                                   kubeApiserverOauthmetadataJson,
+	"kube-controller-manager/config.yaml":                                                                                 kubeControllerManagerConfigYaml,
+	"kube-controller-manager/kube-controller-manager-config-configmap.yaml":                                               kubeControllerManagerKubeControllerManagerConfigConfigmapYaml,
+	"kube-controller-manager/kube-controller-manager-deployment.yaml":                                                     kubeControllerManagerKubeControllerManagerDeploymentYaml,
+	"kube-controller-manager/podsecurity-admission-label-privileged-namespaces-syncer-controller-clusterrole.yaml":        kubeControllerManagerPodsecurityAdmissionLabelPrivilegedNamespacesSyncerControllerClusterroleYaml,
+	"kube-controller-manager/podsecurity-admission-label-privileged-namespaces-syncer-controller-clusterrolebinding.yaml": kubeControllerManagerPodsecurityAdmissionLabelPrivilegedNamespacesSyncerControllerClusterrolebindingYaml,
+	"kube-scheduler/config.yaml":                                                                                          kubeSchedulerConfigYaml,
+	"kube-scheduler/kube-scheduler-config-configmap.yaml":                                                                 kubeSchedulerKubeSchedulerConfigConfigmapYaml,
+	"kube-scheduler/kube-scheduler-deployment.yaml":                                                                       kubeSchedulerKubeSchedulerDeploymentYaml,
+	"oauth-apiserver/audit-policy.yaml":                                                                                   oauthApiserverAuditPolicyYaml,
+	"oauth-apiserver/oauth-apiserver-auditpolicy.yaml":                                                                    oauthApiserverOauthApiserverAuditpolicyYaml,
+	"oauth-apiserver/oauth-apiserver-deployment.yaml":                                                                     oauthApiserverOauthApiserverDeploymentYaml,
+	"oauth-apiserver/oauth-apiserver-service.yaml":                                                                        oauthApiserverOauthApiserverServiceYaml,
+	"oauth-apiserver/oauth-apiserver-user-endpoint.yaml":                                                                  oauthApiserverOauthApiserverUserEndpointYaml,
+	"oauth-apiserver/oauth-apiserver-user-service.yaml":                                                                   oauthApiserverOauthApiserverUserServiceYaml,
+	"oauth-apiserver/service-template.yaml":                                                                               oauthApiserverServiceTemplateYaml,
+	"oauth-openshift/oauth-browser-client.yaml":                                                                           oauthOpenshiftOauthBrowserClientYaml,
+	"oauth-openshift/oauth-challenging-client.yaml":                                                                       oauthOpenshiftOauthChallengingClientYaml,
+	"oauth-openshift/oauth-server-config-configmap.yaml":                                                                  oauthOpenshiftOauthServerConfigConfigmapYaml,
+	"oauth-openshift/oauth-server-config.yaml":                                                                            oauthOpenshiftOauthServerConfigYaml,
+	"oauth-openshift/oauth-server-deployment.yaml":                                                                        oauthOpenshiftOauthServerDeploymentYaml,
+	"oauth-openshift/oauth-server-service.yaml":                                                                           oauthOpenshiftOauthServerServiceYaml,
+	"oauth-openshift/oauth-server-sessionsecret-secret.yaml":                                                              oauthOpenshiftOauthServerSessionsecretSecretYaml,
+	"oauth-openshift/v4-0-config-system-branding.yaml":                                                                    oauthOpenshiftV40ConfigSystemBrandingYaml,
+	"oauth-openshift/v4-0-config-system-session.json":                                                                     oauthOpenshiftV40ConfigSystemSessionJson,
+	"openshift-apiserver/config.yaml":                                                                                     openshiftApiserverConfigYaml,
+	"openshift-apiserver/openshift-apiserver-config-configmap.yaml":                                                       openshiftApiserverOpenshiftApiserverConfigConfigmapYaml,
+	"openshift-apiserver/openshift-apiserver-deployment.yaml":                                                             openshiftApiserverOpenshiftApiserverDeploymentYaml,
+	"openshift-apiserver/openshift-apiserver-service.yaml":                                                                openshiftApiserverOpenshiftApiserverServiceYaml,
+	"openshift-apiserver/openshift-apiserver-user-endpoint.yaml":                                                          openshiftApiserverOpenshiftApiserverUserEndpointYaml,
+	"openshift-apiserver/openshift-apiserver-user-service.yaml":                                                           openshiftApiserverOpenshiftApiserverUserServiceYaml,
+	"openshift-apiserver/service-template.yaml":                                                                           openshiftApiserverServiceTemplateYaml,
+	"openshift-controller-manager/00-openshift-controller-manager-namespace.yaml":                                         openshiftControllerManager00OpenshiftControllerManagerNamespaceYaml,
+	"openshift-controller-manager/cluster-policy-controller-deployment.yaml":                                              openshiftControllerManagerClusterPolicyControllerDeploymentYaml,
+	"openshift-controller-manager/config.yaml":                                                                            openshiftControllerManagerConfigYaml,
+	"openshift-controller-manager/openshift-controller-manager-config-configmap.yaml":                                     openshiftControllerManagerOpenshiftControllerManagerConfigConfigmapYaml,
+	"openshift-controller-manager/openshift-controller-manager-deployment.yaml":                                           openshiftControllerManagerOpenshiftControllerManagerDeploymentYaml,
+	"openshift-controller-manager/openshift-controller-manager-service-ca.yaml":                                           openshiftControllerManagerOpenshiftControllerManagerServiceCaYaml,
+	"registry/cluster-imageregistry-config.yaml":                                                                          registryClusterImageregistryConfigYaml,
+	"roks-metrics/roks-metrics-00-namespace.yaml":                                                                         roksMetricsRoksMetrics00NamespaceYaml,
+	"roks-metrics/roks-metrics-deployment.yaml":                                                                           roksMetricsRoksMetricsDeploymentYaml,
+	"roks-metrics/roks-metrics-push-gateway-deployment.yaml":                                                              roksMetricsRoksMetricsPushGatewayDeploymentYaml,
+	"roks-metrics/roks-metrics-push-gateway-service.yaml":                                                                 roksMetricsRoksMetricsPushGatewayServiceYaml,
+	"roks-metrics/roks-metrics-push-gateway-servicemonitor.yaml":                                                          roksMetricsRoksMetricsPushGatewayServicemonitorYaml,
+	"roks-metrics/roks-metrics-rbac.yaml":                                                                                 roksMetricsRoksMetricsRbacYaml,
+	"roks-metrics/roks-metrics-service.yaml":                                                                              roksMetricsRoksMetricsServiceYaml,
+	"roks-metrics/roks-metrics-serviceaccount.yaml":                                                                       roksMetricsRoksMetricsServiceaccountYaml,
+	"roks-metrics/roks-metrics-servicemonitor.yaml":                                                                       roksMetricsRoksMetricsServicemonitorYaml,
+	"route-controller-manager/config.yaml":                                                                                routeControllerManagerConfigYaml,
+	"route-controller-manager/route-controller-manager-config-configmap.yaml":                                             routeControllerManagerRouteControllerManagerConfigConfigmapYaml,
+	"route-controller-manager/route-controller-manager-deployment.yaml":                                                   routeControllerManagerRouteControllerManagerDeploymentYaml,
+	"user-manifests-bootstrapper/user-manifest-template.yaml":                                                             userManifestsBootstrapperUserManifestTemplateYaml,
+	"user-manifests-bootstrapper/user-manifests-bootstrapper-pod.yaml":                                                    userManifestsBootstrapperUserManifestsBootstrapperPodYaml,
 }
 
 // AssetDir returns the file names below a certain
@@ -7563,8 +7637,10 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	}},
 	"kube-controller-manager": {nil, map[string]*bintree{
 		"config.yaml": {kubeControllerManagerConfigYaml, map[string]*bintree{}},
-		"kube-controller-manager-config-configmap.yaml": {kubeControllerManagerKubeControllerManagerConfigConfigmapYaml, map[string]*bintree{}},
-		"kube-controller-manager-deployment.yaml":       {kubeControllerManagerKubeControllerManagerDeploymentYaml, map[string]*bintree{}},
+		"kube-controller-manager-config-configmap.yaml":                                               {kubeControllerManagerKubeControllerManagerConfigConfigmapYaml, map[string]*bintree{}},
+		"kube-controller-manager-deployment.yaml":                                                     {kubeControllerManagerKubeControllerManagerDeploymentYaml, map[string]*bintree{}},
+		"podsecurity-admission-label-privileged-namespaces-syncer-controller-clusterrole.yaml":        {kubeControllerManagerPodsecurityAdmissionLabelPrivilegedNamespacesSyncerControllerClusterroleYaml, map[string]*bintree{}},
+		"podsecurity-admission-label-privileged-namespaces-syncer-controller-clusterrolebinding.yaml": {kubeControllerManagerPodsecurityAdmissionLabelPrivilegedNamespacesSyncerControllerClusterrolebindingYaml, map[string]*bintree{}},
 	}},
 	"kube-scheduler": {nil, map[string]*bintree{
 		"config.yaml":                          {kubeSchedulerConfigYaml, map[string]*bintree{}},
