@@ -4592,7 +4592,8 @@ func kubeControllerManagerKubeControllerManagerDeploymentYaml() (*asset, error) 
 	return a, nil
 }
 
-var _kubeControllerManagerPodsecurityAdmissionLabelPrivilegedNamespacesSyncerControllerClusterroleYaml = []byte(`apiVersion: rbac.authorization.k8s.io/v1
+var _kubeControllerManagerPodsecurityAdmissionLabelPrivilegedNamespacesSyncerControllerClusterroleYaml = []byte(`# SOURCE: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.14/bindata/assets/kube-controller-manager/podsecurity-admission-label-privileged-namespaces-syncer-controller-clusterrole.yaml
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   annotations:
@@ -4633,7 +4634,8 @@ func kubeControllerManagerPodsecurityAdmissionLabelPrivilegedNamespacesSyncerCon
 	return a, nil
 }
 
-var _kubeControllerManagerPodsecurityAdmissionLabelPrivilegedNamespacesSyncerControllerClusterrolebindingYaml = []byte(`apiVersion: rbac.authorization.k8s.io/v1
+var _kubeControllerManagerPodsecurityAdmissionLabelPrivilegedNamespacesSyncerControllerClusterrolebindingYaml = []byte(`# SOURCE: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.14/bindata/assets/kube-controller-manager/podsecurity-admission-label-privileged-namespaces-syncer-controller-clusterrolebinding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: system:openshift:controller:privileged-namespaces-psa-label-syncer
