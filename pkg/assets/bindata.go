@@ -3010,7 +3010,7 @@ metadata:
     clusterID: {{ .ClusterID }}
 spec:
   progressDeadlineSeconds: 600
-  replicas: 3
+  replicas: {{ .Replicas }}
   revisionHistoryLimit: 10
   selector:
     matchLabels:
