@@ -65,6 +65,7 @@
 // assets/oauth-apiserver/service-template.yaml
 // assets/oauth-openshift/oauth-browser-client.yaml
 // assets/oauth-openshift/oauth-challenging-client.yaml
+// assets/oauth-openshift/oauth-cli-client.yaml
 // assets/oauth-openshift/oauth-server-config-configmap.yaml
 // assets/oauth-openshift/oauth-server-config.yaml
 // assets/oauth-openshift/oauth-server-deployment.yaml
@@ -5302,6 +5303,37 @@ func oauthOpenshiftOauthChallengingClientYaml() (*asset, error) {
 	return a, nil
 }
 
+var _oauthOpenshiftOauthCliClientYaml = []byte(`apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user-manifest-openshift-cli-client
+data:
+  data: |
+    apiVersion: oauth.openshift.io/v1
+    grantMethod: auto
+    kind: OAuthClient
+    metadata:
+      name: openshift-cli-client
+    redirectURIs:
+    - http://127.0.0.1/callback
+    - http://[::1]/callback
+`)
+
+func oauthOpenshiftOauthCliClientYamlBytes() ([]byte, error) {
+	return _oauthOpenshiftOauthCliClientYaml, nil
+}
+
+func oauthOpenshiftOauthCliClientYaml() (*asset, error) {
+	bytes, err := oauthOpenshiftOauthCliClientYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "oauth-openshift/oauth-cli-client.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _oauthOpenshiftOauthServerConfigConfigmapYaml = []byte(`apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -7501,6 +7533,7 @@ var _bindata = map[string]func() (*asset, error){
 	"oauth-apiserver/service-template.yaml":                                                                         oauthApiserverServiceTemplateYaml,
 	"oauth-openshift/oauth-browser-client.yaml":                                                                     oauthOpenshiftOauthBrowserClientYaml,
 	"oauth-openshift/oauth-challenging-client.yaml":                                                                 oauthOpenshiftOauthChallengingClientYaml,
+	"oauth-openshift/oauth-cli-client.yaml":                                                                         oauthOpenshiftOauthCliClientYaml,
 	"oauth-openshift/oauth-server-config-configmap.yaml":                                                            oauthOpenshiftOauthServerConfigConfigmapYaml,
 	"oauth-openshift/oauth-server-config.yaml":                                                                      oauthOpenshiftOauthServerConfigYaml,
 	"oauth-openshift/oauth-server-deployment.yaml":                                                                  oauthOpenshiftOauthServerDeploymentYaml,
@@ -7663,6 +7696,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	"oauth-openshift": {nil, map[string]*bintree{
 		"oauth-browser-client.yaml":              {oauthOpenshiftOauthBrowserClientYaml, map[string]*bintree{}},
 		"oauth-challenging-client.yaml":          {oauthOpenshiftOauthChallengingClientYaml, map[string]*bintree{}},
+		"oauth-cli-client.yaml":                  {oauthOpenshiftOauthCliClientYaml, map[string]*bintree{}},
 		"oauth-server-config-configmap.yaml":     {oauthOpenshiftOauthServerConfigConfigmapYaml, map[string]*bintree{}},
 		"oauth-server-config.yaml":               {oauthOpenshiftOauthServerConfigYaml, map[string]*bintree{}},
 		"oauth-server-deployment.yaml":           {oauthOpenshiftOauthServerDeploymentYaml, map[string]*bintree{}},
