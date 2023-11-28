@@ -3008,7 +3008,7 @@ metadata:
   name: konnectivity-agent
   labels:
     app: konnectivity-agent
-    clusterID: {{ .ClusterID }}
+    clusterID: "{{ .ClusterID }}"
 spec:
   progressDeadlineSeconds: 600
   replicas: {{ .Replicas }}
@@ -3025,7 +3025,7 @@ spec:
     metadata:
       labels:
         app: konnectivity-agent
-        clusterID: {{ .ClusterID }}
+        clusterID: "{{ .ClusterID }}"
 {{ if .RestartDate }}
       annotations:
         openshift.io/restartedAt: "{{ .RestartDate }}"
