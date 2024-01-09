@@ -6353,6 +6353,8 @@ deployer:
     format: {{ imageFor "deployer" }}
 dockerPullSecret:
   internalRegistryHostname: image-registry.openshift-image-registry.svc:5000
+featureGates:
+- OpenShiftPodSecurityAdmission=false
 ingress:
   ingressIPNetworkCIDR: ''
 kubeClientConfig:
