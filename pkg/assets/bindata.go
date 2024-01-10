@@ -244,7 +244,7 @@ func clusterBootstrap00000_routeControllerNsYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapApiUsageYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-apiserver-operator/blob/release-4.14/bindata/assets/alerts/api-usage.yaml
+var _clusterBootstrapApiUsageYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-apiserver-operator/blob/release-4.15/bindata/assets/alerts/api-usage.yaml
 # The ROKS toolkit processes this file as template and the substitution variables must
 # be escaped.
 # See https://github.com/openshift/ibm-roks-toolkit/pull/457#discussion_r841881070
@@ -266,7 +266,7 @@ spec:
               a successful upgrade to the next cluster version with Kubernetes {{ ` + "`" + `{{ $labels.removed_release }}` + "`" + ` }}.
               Refer to ` + "`" + `oc get apirequestcounts {{ ` + "`" + `{{ $labels.resource }}.{{ $labels.version }}.{{ $labels.group }}` + "`" + ` }} -o yaml` + "`" + ` to identify the workload.
           expr: >-
-            group by (group,version,resource,removed_release) (apiserver_requested_deprecated_apis{removed_release="1.28"})
+            group by (group,version,resource,removed_release) (apiserver_requested_deprecated_apis{removed_release="1.29"})
             * on (group,version,resource) group_left ()
             sum by (group,version,resource) (
             rate(apiserver_request_total{system_client!="kube-controller-manager",system_client!="cluster-policy-controller"}[4h])
@@ -284,7 +284,7 @@ spec:
               a successful upgrade to the next EUS cluster version with Kubernetes {{ ` + "`" + `{{ $labels.removed_release }}` + "`" + ` }}.
               Refer to ` + "`" + `oc get apirequestcounts {{ ` + "`" + `{{ $labels.resource }}.{{ $labels.version }}.{{ $labels.group }}` + "`" + ` }} -o yaml` + "`" + ` to identify the workload.
           expr: >-
-            group by (group,version,resource,removed_release) (apiserver_requested_deprecated_apis{removed_release=~"1[.]2[89]"})
+            group by (group,version,resource,removed_release) (apiserver_requested_deprecated_apis{removed_release="1.29"})
             * on (group,version,resource) group_left ()
             sum by (group,version,resource) (
             rate(apiserver_request_total{system_client!="kube-controller-manager",system_client!="cluster-policy-controller"}[4h])
@@ -310,7 +310,7 @@ func clusterBootstrapApiUsageYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapApiserverApirequestcountsCrdYaml = []byte(`# Source: https://github.com/openshift/api/blob/release-4.14/apiserver/v1/apiserver.openshift.io_apirequestcount.yaml
+var _clusterBootstrapApiserverApirequestcountsCrdYaml = []byte(`# Source: https://github.com/openshift/api/blob/release-4.15/apiserver/v1/apiserver.openshift.io_apirequestcount.yaml
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -745,7 +745,7 @@ var _clusterBootstrapClusterNetwork01CrdYaml = []byte(`---
 # This is the advanced network configuration CRD
 # Only necessary if you need to tweak certain settings.
 # See https://github.com/openshift/cluster-network-operator#configuring
-# Source: https://github.com/openshift/cluster-network-operator/blob/release-4.14/manifests/0000_70_cluster-network-operator_01_crd.yaml
+# Source: https://github.com/openshift/cluster-network-operator/blob/release-4.15/manifests/0000_70_cluster-network-operator_01-Default.crd.yaml
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -754,6 +754,7 @@ metadata:
     include.release.openshift.io/ibm-cloud-managed: "true"
     include.release.openshift.io/self-managed-high-availability: "true"
     include.release.openshift.io/single-node-developer: "true"
+    release.openshift.io/feature-set: Default
   name: networks.operator.openshift.io
 spec:
   group: operator.openshift.io
@@ -929,85 +930,6 @@ spec:
                 description: defaultNetwork is the "default" network that all pods
                   will receive
                 properties:
-                  kuryrConfig:
-                    description: KuryrConfig configures the kuryr plugin
-                    properties:
-                      controllerProbesPort:
-                        description: The port kuryr-controller will listen for readiness
-                          and liveness requests.
-                        format: int32
-                        minimum: 0
-                        type: integer
-                      daemonProbesPort:
-                        description: The port kuryr-daemon will listen for readiness
-                          and liveness requests.
-                        format: int32
-                        minimum: 0
-                        type: integer
-                      enablePortPoolsPrepopulation:
-                        description: enablePortPoolsPrepopulation when true will make
-                          Kuryr prepopulate each newly created port pool with a minimum
-                          number of ports. Kuryr uses Neutron port pooling to fight
-                          the fact that it takes a significant amount of time to create
-                          one. It creates a number of ports when the first pod that
-                          is configured to use the dedicated network for pods is created
-                          in a namespace, and keeps them ready to be attached to pods.
-                          Port prepopulation is disabled by default.
-                        type: boolean
-                      mtu:
-                        description: mtu is the MTU that Kuryr should use when creating
-                          pod networks in Neutron. The value has to be lower or equal
-                          to the MTU of the nodes network and Neutron has to allow
-                          creation of tenant networks with such MTU. If unset Pod
-                          networks will be created with the same MTU as the nodes
-                          network has. This also affects the services network created
-                          by cluster-network-operator.
-                        format: int32
-                        minimum: 0
-                        type: integer
-                      openStackServiceNetwork:
-                        description: openStackServiceNetwork contains the CIDR of
-                          network from which to allocate IPs for OpenStack Octavia's
-                          Amphora VMs. Please note that with Amphora driver Octavia
-                          uses two IPs from that network for each loadbalancer - one
-                          given by OpenShift and second for VRRP connections. As the
-                          first one is managed by OpenShift's and second by Neutron's
-                          IPAMs, those need to come from different pools. Therefore
-                          ` + "`" + `openStackServiceNetwork` + "`" + ` needs to be at least twice the
-                          size of ` + "`" + `serviceNetwork` + "`" + `, and whole ` + "`" + `serviceNetwork` + "`" + ` must
-                          be overlapping with ` + "`" + `openStackServiceNetwork` + "`" + `. cluster-network-operator
-                          will then make sure VRRP IPs are taken from the ranges inside
-                          ` + "`" + `openStackServiceNetwork` + "`" + ` that are not overlapping with
-                          ` + "`" + `serviceNetwork` + "`" + `, effectivly preventing conflicts. If not
-                          set cluster-network-operator will use ` + "`" + `serviceNetwork` + "`" + ` expanded
-                          by decrementing the prefix size by 1.
-                        type: string
-                      poolBatchPorts:
-                        description: poolBatchPorts sets a number of ports that should
-                          be created in a single batch request to extend the port
-                          pool. The default is 3. For more information about port
-                          pools see enablePortPoolsPrepopulation setting.
-                        minimum: 0
-                        type: integer
-                      poolMaxPorts:
-                        description: poolMaxPorts sets a maximum number of free ports
-                          that are being kept in a port pool. If the number of ports
-                          exceeds this setting, free ports will get deleted. Setting
-                          0 will disable this upper bound, effectively preventing
-                          pools from shrinking and this is the default value. For
-                          more information about port pools see enablePortPoolsPrepopulation
-                          setting.
-                        minimum: 0
-                        type: integer
-                      poolMinPorts:
-                        description: poolMinPorts sets a minimum number of free ports
-                          that should be kept in a port pool. If the number of ports
-                          is lower than this setting, new ports will get created and
-                          added to pool. The default is 1. For more information about
-                          port pools see enablePortPoolsPrepopulation setting.
-                        minimum: 1
-                        type: integer
-                    type: object
                   openshiftSDNConfig:
                     description: openShiftSDNConfig configures the openshift-sdn plugin
                     properties:
@@ -1081,6 +1003,148 @@ spec:
                               field to "Global". The supported values are "Restricted"
                               and "Global".
                             type: string
+                          ipv4:
+                            description: ipv4 allows users to configure IP settings
+                              for IPv4 connections. When omitted, this means no opinion
+                              and the default configuration is used. Check individual
+                              members fields within ipv4 for details of default values.
+                            properties:
+                              internalMasqueradeSubnet:
+                                description: internalMasqueradeSubnet contains the
+                                  masquerade addresses in IPV4 CIDR format used internally
+                                  by ovn-kubernetes to enable host to service traffic.
+                                  Each host in the cluster is configured with these
+                                  addresses, as well as the shared gateway bridge
+                                  interface. The values can be changed after installation.
+                                  The subnet chosen should not overlap with other
+                                  networks specified for OVN-Kubernetes as well as
+                                  other networks used on the host. Additionally the
+                                  subnet must be large enough to accommodate 6 IPs
+                                  (maximum prefix length /29). When omitted, this
+                                  means no opinion and the platform is left to choose
+                                  a reasonable default which is subject to change
+                                  over time. The current default subnet is 169.254.169.0/29
+                                  The value must be in proper IPV4 CIDR format
+                                maxLength: 18
+                                type: string
+                                x-kubernetes-validations:
+                                - message: CIDR format must contain exactly one '/'
+                                  rule: self.indexOf('/') == self.lastIndexOf('/')
+                                - message: subnet must be in the range /0 to /29 inclusive
+                                  rule: '[int(self.split(''/'')[1])].all(x, x <= 29
+                                    && x >= 0)'
+                                - message: a valid IPv4 address must contain 4 octets
+                                  rule: self.split('/')[0].split('.').size() == 4
+                                - message: first IP address octet must not contain
+                                    leading zeros, must be greater than 0 and less
+                                    or equal to 255
+                                  rule: '[self.findAll(''[0-9]+'')[0]].all(x, x !=
+                                    ''0'' && int(x) <= 255 && !x.startsWith(''0''))'
+                                - message: IP address octets must not contain leading
+                                    zeros, and must be less or equal to 255
+                                  rule: '[self.findAll(''[0-9]+'')[1], self.findAll(''[0-9]+'')[2],
+                                    self.findAll(''[0-9]+'')[3]].all(x, int(x) <=
+                                    255 && (x == ''0'' || !x.startsWith(''0'')))'
+                            type: object
+                          ipv6:
+                            description: ipv6 allows users to configure IP settings
+                              for IPv6 connections. When omitted, this means no opinion
+                              and the default configuration is used. Check individual
+                              members fields within ipv6 for details of default values.
+                            properties:
+                              internalMasqueradeSubnet:
+                                description: internalMasqueradeSubnet contains the
+                                  masquerade addresses in IPV6 CIDR format used internally
+                                  by ovn-kubernetes to enable host to service traffic.
+                                  Each host in the cluster is configured with these
+                                  addresses, as well as the shared gateway bridge
+                                  interface. The values can be changed after installation.
+                                  The subnet chosen should not overlap with other
+                                  networks specified for OVN-Kubernetes as well as
+                                  other networks used on the host. Additionally the
+                                  subnet must be large enough to accommodate 6 IPs
+                                  (maximum prefix length /125). When omitted, this
+                                  means no opinion and the platform is left to choose
+                                  a reasonable default which is subject to change
+                                  over time. The current default subnet is fd69::/125
+                                  Note that IPV6 dual addresses are not permitted
+                                type: string
+                                x-kubernetes-validations:
+                                - message: CIDR format must contain exactly one '/'
+                                  rule: self.indexOf('/') == self.lastIndexOf('/')
+                                - message: subnet must be in the range /0 to /125
+                                    inclusive
+                                  rule: self.split('/').size() == 2 && [int(self.split('/')[1])].all(x,
+                                    x <= 125 && x >= 0)
+                                - message: IPv6 addresses must contain at most one
+                                    '::' and may only be shortened once
+                                  rule: self.indexOf('::') == self.lastIndexOf('::')
+                                - message: a valid IPv6 address must contain 8 segments
+                                    unless elided (::), in which case it must contain
+                                    at most 6 non-empty segments
+                                  rule: 'self.contains(''::'') ? self.split(''/'')[0].split('':'').size()
+                                    <= 8 : self.split(''/'')[0].split('':'').size()
+                                    == 8'
+                                - message: each segment of an IPv6 address must be
+                                    a hexadecimal number between 0 and FFFF, failed
+                                    on segment 1
+                                  rule: 'self.split(''/'')[0].split('':'').size()
+                                    >=1 ? [self.split(''/'')[0].split('':'', 8)[0]].all(x,
+                                    x == '''' || (x.matches(''^[0-9A-Fa-f]{1,4}$''))
+                                    && size(x)<5 ) : true'
+                                - message: each segment of an IPv6 address must be
+                                    a hexadecimal number between 0 and FFFF, failed
+                                    on segment 2
+                                  rule: 'self.split(''/'')[0].split('':'').size()
+                                    >=2 ? [self.split(''/'')[0].split('':'', 8)[1]].all(x,
+                                    x == '''' || (x.matches(''^[0-9A-Fa-f]{1,4}$''))
+                                    && size(x)<5 ) : true'
+                                - message: each segment of an IPv6 address must be
+                                    a hexadecimal number between 0 and FFFF, failed
+                                    on segment 3
+                                  rule: 'self.split(''/'')[0].split('':'').size()
+                                    >=3 ? [self.split(''/'')[0].split('':'', 8)[2]].all(x,
+                                    x == '''' || (x.matches(''^[0-9A-Fa-f]{1,4}$''))
+                                    && size(x)<5 ) : true'
+                                - message: each segment of an IPv6 address must be
+                                    a hexadecimal number between 0 and FFFF, failed
+                                    on segment 4
+                                  rule: 'self.split(''/'')[0].split('':'').size()
+                                    >=4 ? [self.split(''/'')[0].split('':'', 8)[3]].all(x,
+                                    x == '''' || (x.matches(''^[0-9A-Fa-f]{1,4}$''))
+                                    && size(x)<5 ) : true'
+                                - message: each segment of an IPv6 address must be
+                                    a hexadecimal number between 0 and FFFF, failed
+                                    on segment 5
+                                  rule: 'self.split(''/'')[0].split('':'').size()
+                                    >=5 ? [self.split(''/'')[0].split('':'', 8)[4]].all(x,
+                                    x == '''' || (x.matches(''^[0-9A-Fa-f]{1,4}$''))
+                                    && size(x)<5 ) : true'
+                                - message: each segment of an IPv6 address must be
+                                    a hexadecimal number between 0 and FFFF, failed
+                                    on segment 6
+                                  rule: 'self.split(''/'')[0].split('':'').size()
+                                    >=6 ? [self.split(''/'')[0].split('':'', 8)[5]].all(x,
+                                    x == '''' || (x.matches(''^[0-9A-Fa-f]{1,4}$''))
+                                    && size(x)<5 ) : true'
+                                - message: each segment of an IPv6 address must be
+                                    a hexadecimal number between 0 and FFFF, failed
+                                    on segment 7
+                                  rule: 'self.split(''/'')[0].split('':'').size()
+                                    >=7 ? [self.split(''/'')[0].split('':'', 8)[6]].all(x,
+                                    x == '''' || (x.matches(''^[0-9A-Fa-f]{1,4}$''))
+                                    && size(x)<5 ) : true'
+                                - message: each segment of an IPv6 address must be
+                                    a hexadecimal number between 0 and FFFF, failed
+                                    on segment 8
+                                  rule: 'self.split(''/'')[0].split('':'').size()
+                                    >=8 ? [self.split(''/'')[0].split('':'', 8)[7]].all(x,
+                                    x == '''' || (x.matches(''^[0-9A-Fa-f]{1,4}$''))
+                                    && size(x)<5 ) : true'
+                                - message: IPv6 dual addresses are not permitted,
+                                    value should not contain ` + "`" + `.` + "`" + ` characters
+                                  rule: '!self.contains(''.'')'
+                            type: object
                           routingViaHost:
                             default: false
                             description: RoutingViaHost allows pod egress traffic
@@ -1647,7 +1711,7 @@ func clusterBootstrapClusterVersionYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapCsr_approver_clusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.14/bindata/assets/kube-controller-manager/csr_approver_clusterrole.yaml
+var _clusterBootstrapCsr_approver_clusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.15/bindata/assets/kube-controller-manager/csr_approver_clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -1702,7 +1766,7 @@ func clusterBootstrapCsr_approver_clusterroleYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapCsr_approver_clusterrolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.14/bindata/assets/kube-controller-manager/csr_approver_clusterrolebinding.yaml
+var _clusterBootstrapCsr_approver_clusterrolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.15/bindata/assets/kube-controller-manager/csr_approver_clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -1734,7 +1798,7 @@ func clusterBootstrapCsr_approver_clusterrolebindingYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapDeployerClusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.14/bindata/v3.11.0/openshift-controller-manager/deployer-clusterrole.yaml
+var _clusterBootstrapDeployerClusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.15/bindata/assets/openshift-controller-manager/deployer-clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -1816,7 +1880,7 @@ func clusterBootstrapDeployerClusterroleYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapDeployerClusterrolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.14/bindata/v3.11.0/openshift-controller-manager/deployer-clusterrolebinding.yaml
+var _clusterBootstrapDeployerClusterrolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.15/bindata/assets/openshift-controller-manager/deployer-clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -1853,7 +1917,7 @@ var _clusterBootstrapEtcdOperatorConfigYaml = []byte(`---
 # This is the etcd operator CRD
 # Although this resource is in the openshift payload,
 # it doesn't get applied due to the ` + "`" + `release.openshift.io/feature-set: Default` + "`" + ` annotation
-# Source: https://github.com/openshift/api/blob/release-4.14/operator/v1/0000_12_etcd-operator_01_config.crd.yaml
+# Source: https://github.com/openshift/api/blob/release-4.15/operator/v1/0000_12_etcd-operator_01_config.crd.yaml
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -2071,7 +2135,7 @@ func clusterBootstrapEtcdOperatorConfigYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapIngressToRouteControllerClusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.14/bindata/v3.11.0/openshift-controller-manager/route-controller-manager-ingress-to-route-controller-clusterrole.yaml
+var _clusterBootstrapIngressToRouteControllerClusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.15/bindata/assets/openshift-controller-manager/route-controller-manager-ingress-to-route-controller-clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -2146,7 +2210,7 @@ func clusterBootstrapIngressToRouteControllerClusterroleYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapIngressToRouteControllerClusterrolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.14/bindata/v3.11.0/openshift-controller-manager/route-controller-manager-ingress-to-route-controller-clusterrolebinding.yaml
+var _clusterBootstrapIngressToRouteControllerClusterrolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.15/bindata/assets/openshift-controller-manager/route-controller-manager-ingress-to-route-controller-clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -2175,7 +2239,7 @@ func clusterBootstrapIngressToRouteControllerClusterrolebindingYaml() (*asset, e
 	return a, nil
 }
 
-var _clusterBootstrapLeaderIngressToRouteControllerRoleYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.14/bindata/v3.11.0/openshift-controller-manager/leader-ingress-to-route-controller-role.yaml
+var _clusterBootstrapLeaderIngressToRouteControllerRoleYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.15/bindata/assets/openshift-controller-manager/leader-ingress-to-route-controller-role.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -2207,7 +2271,7 @@ func clusterBootstrapLeaderIngressToRouteControllerRoleYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapLeaderIngressToRouteControllerRolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.14/bindata/v3.11.0/openshift-controller-manager/leader-ingress-to-route-controller-rolebinding.yaml
+var _clusterBootstrapLeaderIngressToRouteControllerRolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.15/bindata/assets/openshift-controller-manager/leader-ingress-to-route-controller-rolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
@@ -2238,7 +2302,7 @@ func clusterBootstrapLeaderIngressToRouteControllerRolebindingYaml() (*asset, er
 	return a, nil
 }
 
-var _clusterBootstrapNamespaceSecurityAllocationControllerClusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.14/bindata/assets/kube-controller-manager/namespace-security-allocation-controller-clusterrole.yaml
+var _clusterBootstrapNamespaceSecurityAllocationControllerClusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.15/bindata/assets/kube-controller-manager/namespace-security-allocation-controller-clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -2291,7 +2355,7 @@ func clusterBootstrapNamespaceSecurityAllocationControllerClusterroleYaml() (*as
 	return a, nil
 }
 
-var _clusterBootstrapNamespaceSecurityAllocationControllerClusterrolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.14/bindata/assets/kube-controller-manager/namespace-security-allocation-controller-clusterrolebinding.yaml
+var _clusterBootstrapNamespaceSecurityAllocationControllerClusterrolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.15/bindata/assets/kube-controller-manager/namespace-security-allocation-controller-clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -2378,7 +2442,7 @@ func clusterBootstrapOpenshiftInstallConfigmapYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapPodsecurityAdmissionLabelPrivilegedNamespacesSyncerControllerClusterroleYaml = []byte(`# SOURCE: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.14/bindata/assets/kube-controller-manager/podsecurity-admission-label-privileged-namespaces-syncer-controller-clusterrole.yaml
+var _clusterBootstrapPodsecurityAdmissionLabelPrivilegedNamespacesSyncerControllerClusterroleYaml = []byte(`# SOURCE: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.15/bindata/assets/kube-controller-manager/podsecurity-admission-label-privileged-namespaces-syncer-controller-clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -2420,7 +2484,7 @@ func clusterBootstrapPodsecurityAdmissionLabelPrivilegedNamespacesSyncerControll
 	return a, nil
 }
 
-var _clusterBootstrapPodsecurityAdmissionLabelPrivilegedNamespacesSyncerControllerClusterrolebindingYaml = []byte(`# SOURCE: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.14/bindata/assets/kube-controller-manager/podsecurity-admission-label-privileged-namespaces-syncer-controller-clusterrolebinding.yaml
+var _clusterBootstrapPodsecurityAdmissionLabelPrivilegedNamespacesSyncerControllerClusterrolebindingYaml = []byte(`# SOURCE: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.15/bindata/assets/kube-controller-manager/podsecurity-admission-label-privileged-namespaces-syncer-controller-clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -2450,7 +2514,7 @@ func clusterBootstrapPodsecurityAdmissionLabelPrivilegedNamespacesSyncerControll
 	return a, nil
 }
 
-var _clusterBootstrapPodsecurityAdmissionLabelSyncerControllerClusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.14/bindata/assets/kube-controller-manager/podsecurity-admission-label-syncer-controller-clusterrole.yaml
+var _clusterBootstrapPodsecurityAdmissionLabelSyncerControllerClusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.15/bindata/assets/kube-controller-manager/podsecurity-admission-label-syncer-controller-clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -2521,7 +2585,7 @@ func clusterBootstrapPodsecurityAdmissionLabelSyncerControllerClusterroleYaml() 
 	return a, nil
 }
 
-var _clusterBootstrapPodsecurityAdmissionLabelSyncerControllerClusterrolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.14/bindata/bootkube/manifests/00_podsecurity-admission-label-syncer-controller-clusterrolebinding.yaml
+var _clusterBootstrapPodsecurityAdmissionLabelSyncerControllerClusterrolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.15/bindata/bootkube/manifests/00_podsecurity-admission-label-syncer-controller-clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -2554,7 +2618,7 @@ func clusterBootstrapPodsecurityAdmissionLabelSyncerControllerClusterrolebinding
 	return a, nil
 }
 
-var _clusterBootstrapPodsecurityAlertYaml = []byte(`# Source: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.14/bindata/assets/alerts/podsecurity-violations.yaml
+var _clusterBootstrapPodsecurityAlertYaml = []byte(`# Source: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.15/bindata/assets/alerts/podsecurity-violations.yaml
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
@@ -2611,7 +2675,7 @@ func clusterBootstrapPodsecurityAlertYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapTrust_distribution_roleYaml = []byte(`# Source: https://github.com/openshift/cluster-authentication-operator/blob/release-4.14/bindata/oauth-openshift/trust_distribution_role.yaml
+var _clusterBootstrapTrust_distribution_roleYaml = []byte(`# Source: https://github.com/openshift/cluster-authentication-operator/blob/release-4.15/bindata/oauth-openshift/trust_distribution_role.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -2645,7 +2709,7 @@ func clusterBootstrapTrust_distribution_roleYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapTrust_distribution_rolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-authentication-operator/blob/release-4.14/bindata/oauth-openshift/trust_distribution_rolebinding.yaml
+var _clusterBootstrapTrust_distribution_rolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-authentication-operator/blob/release-4.15/bindata/oauth-openshift/trust_distribution_rolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:

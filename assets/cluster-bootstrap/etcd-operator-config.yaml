@@ -2,7 +2,7 @@
 # This is the etcd operator CRD
 # Although this resource is in the openshift payload,
 # it doesn't get applied due to the `release.openshift.io/feature-set: Default` annotation
-# Source: https://github.com/openshift/api/blob/release-4.14/operator/v1/0000_12_etcd-operator_01_config.crd.yaml
+# Source: https://github.com/openshift/api/blob/release-4.15/operator/v1/0000_12_etcd-operator_01_config.crd.yaml
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
