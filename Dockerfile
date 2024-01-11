@@ -1,4 +1,4 @@
-FROM registry.ci.openshift.org/openshift/release:rhel-8-release-golang-1.20-openshift-4.14 as builder
+FROM registry.ci.openshift.org/openshift/release:rhel-8-release-golang-1.20-openshift-4.15 as builder
 RUN mkdir -p /go/src/github.com/openshift/ibm-roks-toolkit
 WORKDIR /go/src/github.com/openshift/ibm-roks-toolkit
 COPY . .
