@@ -1,4 +1,4 @@
-# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.14/bindata/assets/kube-controller-manager/csr_approver_clusterrole.yaml
+# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.15/bindata/assets/kube-controller-manager/csr_approver_clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
