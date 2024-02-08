@@ -3694,13 +3694,13 @@ metadata:
   featureSet: CustomNoUpgrade
   customNoUpgrade:
 {{ if .ExtraFeatureGatesEnabled }}{{ printf "%s\n" "    enabled:" }}
-{{- range $featureGateEnabled := .ExtraFeatureGatesEnabled }}{{ printf "%s %s" "    -" $featureGateEnabled }}{{ end }}
-{{ end -}}
+{{- range $featureGateEnabled := .ExtraFeatureGatesEnabled }}{{ printf "%s %s\n" "    -" $featureGateEnabled }}{{- end -}}
+{{- end -}}
 {{ if .ExtraFeatureGatesDisabled }}{{ printf "%s\n" "    disabled:" }}
-{{- range $featureGateDisabled := .ExtraFeatureGatesDisabled }}{{ printf "%s %s" "    -" $featureGateDisabled }}{{ end }}
-{{ end -}}
+{{- range $featureGateDisabled := .ExtraFeatureGatesDisabled }}{{ printf "%s %s\n" "    -" $featureGateDisabled }}{{- end -}}
+{{- end -}}
 {{ else }}spec: {}
-{{ end -}}
+{{- end -}}
 `)
 
 func kubeApiserverFeaturegateYamlBytes() ([]byte, error) {
