@@ -41,9 +41,9 @@ spec:
           "--agent-key=/etc/konnectivity/agent/tls.key",
           "--agent-identifiers=default-route=true",
           "--keepalive-time=30s",
-          "--probe-interval=30s",
-          "--sync-interval=1m",
-          "--sync-interval-cap=5m",
+          "--probe-interval=5s",
+          "--sync-interval=5s",
+          "--sync-interval-cap=30s",
           "--v=3"
           ]
         livenessProbe:
