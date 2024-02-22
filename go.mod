@@ -11,12 +11,12 @@ require (
 	github.com/jteeuwen/go-bindata v3.0.8-0.20151023091102-a0ff2567cfb7+incompatible
 	github.com/onsi/ginkgo v4.7.0-origin.0+incompatible
 	github.com/onsi/gomega v1.27.7
-	github.com/openshift/api v0.0.0-20231031181504-3be12e93388f
-	github.com/openshift/client-go v0.0.0-20230807132528-be5346fb33cb
-	github.com/openshift/cluster-kube-apiserver-operator v0.0.0-alpha.0.0.20231031154849-edaeaedba6a9
-	github.com/openshift/cluster-openshift-apiserver-operator v0.0.0-alpha.0.0.20230814141023-00f7e4cc9506
-	github.com/openshift/cluster-openshift-controller-manager-operator v0.0.0-alpha.0.0.20231027170925-04cec68a4cd0
-	github.com/openshift/library-go v0.0.0-20231030114140-33085da695c8
+	github.com/openshift/api v0.0.0-20240215031714-be926bb0d751
+	github.com/openshift/client-go v0.0.0-20240109161853-2425b4b6d3b3
+	github.com/openshift/cluster-kube-apiserver-operator v0.0.0-alpha.0.0.20240212125213-689a2bdc3773
+	github.com/openshift/cluster-openshift-apiserver-operator v0.0.0-alpha.0.0.20240125092135-74013916aadb
+	github.com/openshift/cluster-openshift-controller-manager-operator v0.0.0-alpha.0.0.20240204025224-1ba446b3a900
+	github.com/openshift/library-go v0.0.0-20231130112926-2285c05489d7
 	github.com/openshift/oc v0.0.0-alpha.0.0.20231101114527-035884cf4ed5
 	github.com/openshift/openshift-controller-manager v0.0.0-alpha.0
 	github.com/pkg/errors v0.9.1
@@ -167,8 +167,8 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/klog v1.0.0 // indirect
-	k8s.io/kube-aggregator v0.27.4 // indirect
-	k8s.io/kube-openapi v0.0.0-20230717233707-2695361300d9 // indirect
+	k8s.io/kube-aggregator v0.28.2 // indirect
+	k8s.io/kube-openapi v0.0.0-20230918164632-68afd615200d // indirect
 	k8s.io/kubectl v0.27.4 // indirect
 	k8s.io/utils v0.0.0-20230726121419-3b25d923346b // indirect
 	sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.1.2 // indirect
