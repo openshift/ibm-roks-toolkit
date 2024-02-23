@@ -3151,7 +3151,7 @@ spec:
           "--proxy-server-host=konnectivity-server.{{ .Namespace }}.svc",
           "--proxy-server-port={{ .KonnectivityAgentClusterPort }}",
           "--health-server-port={{ .KonnectivityAgentHealthPort }}",
-          "--agent-identifiers=ipv4={{ .OpenShiftAPIClusterIP }}&ipv4={{ .OauthAPIClusterIP }}",
+          "--agent-identifiers=ipv4={{ .OpenShiftAPIClusterIP }}&ipv4={{ .OauthAPIClusterIP }}{{ range $agentIdentifier := .KonnectivityAdditionalAgentIdentifierIPList }}&ipv4={{ $agentIdentifier }}{{ end }}",
           "--keepalive-time=30s",
           "--probe-interval=5s",
           "--sync-interval=5s",

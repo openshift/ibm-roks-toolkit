@@ -101,6 +101,7 @@ type ClusterParams struct {
 	KonnectivityServerHealthPort                    uint                   `json:"konnectivityServerHealthPort"`
 	KonnectivityServerAdminPort                     uint                   `json:"konnectivityServerAdminPort"`
 	KonnectivityServerCipherSuites                  string                 `json:"konnectivityServerCipherSuites"`
+	KonnectivityAdditionalAgentIdentifierIPList     []string               `json:"KonnectivityAdditionalAgentIdentifierIPList"`
 	Socks5ProxyContainerResources                   []ResourceRequirements `json:"socks5ProxyContainerResources"`
 	OpenshiftAPIServerNoProxyHosts                  string                 `json:"openshiftAPIServerNoProxyHosts"`
 }
