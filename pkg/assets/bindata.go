@@ -3153,9 +3153,9 @@ spec:
           "--health-server-port={{ .KonnectivityAgentHealthPort }}",
           "--agent-identifiers=ipv4={{ .OpenShiftAPIClusterIP }}&ipv4={{ .OauthAPIClusterIP }}",
           "--keepalive-time=30s",
-          "--probe-interval=30s",
-          "--sync-interval=1m",
-          "--sync-interval-cap=5m",
+          "--probe-interval=5s",
+          "--sync-interval=5s",
+          "--sync-interval-cap=30s",
           "--v=3",
           ]
 {{- if .KonnectivityAgentControlPlaneContainerResources }}
@@ -3261,9 +3261,9 @@ spec:
           "--agent-key=/etc/konnectivity/agent/tls.key",
           "--agent-identifiers=default-route=true",
           "--keepalive-time=30s",
-          "--probe-interval=30s",
-          "--sync-interval=1m",
-          "--sync-interval-cap=5m",
+          "--probe-interval=5s",
+          "--sync-interval=5s",
+          "--sync-interval-cap=30s",
           "--v=3"
           ]
         livenessProbe:
@@ -4373,7 +4373,7 @@ data:
           proxyProtocol: HTTPConnect
           transport:
             TCP:
-              URL: https://127.0.0.1:{{ .KonnectivityServerClusterPort }}
+              URL: https://konnectivity-server-local.master-{{ .ClusterID }}.svc:{{ .KonnectivityServerClusterPort }}
               TLSConfig:
                 CABundle: /etc/kubernetes/secret/ca.crt
                 ClientKey: /etc/kubernetes/secret/konnectivity-client.key

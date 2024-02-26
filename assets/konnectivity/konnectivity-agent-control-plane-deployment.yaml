@@ -86,9 +86,9 @@ spec:
           "--health-server-port={{ .KonnectivityAgentHealthPort }}",
           "--agent-identifiers=ipv4={{ .OpenShiftAPIClusterIP }}&ipv4={{ .OauthAPIClusterIP }}",
           "--keepalive-time=30s",
-          "--probe-interval=30s",
-          "--sync-interval=1m",
-          "--sync-interval-cap=5m",
+          "--probe-interval=5s",
+          "--sync-interval=5s",
+          "--sync-interval-cap=30s",
           "--v=3",
           ]
 {{- if .KonnectivityAgentControlPlaneContainerResources }}
