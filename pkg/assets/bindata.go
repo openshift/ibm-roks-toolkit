@@ -3926,6 +3926,7 @@ spec:
         - "--openshift-config=/etc/kubernetes/apiserver-config/config.yaml"
 {{- if .KPInfo }}
         - "--encryption-provider-config=/etc/kubernetes/kms-config/config.yaml"
+        - "--encryption-provider-config-automatic-reload=false"
 {{- end }}
 {{- if .KonnectivityEnabled }}
         - "--egress-selector-config-file=/etc/kubernetes/apiserver-egress-config/egress-config.yaml"
