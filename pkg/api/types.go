@@ -78,6 +78,7 @@ type ClusterParams struct {
 	OAuthServerSecurityContext                      *SecurityContext       `json:"oAuthServerSecurityContext"`
 	ClusterPolicyControllerSecurityContext          *SecurityContext       `json:"clusterPolicyControllerSecurityContext"`
 	ClusterConfigOperatorSecurityContext            *SecurityContext       `json:"clusterConfigOperatorSecurityContext"`
+	ClusterConfigAPISecurityContext                 *SecurityContext       `json:"clusterConfigAPISecurityContext"`
 	DefaultFeatureGates                             []string
 	PlatformType                                    string                 `json:"platformType"`
 	EndpointPublishingStrategyScope                 string                 `json:"endpointPublishingStrategyScope"`
