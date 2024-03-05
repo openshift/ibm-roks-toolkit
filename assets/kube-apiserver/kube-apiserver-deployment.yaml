@@ -74,9 +74,9 @@ spec:
 {{ end }}
       terminationGracePeriodSeconds: 120
       initContainers:
-      - image: {{ imageFor "cluster-config-operator" }}
-{{- if .ClusterConfigOperatorSecurityContext }}
-{{- $securityContext := .ClusterConfigOperatorSecurityContext }}
+      - image: {{ imageFor "cluster-config-api" }}
+{{- if .ClusterConfigAPISecurityContext }}
+{{- $securityContext := .ClusterConfigAPISecurityContext }}
         securityContext:
           runAsUser: {{ $securityContext.RunAsUser }}
 {{- end }}
@@ -91,7 +91,7 @@ spec:
           cd /tmp
           mkdir input output manifests
           cp /features/cluster-featuregate.yaml /tmp/manifests/99_feature-gate.yaml
-          /usr/bin/cluster-config-operator render --config-output-file config --asset-input-dir /tmp/input --asset-output-dir /tmp/output --rendered-manifest-files /tmp/manifests --payload-version={{ version "release" }}
+          /usr/bin/render --asset-output-dir /tmp/output --rendered-manifest-dir /tmp/manifests --payload-version={{ version "release" }}
           cp /tmp/output/manifests/* /work
           cp /tmp/manifests/* /work
         volumeMounts:
