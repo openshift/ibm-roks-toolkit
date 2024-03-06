@@ -152,7 +152,7 @@ kpInfo: '{"example":"foobar"}'
 kpRegion: us-south
 restartDate: "2022-01-07T13:58:11Z"
 extraFeatureGates: [RotateKubeletServerCertificate=true,CloudDualStackNodeIPs=true,ExternalCloudProvider=true,ExternalCloudProviderExternal=true,BuildCSIVolumes=true,NetworkLiveMigration=true,OpenShiftPodSecurityAdmission=false,DisableKubeletCloudCredentialProviders=false]
-extraFeatureGatesEnabled: [RotateKubeletServerCertificat,CloudDualStackNodeIPs,ExternalCloudProvider,ExternalCloudProviderExternal,BuildCSIVolumes,NetworkLiveMigration]
+extraFeatureGatesEnabled: [RotateKubeletServerCertificate,CloudDualStackNodeIPs,ExternalCloudProvider,ExternalCloudProviderExternal,BuildCSIVolumes,NetworkLiveMigration]
 extraFeatureGatesDisabled: [OpenShiftPodSecurityAdmission,DisableKubeletCloudCredentialProviders]
 apiServerAuditEnabled: true
 controlPlaneOperatorImage: registry.ng.bluemix.net/armada-master/ocp-control-plane-operator:v4.9.0-20211201
