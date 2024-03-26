@@ -3328,6 +3328,7 @@ spec:
           name: konnectivity-ca
         - mountPath: /etc/konnectivity/agent
           name: agent-certs
+      dnsPolicy: Default
       tolerations:
       - operator: "Exists"
       volumes:
