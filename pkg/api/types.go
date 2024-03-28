@@ -103,6 +103,7 @@ type ClusterParams struct {
 	KonnectivityServerCipherSuites                  string                 `json:"konnectivityServerCipherSuites"`
 	Socks5ProxyContainerResources                   []ResourceRequirements `json:"socks5ProxyContainerResources"`
 	OpenshiftAPIServerNoProxyHosts                  string                 `json:"openshiftAPIServerNoProxyHosts"`
+	OAuthAPIServerNoProxyHosts                      string                 `json:"oauthAPIServerNoProxyHosts"`
 }
 
 type NamedCert struct {
