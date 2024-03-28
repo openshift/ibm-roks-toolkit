@@ -5118,6 +5118,47 @@ spec:
       priorityClassName: {{ .MasterPriorityClass }}
 {{ end }}
       containers:
+{{- if .KonnectivityEnabled }}
+      - name: socks5-proxy
+{{- if .OauthAPIServerSecurityContext }}
+{{- $securityContext := .OauthAPIServerSecurityContext }}
+        securityContext:
+          runAsUser: {{ $securityContext.RunAsUser }}
+{{- end }}
+        image: {{ imageFor "hypershift" }}
+        imagePullPolicy: IfNotPresent
+        args:
+        - run
+        command:
+        - /usr/bin/control-plane-operator
+        - konnectivity-socks5-proxy
+        env:
+        - name: KUBECONFIG
+          value: /etc/kubernetes/secrets/kubeconfig/kubeconfig
+{{- if .Socks5ProxyContainerResources }}
+        resources: {{ range .Socks5ProxyContainerResources }}{{ range .ResourceRequest }}
+          requests: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ range .ResourceLimit }}
+          limits: {{ if .CPU }}
+            cpu: {{ .CPU }}{{ end }}{{ if .Memory }}
+            memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
+{{- end }}
+        lifecycle:
+          preStop:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - sleep 70
+        volumeMounts:
+        - mountPath: /etc/kubernetes/secrets/kubeconfig
+          name: kubeconfig
+        - mountPath: /etc/konnectivity/proxy-ca
+          name: oas-konnectivity-proxy-ca
+        - mountPath: /etc/konnectivity/proxy-client
+          name: oas-konnectivity-proxy-cert
+{{- end }}
       - name: oauth-apiserver
 {{- if .OauthAPIServerSecurityContext }}
 {{- $securityContext := .OauthAPIServerSecurityContext }}
@@ -5158,6 +5199,15 @@ spec:
         - containerPort: 8443
           protocol: TCP
         imagePullPolicy: IfNotPresent
+{{- if .KonnectivityEnabled }}
+        env:
+        - name: "HTTP_PROXY"
+          value: "socks5://127.0.0.1:{{ .KonnectivityServerClusterPort }}"
+        - name: "HTTPS_PROXY"
+          value: "socks5://127.0.0.1:{{ .KonnectivityServerClusterPort }}"
+        - name: "NO_PROXY"
+          value: "{{ .OAuthAPIServerNoProxyHosts }}"
+{{- end }}
         volumeMounts:
         - name: audit-policy
           mountPath: /var/run/audit
@@ -5216,6 +5266,20 @@ spec:
           defaultMode: 0640
       - name: audit-dir
         emptyDir: {}
+{{- if .KonnectivityEnabled }}
+      - secret:
+          secretName: service-network-admin-kubeconfig
+          defaultMode: 0640
+        name: kubeconfig
+      - name: oas-konnectivity-proxy-cert
+        secret:
+          defaultMode: 0640
+          secretName: konnectivity-client
+      - configMap:
+          defaultMode: 0640
+          name: konnectivity-ca-bundle
+        name: oas-konnectivity-proxy-ca
+{{- end }}
 `)
 
 func oauthApiserverOauthApiserverDeploymentYamlBytes() ([]byte, error) {
