@@ -3550,7 +3550,7 @@ apiServerArguments:
   enable-logs-handler:
   - 'false'
   endpoint-reconciler-type:
-  - lease
+  - none
   etcd-cafile:
   - /etc/kubernetes/config/etcd-ca.crt
   etcd-certfile:
