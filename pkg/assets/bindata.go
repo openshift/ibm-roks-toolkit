@@ -244,7 +244,7 @@ func clusterBootstrap00000_routeControllerNsYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapApiUsageYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-apiserver-operator/blob/release-4.15/bindata/assets/alerts/api-usage.yaml
+var _clusterBootstrapApiUsageYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-apiserver-operator/blob/release-4.16/bindata/assets/alerts/api-usage.yaml
 # The ROKS toolkit processes this file as template and the substitution variables must
 # be escaped.
 # See https://github.com/openshift/ibm-roks-toolkit/pull/457#discussion_r841881070
@@ -266,7 +266,7 @@ spec:
               a successful upgrade to the next cluster version with Kubernetes {{ ` + "`" + `{{ $labels.removed_release }}` + "`" + ` }}.
               Refer to ` + "`" + `oc get apirequestcounts {{ ` + "`" + `{{ $labels.resource }}.{{ $labels.version }}.{{ $labels.group }}` + "`" + ` }} -o yaml` + "`" + ` to identify the workload.
           expr: >-
-            group by (group,version,resource,removed_release) (apiserver_requested_deprecated_apis{removed_release="1.29"})
+            group by (group,version,resource,removed_release) (apiserver_requested_deprecated_apis{removed_release="1.30"})
             * on (group,version,resource) group_left ()
             sum by (group,version,resource) (
             rate(apiserver_request_total{system_client!="kube-controller-manager",system_client!="cluster-policy-controller"}[4h])
@@ -284,7 +284,7 @@ spec:
               a successful upgrade to the next EUS cluster version with Kubernetes {{ ` + "`" + `{{ $labels.removed_release }}` + "`" + ` }}.
               Refer to ` + "`" + `oc get apirequestcounts {{ ` + "`" + `{{ $labels.resource }}.{{ $labels.version }}.{{ $labels.group }}` + "`" + ` }} -o yaml` + "`" + ` to identify the workload.
           expr: >-
-            group by (group,version,resource,removed_release) (apiserver_requested_deprecated_apis{removed_release="1.29"})
+            group by (group,version,resource,removed_release) (apiserver_requested_deprecated_apis{removed_release=~"1.3[01]"})
             * on (group,version,resource) group_left ()
             sum by (group,version,resource) (
             rate(apiserver_request_total{system_client!="kube-controller-manager",system_client!="cluster-policy-controller"}[4h])
@@ -310,14 +310,14 @@ func clusterBootstrapApiUsageYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapApiserverApirequestcountsCrdYaml = []byte(`# Source: https://github.com/openshift/api/blob/release-4.15/apiserver/v1/apiserver.openshift.io_apirequestcount.yaml
+var _clusterBootstrapApiserverApirequestcountsCrdYaml = []byte(`# Source: https://github.com/openshift/api/blob/release-4.16/apiserver/v1/zz_generated.crd-manifests/kube-apiserver_apirequestcounts.crd.yaml
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
     api-approved.openshift.io: https://github.com/openshift/api/pull/897
+    api.openshift.io/merged-by-featuregates: "true"
     include.release.openshift.io/self-managed-high-availability: "true"
-    include.release.openshift.io/single-node-developer: "true"
   name: apirequestcounts.apiserver.openshift.io
 spec:
   group: apiserver.openshift.io
@@ -328,243 +328,317 @@ spec:
     singular: apirequestcount
   scope: Cluster
   versions:
-    - name: v1
-      served: true
-      storage: true
-      subresources:
-        status: {}
-      additionalPrinterColumns:
-        - name: RemovedInRelease
-          type: string
-          description: Release in which an API will be removed.
-          jsonPath: .status.removedInRelease
-        - name: RequestsInCurrentHour
-          type: integer
-          description: Number of requests in the current hour.
-          jsonPath: .status.currentHour.requestCount
-        - name: RequestsInLast24h
-          type: integer
-          description: Number of requests in the last 24h.
-          jsonPath: .status.requestCount
-      "schema":
-        "openAPIV3Schema":
-          description: "APIRequestCount tracks requests made to an API. The instance name must be of the form ` + "`" + `resource.version.group` + "`" + `, matching the resource. \n Compatibility level 1: Stable within a major release for a minimum of 12 months or 3 minor releases (whichever is longer)."
-          type: object
-          required:
-            - spec
-          properties:
-            apiVersion:
-              description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-              type: string
-            kind:
-              description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-              type: string
-            metadata:
-              type: object
-            spec:
-              description: spec defines the characteristics of the resource.
-              type: object
-              properties:
-                numberOfUsersToReport:
-                  description: numberOfUsersToReport is the number of users to include in the report. If unspecified or zero, the default is ten.  This is default is subject to change.
-                  type: integer
-                  format: int64
-                  default: 10
-                  maximum: 100
-                  minimum: 0
-            status:
-              description: status contains the observed state of the resource.
-              type: object
-              properties:
-                conditions:
-                  description: conditions contains details of the current status of this API Resource.
-                  type: array
-                  items:
-                    description: "Condition contains details for one aspect of the current state of this API Resource. --- This struct is intended for direct use as an array at the field path .status.conditions.  For example, \n type FooStatus struct{ // Represents the observations of a foo's current state. // Known .status.conditions.type are: \"Available\", \"Progressing\", and \"Degraded\" // +patchMergeKey=type // +patchStrategy=merge // +listType=map // +listMapKey=type Conditions []metav1.Condition ` + "`" + `json:\"conditions,omitempty\" patchStrategy:\"merge\" patchMergeKey:\"type\" protobuf:\"bytes,1,rep,name=conditions\"` + "`" + ` \n // other fields }"
-                    type: object
-                    required:
-                      - lastTransitionTime
-                      - message
-                      - reason
-                      - status
-                      - type
-                    properties:
-                      lastTransitionTime:
-                        description: lastTransitionTime is the last time the condition transitioned from one status to another. This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
-                        type: string
-                        format: date-time
-                      message:
-                        description: message is a human readable message indicating details about the transition. This may be an empty string.
-                        type: string
-                        maxLength: 32768
-                      observedGeneration:
-                        description: observedGeneration represents the .metadata.generation that the condition was set based upon. For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date with respect to the current state of the instance.
-                        type: integer
-                        format: int64
-                        minimum: 0
-                      reason:
-                        description: reason contains a programmatic identifier indicating the reason for the condition's last transition. Producers of specific condition types may define expected values and meanings for this field, and whether the values are considered a guaranteed API. The value should be a CamelCase string. This field may not be empty.
-                        type: string
-                        maxLength: 1024
-                        minLength: 1
-                        pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
-                      status:
-                        description: status of the condition, one of True, False, Unknown.
-                        type: string
-                        enum:
-                          - "True"
-                          - "False"
-                          - Unknown
-                      type:
-                        description: type of condition in CamelCase or in foo.example.com/CamelCase. --- Many .condition.type values are consistent across resources like Available, but because arbitrary conditions can be useful (see .node.status.conditions), the ability to deconflict is important. The regex it matches is (dns1123SubdomainFmt/)?(qualifiedNameFmt)
-                        type: string
-                        maxLength: 316
-                        pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
-                currentHour:
-                  description: currentHour contains request history for the current hour. This is porcelain to make the API easier to read by humans seeing if they addressed a problem. This field is reset on the hour.
+  - additionalPrinterColumns:
+    - description: Release in which an API will be removed.
+      jsonPath: .status.removedInRelease
+      name: RemovedInRelease
+      type: string
+    - description: Number of requests in the current hour.
+      jsonPath: .status.currentHour.requestCount
+      name: RequestsInCurrentHour
+      type: integer
+    - description: Number of requests in the last 24h.
+      jsonPath: .status.requestCount
+      name: RequestsInLast24h
+      type: integer
+    name: v1
+    schema:
+      openAPIV3Schema:
+        description: "APIRequestCount tracks requests made to an API. The instance
+          name must be of the form ` + "`" + `resource.version.group` + "`" + `, matching the resource.
+          \n Compatibility level 1: Stable within a major release for a minimum of
+          12 months or 3 minor releases (whichever is longer)."
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: spec defines the characteristics of the resource.
+            properties:
+              numberOfUsersToReport:
+                default: 10
+                description: numberOfUsersToReport is the number of users to include
+                  in the report. If unspecified or zero, the default is ten.  This
+                  is default is subject to change.
+                format: int64
+                maximum: 100
+                minimum: 0
+                type: integer
+            type: object
+          status:
+            description: status contains the observed state of the resource.
+            properties:
+              conditions:
+                description: conditions contains details of the current status of
+                  this API Resource.
+                items:
+                  description: "Condition contains details for one aspect of the current
+                    state of this API Resource. --- This struct is intended for direct
+                    use as an array at the field path .status.conditions.  For example,
+                    \n type FooStatus struct{ // Represents the observations of a
+                    foo's current state. // Known .status.conditions.type are: \"Available\",
+                    \"Progressing\", and \"Degraded\" // +patchMergeKey=type // +patchStrategy=merge
+                    // +listType=map // +listMapKey=type Conditions []metav1.Condition
+                    ` + "`" + `json:\"conditions,omitempty\" patchStrategy:\"merge\" patchMergeKey:\"type\"
+                    protobuf:\"bytes,1,rep,name=conditions\"` + "`" + ` \n // other fields }"
+                  properties:
+                    lastTransitionTime:
+                      description: lastTransitionTime is the last time the condition
+                        transitioned from one status to another. This should be when
+                        the underlying condition changed.  If that is not known, then
+                        using the time when the API field changed is acceptable.
+                      format: date-time
+                      type: string
+                    message:
+                      description: message is a human readable message indicating
+                        details about the transition. This may be an empty string.
+                      maxLength: 32768
+                      type: string
+                    observedGeneration:
+                      description: observedGeneration represents the .metadata.generation
+                        that the condition was set based upon. For instance, if .metadata.generation
+                        is currently 12, but the .status.conditions[x].observedGeneration
+                        is 9, the condition is out of date with respect to the current
+                        state of the instance.
+                      format: int64
+                      minimum: 0
+                      type: integer
+                    reason:
+                      description: reason contains a programmatic identifier indicating
+                        the reason for the condition's last transition. Producers
+                        of specific condition types may define expected values and
+                        meanings for this field, and whether the values are considered
+                        a guaranteed API. The value should be a CamelCase string.
+                        This field may not be empty.
+                      maxLength: 1024
+                      minLength: 1
+                      pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
+                      type: string
+                    status:
+                      description: status of the condition, one of True, False, Unknown.
+                      enum:
+                      - "True"
+                      - "False"
+                      - Unknown
+                      type: string
+                    type:
+                      description: type of condition in CamelCase or in foo.example.com/CamelCase.
+                        --- Many .condition.type values are consistent across resources
+                        like Available, but because arbitrary conditions can be useful
+                        (see .node.status.conditions), the ability to deconflict is
+                        important. The regex it matches is (dns1123SubdomainFmt/)?(qualifiedNameFmt)
+                      maxLength: 316
+                      pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - message
+                  - reason
+                  - status
+                  - type
                   type: object
+                type: array
+              currentHour:
+                description: currentHour contains request history for the current
+                  hour. This is porcelain to make the API easier to read by humans
+                  seeing if they addressed a problem. This field is reset on the hour.
+                properties:
+                  byNode:
+                    description: byNode contains logs of requests per node.
+                    items:
+                      description: PerNodeAPIRequestLog contains logs of requests
+                        to a certain node.
+                      properties:
+                        byUser:
+                          description: byUser contains request details by top .spec.numberOfUsersToReport
+                            users. Note that because in the case of an apiserver,
+                            restart the list of top users is determined on a best-effort
+                            basis, the list might be imprecise. In addition, some
+                            system users may be explicitly included in the list.
+                          items:
+                            description: PerUserAPIRequestCount contains logs of a
+                              user's requests.
+                            properties:
+                              byVerb:
+                                description: byVerb details by verb.
+                                items:
+                                  description: PerVerbAPIRequestCount requestCounts
+                                    requests by API request verb.
+                                  properties:
+                                    requestCount:
+                                      description: requestCount of requests for verb.
+                                      format: int64
+                                      minimum: 0
+                                      type: integer
+                                    verb:
+                                      description: verb of API request (get, list,
+                                        create, etc...)
+                                      maxLength: 20
+                                      type: string
+                                  type: object
+                                maxItems: 10
+                                type: array
+                              requestCount:
+                                description: requestCount of requests by the user
+                                  across all verbs.
+                                format: int64
+                                minimum: 0
+                                type: integer
+                              userAgent:
+                                description: userAgent that made the request. The
+                                  same user often has multiple binaries which connect
+                                  (pods with many containers).  The different binaries
+                                  will have different userAgents, but the same user.  In
+                                  addition, we have userAgents with version information
+                                  embedded and the userName isn't likely to change.
+                                maxLength: 1024
+                                type: string
+                              username:
+                                description: userName that made the request.
+                                maxLength: 512
+                                type: string
+                            type: object
+                          maxItems: 500
+                          type: array
+                        nodeName:
+                          description: nodeName where the request are being handled.
+                          maxLength: 512
+                          minLength: 1
+                          type: string
+                        requestCount:
+                          description: requestCount is a sum of all requestCounts
+                            across all users, even those outside of the top 10 users.
+                          format: int64
+                          minimum: 0
+                          type: integer
+                      type: object
+                    maxItems: 512
+                    type: array
+                  requestCount:
+                    description: requestCount is a sum of all requestCounts across
+                      nodes.
+                    format: int64
+                    minimum: 0
+                    type: integer
+                type: object
+              last24h:
+                description: last24h contains request history for the last 24 hours,
+                  indexed by the hour, so 12:00AM-12:59 is in index 0, 6am-6:59am
+                  is index 6, etc. The index of the current hour is updated live and
+                  then duplicated into the requestsLastHour field.
+                items:
+                  description: PerResourceAPIRequestLog logs request for various nodes.
                   properties:
                     byNode:
                       description: byNode contains logs of requests per node.
-                      type: array
-                      maxItems: 512
                       items:
-                        description: PerNodeAPIRequestLog contains logs of requests to a certain node.
-                        type: object
+                        description: PerNodeAPIRequestLog contains logs of requests
+                          to a certain node.
                         properties:
                           byUser:
-                            description: byUser contains request details by top .spec.numberOfUsersToReport users. Note that because in the case of an apiserver, restart the list of top users is determined on a best-effort basis, the list might be imprecise. In addition, some system users may be explicitly included in the list.
-                            type: array
-                            maxItems: 500
+                            description: byUser contains request details by top .spec.numberOfUsersToReport
+                              users. Note that because in the case of an apiserver,
+                              restart the list of top users is determined on a best-effort
+                              basis, the list might be imprecise. In addition, some
+                              system users may be explicitly included in the list.
                             items:
-                              description: PerUserAPIRequestCount contains logs of a user's requests.
-                              type: object
+                              description: PerUserAPIRequestCount contains logs of
+                                a user's requests.
                               properties:
                                 byVerb:
                                   description: byVerb details by verb.
-                                  type: array
-                                  maxItems: 10
                                   items:
-                                    description: PerVerbAPIRequestCount requestCounts requests by API request verb.
-                                    type: object
+                                    description: PerVerbAPIRequestCount requestCounts
+                                      requests by API request verb.
                                     properties:
                                       requestCount:
-                                        description: requestCount of requests for verb.
-                                        type: integer
+                                        description: requestCount of requests for
+                                          verb.
                                         format: int64
                                         minimum: 0
+                                        type: integer
                                       verb:
-                                        description: verb of API request (get, list, create, etc...)
-                                        type: string
+                                        description: verb of API request (get, list,
+                                          create, etc...)
                                         maxLength: 20
+                                        type: string
+                                    type: object
+                                  maxItems: 10
+                                  type: array
                                 requestCount:
-                                  description: requestCount of requests by the user across all verbs.
-                                  type: integer
+                                  description: requestCount of requests by the user
+                                    across all verbs.
                                   format: int64
                                   minimum: 0
+                                  type: integer
                                 userAgent:
-                                  description: userAgent that made the request. The same user often has multiple binaries which connect (pods with many containers).  The different binaries will have different userAgents, but the same user.  In addition, we have userAgents with version information embedded and the userName isn't likely to change.
-                                  type: string
+                                  description: userAgent that made the request. The
+                                    same user often has multiple binaries which connect
+                                    (pods with many containers).  The different binaries
+                                    will have different userAgents, but the same user.  In
+                                    addition, we have userAgents with version information
+                                    embedded and the userName isn't likely to change.
                                   maxLength: 1024
+                                  type: string
                                 username:
                                   description: userName that made the request.
-                                  type: string
                                   maxLength: 512
+                                  type: string
+                              type: object
+                            maxItems: 500
+                            type: array
                           nodeName:
                             description: nodeName where the request are being handled.
-                            type: string
                             maxLength: 512
                             minLength: 1
+                            type: string
                           requestCount:
-                            description: requestCount is a sum of all requestCounts across all users, even those outside of the top 10 users.
-                            type: integer
+                            description: requestCount is a sum of all requestCounts
+                              across all users, even those outside of the top 10 users.
                             format: int64
                             minimum: 0
+                            type: integer
+                        type: object
+                      maxItems: 512
+                      type: array
                     requestCount:
-                      description: requestCount is a sum of all requestCounts across nodes.
-                      type: integer
+                      description: requestCount is a sum of all requestCounts across
+                        nodes.
                       format: int64
                       minimum: 0
-                last24h:
-                  description: last24h contains request history for the last 24 hours, indexed by the hour, so 12:00AM-12:59 is in index 0, 6am-6:59am is index 6, etc. The index of the current hour is updated live and then duplicated into the requestsLastHour field.
-                  type: array
-                  maxItems: 24
-                  items:
-                    description: PerResourceAPIRequestLog logs request for various nodes.
-                    type: object
-                    properties:
-                      byNode:
-                        description: byNode contains logs of requests per node.
-                        type: array
-                        maxItems: 512
-                        items:
-                          description: PerNodeAPIRequestLog contains logs of requests to a certain node.
-                          type: object
-                          properties:
-                            byUser:
-                              description: byUser contains request details by top .spec.numberOfUsersToReport users. Note that because in the case of an apiserver, restart the list of top users is determined on a best-effort basis, the list might be imprecise. In addition, some system users may be explicitly included in the list.
-                              type: array
-                              maxItems: 500
-                              items:
-                                description: PerUserAPIRequestCount contains logs of a user's requests.
-                                type: object
-                                properties:
-                                  byVerb:
-                                    description: byVerb details by verb.
-                                    type: array
-                                    maxItems: 10
-                                    items:
-                                      description: PerVerbAPIRequestCount requestCounts requests by API request verb.
-                                      type: object
-                                      properties:
-                                        requestCount:
-                                          description: requestCount of requests for verb.
-                                          type: integer
-                                          format: int64
-                                          minimum: 0
-                                        verb:
-                                          description: verb of API request (get, list, create, etc...)
-                                          type: string
-                                          maxLength: 20
-                                  requestCount:
-                                    description: requestCount of requests by the user across all verbs.
-                                    type: integer
-                                    format: int64
-                                    minimum: 0
-                                  userAgent:
-                                    description: userAgent that made the request. The same user often has multiple binaries which connect (pods with many containers).  The different binaries will have different userAgents, but the same user.  In addition, we have userAgents with version information embedded and the userName isn't likely to change.
-                                    type: string
-                                    maxLength: 1024
-                                  username:
-                                    description: userName that made the request.
-                                    type: string
-                                    maxLength: 512
-                            nodeName:
-                              description: nodeName where the request are being handled.
-                              type: string
-                              maxLength: 512
-                              minLength: 1
-                            requestCount:
-                              description: requestCount is a sum of all requestCounts across all users, even those outside of the top 10 users.
-                              type: integer
-                              format: int64
-                              minimum: 0
-                      requestCount:
-                        description: requestCount is a sum of all requestCounts across nodes.
-                        type: integer
-                        format: int64
-                        minimum: 0
-                removedInRelease:
-                  description: removedInRelease is when the API will be removed.
-                  type: string
-                  maxLength: 64
-                  minLength: 0
-                  pattern: ^[0-9][0-9]*\.[0-9][0-9]*$
-                requestCount:
-                  description: requestCount is a sum of all requestCounts across all current hours, nodes, and users.
-                  type: integer
-                  format: int64
-                  minimum: 0
+                      type: integer
+                  type: object
+                maxItems: 24
+                type: array
+              removedInRelease:
+                description: removedInRelease is when the API will be removed.
+                maxLength: 64
+                minLength: 0
+                pattern: ^[0-9][0-9]*\.[0-9][0-9]*$
+                type: string
+              requestCount:
+                description: requestCount is a sum of all requestCounts across all
+                  current hours, nodes, and users.
+                format: int64
+                minimum: 0
+                type: integer
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
 `)
 
 func clusterBootstrapApiserverApirequestcountsCrdYamlBytes() ([]byte, error) {
@@ -745,16 +819,15 @@ var _clusterBootstrapClusterNetwork01CrdYaml = []byte(`---
 # This is the advanced network configuration CRD
 # Only necessary if you need to tweak certain settings.
 # See https://github.com/openshift/cluster-network-operator#configuring
-# Source: https://github.com/openshift/cluster-network-operator/blob/release-4.15/manifests/0000_70_cluster-network-operator_01-Default.crd.yaml
+# Source: https://github.com/openshift/cluster-network-operator/blob/release-4.16/manifests/0000_70_network_01_networks.crd.yaml
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
     api-approved.openshift.io: https://github.com/openshift/api/pull/475
+    api.openshift.io/merged-by-featuregates: "true"
     include.release.openshift.io/ibm-cloud-managed: "true"
     include.release.openshift.io/self-managed-high-availability: "true"
-    include.release.openshift.io/single-node-developer: "true"
-    release.openshift.io/feature-set: Default
   name: networks.operator.openshift.io
 spec:
   group: operator.openshift.io
@@ -1221,6 +1294,133 @@ spec:
                         x-kubernetes-validations:
                         - message: ipsecConfig.mode is required
                           rule: self == oldSelf || has(self.mode)
+                      ipv4:
+                        description: ipv4 allows users to configure IP settings for
+                          IPv4 connections. When ommitted, this means no opinions
+                          and the default configuration is used. Check individual
+                          fields within ipv4 for details of default values.
+                        properties:
+                          internalJoinSubnet:
+                            description: internalJoinSubnet is a v4 subnet used internally
+                              by ovn-kubernetes in case the default one is being already
+                              used by something else. It must not overlap with any
+                              other subnet being used by OpenShift or by the node
+                              network. The size of the subnet must be larger than
+                              the number of nodes. The value cannot be changed after
+                              installation. The current default value is 100.64.0.0/16
+                              The subnet must be large enough to accomadate one IP
+                              per node in your cluster The value must be in proper
+                              IPV4 CIDR format
+                            maxLength: 18
+                            type: string
+                            x-kubernetes-validations:
+                            - message: Subnet must be in valid IPV4 CIDR format
+                              rule: isCIDR(self) && cidr(self).ip().family() == 4
+                            - message: first IP address octet must not contain leading
+                                zeros, must be greater than 0 and less or equal to
+                                255
+                              rule: '[self.findAll(''[0-9]+'')[0]].all(x, x != ''0''
+                                && int(x) <= 255 && !x.startsWith(''0''))'
+                            - message: subnet must be in the range /0 to /30 inclusive
+                              rule: '[int(self.split(''/'')[1])].all(x, x <= 30 &&
+                                x >= 0)'
+                          internalTransitSwitchSubnet:
+                            description: internalTransitSwitchSubnet is a v4 subnet
+                              in IPV4 CIDR format used internally by OVN-Kubernetes
+                              for the distributed transit switch in the OVN Interconnect
+                              architecture that connects the cluster routers on each
+                              node together to enable east west traffic. The subnet
+                              chosen should not overlap with other networks specified
+                              for OVN-Kubernetes as well as other networks used on
+                              the host. The value cannot be changed after installation.
+                              When ommitted, this means no opinion and the platform
+                              is left to choose a reasonable default which is subject
+                              to change over time. The current default subnet is 100.88.0.0/16
+                              The subnet must be large enough to accomadate one IP
+                              per node in your cluster The value must be in proper
+                              IPV4 CIDR format
+                            maxLength: 18
+                            type: string
+                            x-kubernetes-validations:
+                            - message: Subnet must be in valid IPV4 CIDR format
+                              rule: isCIDR(self) && cidr(self).ip().family() == 4
+                            - message: first IP address octet must not contain leading
+                                zeros, must be greater than 0 and less or equal to
+                                255
+                              rule: '[self.findAll(''[0-9]+'')[0]].all(x, x != ''0''
+                                && int(x) <= 255 && !x.startsWith(''0''))'
+                            - message: subnet must be in the range /0 to /30 inclusive
+                              rule: '[int(self.split(''/'')[1])].all(x, x <= 30 &&
+                                x >= 0)'
+                        type: object
+                      ipv6:
+                        description: ipv6 allows users to configure IP settings for
+                          IPv6 connections. When ommitted, this means no opinions
+                          and the default configuration is used. Check individual
+                          fields within ipv4 for details of default values.
+                        properties:
+                          internalJoinSubnet:
+                            description: internalJoinSubnet is a v6 subnet used internally
+                              by ovn-kubernetes in case the default one is being already
+                              used by something else. It must not overlap with any
+                              other subnet being used by OpenShift or by the node
+                              network. The size of the subnet must be larger than
+                              the number of nodes. The value cannot be changed after
+                              installation. The subnet must be large enough to accomadate
+                              one IP per node in your cluster The current default
+                              value is fd98::/48 The value must be in proper IPV6
+                              CIDR format Note that IPV6 dual addresses are not permitted
+                            maxLength: 48
+                            type: string
+                            x-kubernetes-validations:
+                            - message: Subnet must be in valid IPV6 CIDR format
+                              rule: isCIDR(self) && cidr(self).ip().family() == 6
+                            - message: subnet must be in the range /0 to /125 inclusive
+                              rule: self.split('/').size() == 2 && [int(self.split('/')[1])].all(x,
+                                x <= 125 && x >= 0)
+                            - message: a valid IPv6 address must contain 8 segments
+                                unless elided (::), in which case it must contain
+                                at most 6 non-empty segments
+                              rule: 'self.contains(''::'') ? self.split(''/'')[0].split('':'').size()
+                                <= 8 : self.split(''/'')[0].split('':'').size() ==
+                                8'
+                            - message: IPv6 dual addresses are not permitted, value
+                                should not contain ` + "`" + `.` + "`" + ` characters
+                              rule: '!self.contains(''.'')'
+                          internalTransitSwitchSubnet:
+                            description: internalTransitSwitchSubnet is a v4 subnet
+                              in IPV4 CIDR format used internally by OVN-Kubernetes
+                              for the distributed transit switch in the OVN Interconnect
+                              architecture that connects the cluster routers on each
+                              node together to enable east west traffic. The subnet
+                              chosen should not overlap with other networks specified
+                              for OVN-Kubernetes as well as other networks used on
+                              the host. The value cannot be changed after installation.
+                              When ommitted, this means no opinion and the platform
+                              is left to choose a reasonable default which is subject
+                              to change over time. The subnet must be large enough
+                              to accomadate one IP per node in your cluster The current
+                              default subnet is fd97::/64 The value must be in proper
+                              IPV6 CIDR format Note that IPV6 dual addresses are not
+                              permitted
+                            maxLength: 48
+                            type: string
+                            x-kubernetes-validations:
+                            - message: Subnet must be in valid IPV6 CIDR format
+                              rule: isCIDR(self) && cidr(self).ip().family() == 6
+                            - message: subnet must be in the range /0 to /125 inclusive
+                              rule: self.split('/').size() == 2 && [int(self.split('/')[1])].all(x,
+                                x <= 125 && x >= 0)
+                            - message: a valid IPv6 address must contain 8 segments
+                                unless elided (::), in which case it must contain
+                                at most 6 non-empty segments
+                              rule: 'self.contains(''::'') ? self.split(''/'')[0].split('':'').size()
+                                <= 8 : self.split(''/'')[0].split('':'').size() ==
+                                8'
+                            - message: IPv6 dual addresses are not permitted, value
+                                should not contain ` + "`" + `.` + "`" + ` characters
+                              rule: '!self.contains(''.'')'
+                        type: object
                       mtu:
                         description: mtu is the MTU to use for the tunnel interface.
                           This must be 100 bytes smaller than the uplink mtu. Default
@@ -1510,6 +1710,11 @@ spec:
                       OVNKubernetes
                     type: string
                 type: object
+                x-kubernetes-validations:
+                - message: networkType migration in mode other than 'Live' may not
+                    be configured at the same time as mtu migration
+                  rule: '!has(self.mtu) || !has(self.networkType) || self.networkType
+                    == '''' || has(self.mode) && self.mode == ''Live'''
               observedConfig:
                 description: observedConfig holds a sparse config that controller
                   has observed from the cluster state.  It exists in spec because
@@ -1561,6 +1766,17 @@ spec:
                   is ignored.
                 type: boolean
             type: object
+            x-kubernetes-validations:
+            - message: invalid value for IPForwarding, valid values are 'Restricted'
+                or 'Global'
+              rule: '!has(self.defaultNetwork) || !has(self.defaultNetwork.ovnKubernetesConfig)
+                || !has(self.defaultNetwork.ovnKubernetesConfig.gatewayConfig) ||
+                !has(self.defaultNetwork.ovnKubernetesConfig.gatewayConfig.ipForwarding)
+                || self.defaultNetwork.ovnKubernetesConfig.gatewayConfig.ipForwarding
+                == oldSelf.defaultNetwork.ovnKubernetesConfig.gatewayConfig.ipForwarding
+                || self.defaultNetwork.ovnKubernetesConfig.gatewayConfig.ipForwarding
+                == ''Restricted'' || self.defaultNetwork.ovnKubernetesConfig.gatewayConfig.ipForwarding
+                == ''Global'''
           status:
             description: NetworkStatus is detailed operator status, which is distilled
               up to the Network clusteroperator object.
@@ -1581,8 +1797,13 @@ spec:
                       type: string
                     type:
                       type: string
+                  required:
+                  - type
                   type: object
                 type: array
+                x-kubernetes-list-map-keys:
+                - type
+                x-kubernetes-list-type: map
               generations:
                 description: generations are used to determine when an item needs
                   to be reconciled or has changed in a way that needs a reaction.
@@ -1615,6 +1836,7 @@ spec:
                       type: string
                   type: object
                 type: array
+                x-kubernetes-list-type: atomic
               observedGeneration:
                 description: observedGeneration is the last generation change you've
                   dealt with
@@ -1753,7 +1975,7 @@ func clusterBootstrapClusterVersionYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapCsr_approver_clusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.15/bindata/assets/kube-controller-manager/csr_approver_clusterrole.yaml
+var _clusterBootstrapCsr_approver_clusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.16/bindata/assets/kube-controller-manager/csr_approver_clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -1808,7 +2030,7 @@ func clusterBootstrapCsr_approver_clusterroleYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapCsr_approver_clusterrolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.15/bindata/assets/kube-controller-manager/csr_approver_clusterrolebinding.yaml
+var _clusterBootstrapCsr_approver_clusterrolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.16/bindata/assets/kube-controller-manager/csr_approver_clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -1840,7 +2062,7 @@ func clusterBootstrapCsr_approver_clusterrolebindingYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapDeployerClusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.15/bindata/assets/openshift-controller-manager/deployer-clusterrole.yaml
+var _clusterBootstrapDeployerClusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.16/bindata/assets/openshift-controller-manager/deployer-clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -1922,7 +2144,7 @@ func clusterBootstrapDeployerClusterroleYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapDeployerClusterrolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.15/bindata/assets/openshift-controller-manager/deployer-clusterrolebinding.yaml
+var _clusterBootstrapDeployerClusterrolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.16/bindata/assets/openshift-controller-manager/deployer-clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -1959,207 +2181,272 @@ var _clusterBootstrapEtcdOperatorConfigYaml = []byte(`---
 # This is the etcd operator CRD
 # Although this resource is in the openshift payload,
 # it doesn't get applied due to the ` + "`" + `release.openshift.io/feature-set: Default` + "`" + ` annotation
-# Source: https://github.com/openshift/api/blob/release-4.15/operator/v1/0000_12_etcd-operator_01_config.crd.yaml
+# Source: https://github.com/openshift/api/blob/release-4.16/operator/v1/zz_generated.crd-manifests/0000_12_etcd_01_etcds-Default.crd.yaml
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
     api-approved.openshift.io: https://github.com/openshift/api/pull/752
+    api.openshift.io/merged-by-featuregates: "true"
     include.release.openshift.io/ibm-cloud-managed: "true"
     include.release.openshift.io/self-managed-high-availability: "true"
-    include.release.openshift.io/single-node-developer: "true"
     release.openshift.io/feature-set: Default
   name: etcds.operator.openshift.io
 spec:
   group: operator.openshift.io
   names:
     categories:
-      - coreoperators
+    - coreoperators
     kind: Etcd
+    listKind: EtcdList
     plural: etcds
     singular: etcd
   scope: Cluster
   versions:
-    - name: v1
-      schema:
-        openAPIV3Schema:
-          description: "Etcd provides information to configure an operator to manage etcd. \n Compatibility level 1: Stable within a major release for a minimum of 12 months or 3 minor releases (whichever is longer)."
-          type: object
-          required:
-            - spec
-          properties:
-            apiVersion:
-              description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-              type: string
-            kind:
-              description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-              type: string
-            metadata:
-              type: object
-            spec:
-              type: object
-              properties:
-                failedRevisionLimit:
-                  description: failedRevisionLimit is the number of failed static pod installer revisions to keep on disk and in the api -1 = unlimited, 0 or unset = 5 (default)
-                  type: integer
-                  format: int32
-                forceRedeploymentReason:
-                  description: forceRedeploymentReason can be used to force the redeployment of the operand by providing a unique string. This provides a mechanism to kick a previously failed deployment and provide a reason why you think it will work this time instead of failing again on the same config.
-                  type: string
-                logLevel:
-                  description: "logLevel is an intent based logging for an overall component.  It does not give fine grained control, but it is a simple way to manage coarse grained logging choices that operators have to interpret for their operands. \n Valid values are: \"Normal\", \"Debug\", \"Trace\", \"TraceAll\". Defaults to \"Normal\"."
-                  type: string
-                  default: Normal
-                  enum:
-                    - ""
-                    - Normal
-                    - Debug
-                    - Trace
-                    - TraceAll
-                managementState:
-                  description: managementState indicates whether and how the operator should manage the component
-                  type: string
-                  pattern: ^(Managed|Unmanaged|Force|Removed)$
-                observedConfig:
-                  description: observedConfig holds a sparse config that controller has observed from the cluster state.  It exists in spec because it is an input to the level for the operator
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        description: "Etcd provides information to configure an operator to manage
+          etcd. \n Compatibility level 1: Stable within a major release for a minimum
+          of 12 months or 3 minor releases (whichever is longer)."
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            properties:
+              failedRevisionLimit:
+                description: failedRevisionLimit is the number of failed static pod
+                  installer revisions to keep on disk and in the api -1 = unlimited,
+                  0 or unset = 5 (default)
+                format: int32
+                type: integer
+              forceRedeploymentReason:
+                description: forceRedeploymentReason can be used to force the redeployment
+                  of the operand by providing a unique string. This provides a mechanism
+                  to kick a previously failed deployment and provide a reason why
+                  you think it will work this time instead of failing again on the
+                  same config.
+                type: string
+              logLevel:
+                default: Normal
+                description: "logLevel is an intent based logging for an overall component.
+                  \ It does not give fine grained control, but it is a simple way
+                  to manage coarse grained logging choices that operators have to
+                  interpret for their operands. \n Valid values are: \"Normal\", \"Debug\",
+                  \"Trace\", \"TraceAll\". Defaults to \"Normal\"."
+                enum:
+                - ""
+                - Normal
+                - Debug
+                - Trace
+                - TraceAll
+                type: string
+              managementState:
+                description: managementState indicates whether and how the operator
+                  should manage the component
+                pattern: ^(Managed|Unmanaged|Force|Removed)$
+                type: string
+              observedConfig:
+                description: observedConfig holds a sparse config that controller
+                  has observed from the cluster state.  It exists in spec because
+                  it is an input to the level for the operator
+                nullable: true
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
+              operatorLogLevel:
+                default: Normal
+                description: "operatorLogLevel is an intent based logging for the
+                  operator itself.  It does not give fine grained control, but it
+                  is a simple way to manage coarse grained logging choices that operators
+                  have to interpret for themselves. \n Valid values are: \"Normal\",
+                  \"Debug\", \"Trace\", \"TraceAll\". Defaults to \"Normal\"."
+                enum:
+                - ""
+                - Normal
+                - Debug
+                - Trace
+                - TraceAll
+                type: string
+              succeededRevisionLimit:
+                description: succeededRevisionLimit is the number of successful static
+                  pod installer revisions to keep on disk and in the api -1 = unlimited,
+                  0 or unset = 5 (default)
+                format: int32
+                type: integer
+              unsupportedConfigOverrides:
+                description: unsupportedConfigOverrides overrides the final configuration
+                  that was computed by the operator. Red Hat does not support the
+                  use of this field. Misuse of this field could lead to unexpected
+                  behavior or conflict with other configuration options. Seek guidance
+                  from the Red Hat support before using this field. Use of this property
+                  blocks cluster upgrades, it must be removed before upgrading your
+                  cluster.
+                nullable: true
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
+            type: object
+          status:
+            properties:
+              conditions:
+                description: conditions is a list of conditions and their status
+                items:
+                  description: OperatorCondition is just the standard condition fields.
+                  properties:
+                    lastTransitionTime:
+                      format: date-time
+                      type: string
+                    message:
+                      type: string
+                    reason:
+                      type: string
+                    status:
+                      type: string
+                    type:
+                      type: string
+                  required:
+                  - type
                   type: object
-                  nullable: true
-                  x-kubernetes-preserve-unknown-fields: true
-                operatorLogLevel:
-                  description: "operatorLogLevel is an intent based logging for the operator itself.  It does not give fine grained control, but it is a simple way to manage coarse grained logging choices that operators have to interpret for themselves. \n Valid values are: \"Normal\", \"Debug\", \"Trace\", \"TraceAll\". Defaults to \"Normal\"."
-                  type: string
-                  default: Normal
-                  enum:
-                    - ""
-                    - Normal
-                    - Debug
-                    - Trace
-                    - TraceAll
-                succeededRevisionLimit:
-                  description: succeededRevisionLimit is the number of successful static pod installer revisions to keep on disk and in the api -1 = unlimited, 0 or unset = 5 (default)
-                  type: integer
-                  format: int32
-                unsupportedConfigOverrides:
-                  description: unsupportedConfigOverrides overrides the final configuration that was computed by the operator. Red Hat does not support the use of this field. Misuse of this field could lead to unexpected behavior or conflict with other configuration options. Seek guidance from the Red Hat support before using this field. Use of this property blocks cluster upgrades, it must be removed before upgrading your cluster.
+                type: array
+                x-kubernetes-list-map-keys:
+                - type
+                x-kubernetes-list-type: map
+              controlPlaneHardwareSpeed:
+                description: ControlPlaneHardwareSpeed declares valid hardware speed
+                  tolerance levels
+                enum:
+                - ""
+                - Standard
+                - Slower
+                type: string
+              generations:
+                description: generations are used to determine when an item needs
+                  to be reconciled or has changed in a way that needs a reaction.
+                items:
+                  description: GenerationStatus keeps track of the generation for
+                    a given resource so that decisions about forced updates can be
+                    made.
+                  properties:
+                    group:
+                      description: group is the group of the thing you're tracking
+                      type: string
+                    hash:
+                      description: hash is an optional field set for resources without
+                        generation that are content sensitive like secrets and configmaps
+                      type: string
+                    lastGeneration:
+                      description: lastGeneration is the last generation of the workload
+                        controller involved
+                      format: int64
+                      type: integer
+                    name:
+                      description: name is the name of the thing you're tracking
+                      type: string
+                    namespace:
+                      description: namespace is where the thing you're tracking is
+                      type: string
+                    resource:
+                      description: resource is the resource type of the thing you're
+                        tracking
+                      type: string
                   type: object
-                  nullable: true
-                  x-kubernetes-preserve-unknown-fields: true
-            status:
-              type: object
-              properties:
-                conditions:
-                  description: conditions is a list of conditions and their status
-                  type: array
-                  items:
-                    description: OperatorCondition is just the standard condition fields.
-                    type: object
-                    properties:
-                      lastTransitionTime:
+                type: array
+                x-kubernetes-list-type: atomic
+              latestAvailableRevision:
+                description: latestAvailableRevision is the deploymentID of the most
+                  recent deployment
+                format: int32
+                type: integer
+              latestAvailableRevisionReason:
+                description: latestAvailableRevisionReason describe the detailed reason
+                  for the most recent deployment
+                type: string
+              nodeStatuses:
+                description: nodeStatuses track the deployment values and errors across
+                  individual nodes
+                items:
+                  description: NodeStatus provides information about the current state
+                    of a particular node managed by this operator.
+                  properties:
+                    currentRevision:
+                      description: currentRevision is the generation of the most recently
+                        successful deployment
+                      format: int32
+                      type: integer
+                    lastFailedCount:
+                      description: lastFailedCount is how often the installer pod
+                        of the last failed revision failed.
+                      type: integer
+                    lastFailedReason:
+                      description: lastFailedReason is a machine readable failure
+                        reason string.
+                      type: string
+                    lastFailedRevision:
+                      description: lastFailedRevision is the generation of the deployment
+                        we tried and failed to deploy.
+                      format: int32
+                      type: integer
+                    lastFailedRevisionErrors:
+                      description: lastFailedRevisionErrors is a list of human readable
+                        errors during the failed deployment referenced in lastFailedRevision.
+                      items:
                         type: string
-                        format: date-time
-                      message:
-                        type: string
-                      reason:
-                        type: string
-                      status:
-                        type: string
-                      type:
-                        type: string
-                controlPlaneHardwareSpeed:
-                  description: ControlPlaneHardwareSpeed declares valid hardware speed tolerance levels
-                  type: string
-                  enum:
-                    - ""
-                    - Standard
-                    - Slower
-                generations:
-                  description: generations are used to determine when an item needs to be reconciled or has changed in a way that needs a reaction.
-                  type: array
-                  items:
-                    description: GenerationStatus keeps track of the generation for a given resource so that decisions about forced updates can be made.
-                    type: object
-                    properties:
-                      group:
-                        description: group is the group of the thing you're tracking
-                        type: string
-                      hash:
-                        description: hash is an optional field set for resources without generation that are content sensitive like secrets and configmaps
-                        type: string
-                      lastGeneration:
-                        description: lastGeneration is the last generation of the workload controller involved
-                        type: integer
-                        format: int64
-                      name:
-                        description: name is the name of the thing you're tracking
-                        type: string
-                      namespace:
-                        description: namespace is where the thing you're tracking is
-                        type: string
-                      resource:
-                        description: resource is the resource type of the thing you're tracking
-                        type: string
-                latestAvailableRevision:
-                  description: latestAvailableRevision is the deploymentID of the most recent deployment
-                  type: integer
-                  format: int32
-                latestAvailableRevisionReason:
-                  description: latestAvailableRevisionReason describe the detailed reason for the most recent deployment
-                  type: string
-                nodeStatuses:
-                  description: nodeStatuses track the deployment values and errors across individual nodes
-                  type: array
-                  items:
-                    description: NodeStatus provides information about the current state of a particular node managed by this operator.
-                    type: object
-                    properties:
-                      currentRevision:
-                        description: currentRevision is the generation of the most recently successful deployment
-                        type: integer
-                        format: int32
-                      lastFailedCount:
-                        description: lastFailedCount is how often the installer pod of the last failed revision failed.
-                        type: integer
-                      lastFailedReason:
-                        description: lastFailedReason is a machine readable failure reason string.
-                        type: string
-                      lastFailedRevision:
-                        description: lastFailedRevision is the generation of the deployment we tried and failed to deploy.
-                        type: integer
-                        format: int32
-                      lastFailedRevisionErrors:
-                        description: lastFailedRevisionErrors is a list of human readable errors during the failed deployment referenced in lastFailedRevision.
-                        type: array
-                        items:
-                          type: string
-                      lastFailedTime:
-                        description: lastFailedTime is the time the last failed revision failed the last time.
-                        type: string
-                        format: date-time
-                      lastFallbackCount:
-                        description: lastFallbackCount is how often a fallback to a previous revision happened.
-                        type: integer
-                      nodeName:
-                        description: nodeName is the name of the node
-                        type: string
-                      targetRevision:
-                        description: targetRevision is the generation of the deployment we're trying to apply
-                        type: integer
-                        format: int32
-                observedGeneration:
-                  description: observedGeneration is the last generation change you've dealt with
-                  type: integer
-                  format: int64
-                readyReplicas:
-                  description: readyReplicas indicates how many replicas are ready and at the desired state
-                  type: integer
-                  format: int32
-                version:
-                  description: version is the level this availability applies to
-                  type: string
-      served: true
-      storage: true
-      subresources:
-        status: {}
+                      type: array
+                      x-kubernetes-list-type: atomic
+                    lastFailedTime:
+                      description: lastFailedTime is the time the last failed revision
+                        failed the last time.
+                      format: date-time
+                      type: string
+                    lastFallbackCount:
+                      description: lastFallbackCount is how often a fallback to a
+                        previous revision happened.
+                      type: integer
+                    nodeName:
+                      description: nodeName is the name of the node
+                      type: string
+                    targetRevision:
+                      description: targetRevision is the generation of the deployment
+                        we're trying to apply
+                      format: int32
+                      type: integer
+                  required:
+                  - nodeName
+                  type: object
+                type: array
+                x-kubernetes-list-map-keys:
+                - nodeName
+                x-kubernetes-list-type: map
+              observedGeneration:
+                description: observedGeneration is the last generation change you've
+                  dealt with
+                format: int64
+                type: integer
+              readyReplicas:
+                description: readyReplicas indicates how many replicas are ready and
+                  at the desired state
+                format: int32
+                type: integer
+              version:
+                description: version is the level this availability applies to
+                type: string
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
 `)
 
 func clusterBootstrapEtcdOperatorConfigYamlBytes() ([]byte, error) {
@@ -2177,7 +2464,7 @@ func clusterBootstrapEtcdOperatorConfigYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapIngressToRouteControllerClusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.15/bindata/assets/openshift-controller-manager/route-controller-manager-ingress-to-route-controller-clusterrole.yaml
+var _clusterBootstrapIngressToRouteControllerClusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.16/bindata/assets/openshift-controller-manager/route-controller-manager-ingress-to-route-controller-clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -2252,7 +2539,7 @@ func clusterBootstrapIngressToRouteControllerClusterroleYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapIngressToRouteControllerClusterrolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.15/bindata/assets/openshift-controller-manager/route-controller-manager-ingress-to-route-controller-clusterrolebinding.yaml
+var _clusterBootstrapIngressToRouteControllerClusterrolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.16/bindata/assets/openshift-controller-manager/route-controller-manager-ingress-to-route-controller-clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -2281,7 +2568,7 @@ func clusterBootstrapIngressToRouteControllerClusterrolebindingYaml() (*asset, e
 	return a, nil
 }
 
-var _clusterBootstrapLeaderIngressToRouteControllerRoleYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.15/bindata/assets/openshift-controller-manager/leader-ingress-to-route-controller-role.yaml
+var _clusterBootstrapLeaderIngressToRouteControllerRoleYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.16/bindata/assets/openshift-controller-manager/leader-ingress-to-route-controller-role.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -2313,7 +2600,7 @@ func clusterBootstrapLeaderIngressToRouteControllerRoleYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapLeaderIngressToRouteControllerRolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.15/bindata/assets/openshift-controller-manager/leader-ingress-to-route-controller-rolebinding.yaml
+var _clusterBootstrapLeaderIngressToRouteControllerRolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.16/bindata/assets/openshift-controller-manager/leader-ingress-to-route-controller-rolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
@@ -2344,7 +2631,7 @@ func clusterBootstrapLeaderIngressToRouteControllerRolebindingYaml() (*asset, er
 	return a, nil
 }
 
-var _clusterBootstrapNamespaceSecurityAllocationControllerClusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.15/bindata/assets/kube-controller-manager/namespace-security-allocation-controller-clusterrole.yaml
+var _clusterBootstrapNamespaceSecurityAllocationControllerClusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.16/bindata/assets/kube-controller-manager/namespace-security-allocation-controller-clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -2397,7 +2684,7 @@ func clusterBootstrapNamespaceSecurityAllocationControllerClusterroleYaml() (*as
 	return a, nil
 }
 
-var _clusterBootstrapNamespaceSecurityAllocationControllerClusterrolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.15/bindata/assets/kube-controller-manager/namespace-security-allocation-controller-clusterrolebinding.yaml
+var _clusterBootstrapNamespaceSecurityAllocationControllerClusterrolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.16/bindata/assets/kube-controller-manager/namespace-security-allocation-controller-clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -2484,7 +2771,7 @@ func clusterBootstrapOpenshiftInstallConfigmapYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapPodsecurityAdmissionLabelPrivilegedNamespacesSyncerControllerClusterroleYaml = []byte(`# SOURCE: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.15/bindata/assets/kube-controller-manager/podsecurity-admission-label-privileged-namespaces-syncer-controller-clusterrole.yaml
+var _clusterBootstrapPodsecurityAdmissionLabelPrivilegedNamespacesSyncerControllerClusterroleYaml = []byte(`# SOURCE: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.16/bindata/assets/kube-controller-manager/podsecurity-admission-label-privileged-namespaces-syncer-controller-clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -2526,7 +2813,7 @@ func clusterBootstrapPodsecurityAdmissionLabelPrivilegedNamespacesSyncerControll
 	return a, nil
 }
 
-var _clusterBootstrapPodsecurityAdmissionLabelPrivilegedNamespacesSyncerControllerClusterrolebindingYaml = []byte(`# SOURCE: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.15/bindata/assets/kube-controller-manager/podsecurity-admission-label-privileged-namespaces-syncer-controller-clusterrolebinding.yaml
+var _clusterBootstrapPodsecurityAdmissionLabelPrivilegedNamespacesSyncerControllerClusterrolebindingYaml = []byte(`# SOURCE: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.16/bindata/assets/kube-controller-manager/podsecurity-admission-label-privileged-namespaces-syncer-controller-clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -2556,7 +2843,7 @@ func clusterBootstrapPodsecurityAdmissionLabelPrivilegedNamespacesSyncerControll
 	return a, nil
 }
 
-var _clusterBootstrapPodsecurityAdmissionLabelSyncerControllerClusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.15/bindata/assets/kube-controller-manager/podsecurity-admission-label-syncer-controller-clusterrole.yaml
+var _clusterBootstrapPodsecurityAdmissionLabelSyncerControllerClusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.16/bindata/assets/kube-controller-manager/podsecurity-admission-label-syncer-controller-clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -2627,7 +2914,7 @@ func clusterBootstrapPodsecurityAdmissionLabelSyncerControllerClusterroleYaml() 
 	return a, nil
 }
 
-var _clusterBootstrapPodsecurityAdmissionLabelSyncerControllerClusterrolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.15/bindata/bootkube/manifests/00_podsecurity-admission-label-syncer-controller-clusterrolebinding.yaml
+var _clusterBootstrapPodsecurityAdmissionLabelSyncerControllerClusterrolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.16/bindata/bootkube/manifests/00_podsecurity-admission-label-syncer-controller-clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -2660,7 +2947,7 @@ func clusterBootstrapPodsecurityAdmissionLabelSyncerControllerClusterrolebinding
 	return a, nil
 }
 
-var _clusterBootstrapPodsecurityAlertYaml = []byte(`# Source: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.15/bindata/assets/alerts/podsecurity-violations.yaml
+var _clusterBootstrapPodsecurityAlertYaml = []byte(`# Source: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.16/bindata/assets/alerts/podsecurity-violations.yaml
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
@@ -2717,7 +3004,7 @@ func clusterBootstrapPodsecurityAlertYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapTrust_distribution_roleYaml = []byte(`# Source: https://github.com/openshift/cluster-authentication-operator/blob/release-4.15/bindata/oauth-openshift/trust_distribution_role.yaml
+var _clusterBootstrapTrust_distribution_roleYaml = []byte(`# Source: https://github.com/openshift/cluster-authentication-operator/blob/release-4.16/bindata/oauth-openshift/trust_distribution_role.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -2751,7 +3038,7 @@ func clusterBootstrapTrust_distribution_roleYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapTrust_distribution_rolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-authentication-operator/blob/release-4.15/bindata/oauth-openshift/trust_distribution_rolebinding.yaml
+var _clusterBootstrapTrust_distribution_rolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-authentication-operator/blob/release-4.16/bindata/oauth-openshift/trust_distribution_rolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
