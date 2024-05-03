@@ -16,6 +16,7 @@ if ! which oc &> /dev/null; then
   echo "ERROR: the oc command is required for this script."
   exit 1
 fi
+oc whoami
 
 if ! git rev-parse --verify "${RELEASE_BRANCH}" &> /dev/null; then
   echo "Skipping image release for master branch"

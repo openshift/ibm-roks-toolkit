@@ -22,6 +22,7 @@ if ! which oc &> /dev/null; then
   echo "ERROR: the oc command is required for this script."
   exit 1
 fi
+oc whoami
 
 if ! oc get istag -n hypershift-toolkit ibm-roks-control-plane-operator:${RELEASE_TAG} &> /dev/null; then
   echo "Tagging control-plane-operator image with ${RELEASE_TAG}"
