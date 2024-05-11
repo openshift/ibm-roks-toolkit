@@ -3894,8 +3894,6 @@ apiServerArguments:
   - X-Remote-Group
   requestheader-username-headers:
   - X-Remote-User
-  runtime-config:
-  - flowcontrol.apiserver.k8s.io/v1alpha1=true
   service-account-issuer:
   - https://kubernetes.default.svc
   service-account-lookup:
