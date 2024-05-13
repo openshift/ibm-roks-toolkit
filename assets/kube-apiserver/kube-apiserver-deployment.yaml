@@ -91,7 +91,7 @@ spec:
           cd /tmp
           mkdir input output manifests
           cp /features/cluster-featuregate.yaml /tmp/manifests/99_feature-gate.yaml
-          /usr/bin/render --asset-output-dir /tmp/output --rendered-manifest-dir /tmp/manifests --payload-version={{ version "release" }}
+          /usr/bin/render --asset-output-dir /tmp/output --rendered-manifest-dir /tmp/manifests --cluster-profile=ibm-cloud-managed --payload-version={{ version "release" }}
           cp /tmp/output/manifests/* /work
           cp /tmp/manifests/* /work
         volumeMounts:
