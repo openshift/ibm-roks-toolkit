@@ -7806,6 +7806,8 @@ spec:
           # Exclude the CVO deployment manifest
           rm /tmp/output/manifests/0000_00_cluster-version-operator*deployment.yaml
           cp /tmp/output/manifests/* /work
+          # Exclude NoUpgrade CRDs which are not GA
+          rm /release-manifests/*NoUpgrade.crd.yaml
           # Add machineconfig CRDs to prevent upgrade getting stuck
           cp /release-manifests/*machine-config*machineconfig*.crd.yaml /work
       volumeMounts:
