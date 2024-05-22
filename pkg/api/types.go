@@ -105,6 +105,7 @@ type ClusterParams struct {
 	Socks5ProxyContainerResources                   []ResourceRequirements `json:"socks5ProxyContainerResources"`
 	OpenshiftAPIServerNoProxyHosts                  string                 `json:"openshiftAPIServerNoProxyHosts"`
 	OAuthAPIServerNoProxyHosts                      string                 `json:"oauthAPIServerNoProxyHosts"`
+	NodeMonitorGracePeriod                          string                 `json:"nodeMonitorGracePeriod"`
 }
 
 type NamedCert struct {
