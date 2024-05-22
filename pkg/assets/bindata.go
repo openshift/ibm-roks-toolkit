@@ -4585,6 +4585,9 @@ spec:
         - "--leader-elect-lease-duration=137s"
         - "--leader-elect-renew-deadline=107s"
         - "--leader-elect-retry-period=26s"
+{{- if .NodeMonitorGracePeriod }}
+        - "--node-monitor-grace-period={{ .NodeMonitorGracePeriod }}"
+{{- end }}
         - "--profiling=false"
         - "--root-ca-file=/etc/kubernetes/config/root-ca.crt"
         - "--secure-port=10257"
