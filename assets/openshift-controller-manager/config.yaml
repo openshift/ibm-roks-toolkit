@@ -11,7 +11,7 @@ deployer:
 dockerPullSecret:
   internalRegistryHostname: image-registry.openshift-image-registry.svc:5000
 featureGates:
-- OpenShiftPodSecurityAdmission=true
+- OpenShiftPodSecurityAdmission=false
 ingress:
   ingressIPNetworkCIDR: ''
 kubeClientConfig:
