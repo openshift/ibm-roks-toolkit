@@ -3738,7 +3738,7 @@ admission:
         kind: PodSecurityConfiguration
         apiVersion: pod-security.admission.config.k8s.io/v1
         defaults:
-          enforce: "restricted"
+          enforce: "privileged"
           enforce-version: "latest"
           audit: "restricted"
           audit-version: "latest"
@@ -6814,7 +6814,7 @@ deployer:
 dockerPullSecret:
   internalRegistryHostname: image-registry.openshift-image-registry.svc:5000
 featureGates:
-- OpenShiftPodSecurityAdmission=true
+- OpenShiftPodSecurityAdmission=false
 ingress:
   ingressIPNetworkCIDR: ''
 kubeClientConfig:
