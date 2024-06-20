@@ -3798,7 +3798,6 @@ apiServerArguments:
   - NodeRestriction
   - OwnerReferencesPermissionEnforcement
   - PersistentVolumeClaimResize
-  - PersistentVolumeLabel
   - PodNodeSelector
   - PodTolerationRestriction
   - Priority
