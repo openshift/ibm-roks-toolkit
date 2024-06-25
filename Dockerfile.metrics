@@ -1,6 +1,6 @@
 FROM registry.ci.openshift.org/openshift/release:rhel-8-release-golang-1.20-openshift-4.14 as builder
 RUN mkdir -p /go/src/github.com/openshift/ibm-roks-toolkit
-ENV PUSHGATEWAY_VERSION="1.3.0"
+ENV PUSHGATEWAY_VERSION="1.9.0"
 WORKDIR /go/src/github.com/openshift/ibm-roks-toolkit
 COPY . .
 RUN go build -mod=vendor -o ./bin/roks-metrics ./cmd/roks-metrics/main.go
