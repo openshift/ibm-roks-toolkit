@@ -20,7 +20,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/cli-runtime/pkg/genericclioptions"
+	"k8s.io/cli-runtime/pkg/genericiooptions"
 	"k8s.io/client-go/rest"
 	kcmdutil "k8s.io/kubectl/pkg/cmd/util"
 	"k8s.io/kubectl/pkg/util/templates"
@@ -55,7 +55,7 @@ var (
 // NewExtractOptions is also used internally as part of image mirroring. For image mirroring
 // internal use, extractManifests is set to true so image manifest files are searched for
 // signature information to be returned for use by mirroring.
-func NewExtractOptions(streams genericclioptions.IOStreams, extractManifests bool) *ExtractOptions {
+func NewExtractOptions(streams genericiooptions.IOStreams, extractManifests bool) *ExtractOptions {
 	return &ExtractOptions{
 		IOStreams:        streams,
 		Directory:        ".",
@@ -63,7 +63,7 @@ func NewExtractOptions(streams genericclioptions.IOStreams, extractManifests boo
 	}
 }
 
-func NewExtract(f kcmdutil.Factory, streams genericclioptions.IOStreams) *cobra.Command {
+func NewExtract(f kcmdutil.Factory, streams genericiooptions.IOStreams) *cobra.Command {
 	o := NewExtractOptions(streams, false)
 	cmd := &cobra.Command{
 		Use:   "extract",
@@ -129,6 +129,8 @@ func NewExtract(f kcmdutil.Factory, streams genericclioptions.IOStreams) *cobra.
 	o.ParallelOptions.Bind(flags)
 
 	flags.StringVar(&o.ICSPFile, "icsp-file", o.ICSPFile, "Path to an ImageContentSourcePolicy file. If set, data from this file will be used to find alternative locations for images.")
+	flags.MarkDeprecated("icsp-file", "support for it will be removed in a future release. Use --idms-file instead.")
+	flags.StringVar(&o.IDMSFile, "idms-file", o.IDMSFile, "Path to an ImageDigestMirrorSet file. If set, data from this file will be used to find alternative locations for images.")
 
 	flags.StringVar(&o.From, "from", o.From, "Image containing the release payload.")
 	flags.StringVar(&o.File, "file", o.File, "Extract a single file from the payload to standard output.")
@@ -153,7 +155,7 @@ func NewExtract(f kcmdutil.Factory, streams genericclioptions.IOStreams) *cobra.
 }
 
 type ExtractOptions struct {
-	genericclioptions.IOStreams
+	genericiooptions.IOStreams
 
 	SecurityOptions imagemanifest.SecurityOptions
 	FilterOptions   imagemanifest.FilterOptions
@@ -163,6 +165,7 @@ type ExtractOptions struct {
 	RESTConfig *rest.Config
 
 	ICSPFile string
+	IDMSFile string
 
 	Output string
 
@@ -259,6 +262,10 @@ func (o *ExtractOptions) Run(ctx context.Context) error {
 		return fmt.Errorf("--install-config is only supported with --included")
 	}
 
+	if len(o.ICSPFile) > 0 && len(o.IDMSFile) > 0 {
+		return fmt.Errorf("icsp-file and idms-file are mutually exclusive")
+	}
+
 	if len(o.Cloud) > 0 && !o.CredentialsRequests && !o.Included {
 		return fmt.Errorf("--cloud is only supported with --credentials-requests or --included")
 	}
@@ -266,6 +273,10 @@ func (o *ExtractOptions) Run(ctx context.Context) error {
 		if _, ok := credRequestCloudProviderSpecKindMapping[o.Cloud]; !ok {
 			return fmt.Errorf("--cloud value not recognized, must be one of: %v", validCloudValues())
 		}
+	}
+
+	if o.CredentialsRequests && !o.Included {
+		fmt.Fprintln(o.ErrOut, "warning: if you intend to pass CredentialsRequests to ccoctl, you should use --included to filter out requests that your cluster is not expected to need.")
 	}
 
 	switch {
@@ -299,13 +310,14 @@ func (o *ExtractOptions) Run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	opts := extract.NewExtractOptions(genericclioptions.IOStreams{Out: o.Out, ErrOut: o.ErrOut})
+	opts := extract.NewExtractOptions(genericiooptions.IOStreams{Out: o.Out, ErrOut: o.ErrOut})
 	opts.ParallelOptions = o.ParallelOptions
 	opts.SecurityOptions = o.SecurityOptions
 	opts.FilterOptions = o.FilterOptions
 	opts.FileDir = o.FileDir
 	opts.OnlyFiles = true
 	opts.ICSPFile = o.ICSPFile
+	opts.IDMSFile = o.IDMSFile
 	opts.Mappings = []extract.Mapping{
 		{
 			ImageRef: ref,
@@ -624,7 +636,7 @@ func (o *ExtractOptions) extractGit(dir string) error {
 				case "":
 					klog.V(2).Infof("Checkout %s from %s ...", commit, repo)
 					buf.Reset()
-					if err := extractedRepo.CheckoutCommit(repo, commit); err != nil {
+					if err := extractedRepo.CheckoutCommit(repo, commit, buf, buf); err != nil {
 						once.Do(func() { hadErrors = true })
 						fmt.Fprintf(o.ErrOut, "error: checking out commit for %s: %v\n%s\n", repo, err, buf.String())
 						return
