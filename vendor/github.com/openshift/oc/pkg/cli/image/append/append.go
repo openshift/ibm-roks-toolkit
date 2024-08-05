@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"strconv"
 	"time"
@@ -22,7 +21,7 @@ import (
 	units "github.com/docker/go-units"
 	digest "github.com/opencontainers/go-digest"
 
-	"k8s.io/cli-runtime/pkg/genericclioptions"
+	"k8s.io/cli-runtime/pkg/genericiooptions"
 	kcmdutil "k8s.io/kubectl/pkg/cmd/util"
 	"k8s.io/kubectl/pkg/util/templates"
 
@@ -128,10 +127,10 @@ type AppendImageOptions struct {
 	FromFileDir string
 	FileDir     string
 
-	genericclioptions.IOStreams
+	genericiooptions.IOStreams
 }
 
-func NewAppendImageOptions(streams genericclioptions.IOStreams) *AppendImageOptions {
+func NewAppendImageOptions(streams genericiooptions.IOStreams) *AppendImageOptions {
 	return &AppendImageOptions{
 		IOStreams:       streams,
 		ParallelOptions: imagemanifest.ParallelOptions{MaxPerRegistry: 4},
@@ -139,7 +138,7 @@ func NewAppendImageOptions(streams genericclioptions.IOStreams) *AppendImageOpti
 }
 
 // New creates a new command
-func NewCmdAppendImage(streams genericclioptions.IOStreams) *cobra.Command {
+func NewCmdAppendImage(streams genericiooptions.IOStreams) *cobra.Command {
 	o := NewAppendImageOptions(streams)
 
 	cmd := &cobra.Command{
@@ -506,7 +505,7 @@ func (o *AppendImageOptions) append(ctx context.Context, createdAt *time.Time,
 								return fmt.Errorf("unable to access the layer %s in order to calculate its content ID: %v", layer.Digest, err)
 							}
 							defer r.Close()
-							layerDigest, _, _, _, err := add.DigestCopy(ioutil.Discard.(io.ReaderFrom), r)
+							layerDigest, _, _, _, err := add.DigestCopy(io.Discard.(io.ReaderFrom), r)
 							if err != nil {
 								return fmt.Errorf("unable to calculate contentID for layer %s: %v", layer.Digest, err)
 							}
@@ -677,7 +676,7 @@ func appendFileAsLayer(ctx context.Context, name string, layers []distribution.D
 
 func appendLayer(ctx context.Context, r io.Reader, layers []distribution.Descriptor, config *dockerv1client.DockerImageConfig, dryRun bool, out io.Writer, blobs distribution.BlobService) ([]distribution.Descriptor,
 	error) {
-	var readerFrom io.ReaderFrom = ioutil.Discard.(io.ReaderFrom)
+	var readerFrom io.ReaderFrom = io.Discard.(io.ReaderFrom)
 	var done = func(distribution.Descriptor) error { return nil }
 	if !dryRun {
 		fmt.Fprint(out, "Uploading ... ")
@@ -718,7 +717,7 @@ func appendLayer(ctx context.Context, r io.Reader, layers []distribution.Descrip
 
 func calculateLayerDigest(blobs distribution.BlobService, dgst digest.Digest, readerFrom io.ReaderFrom, r io.Reader) (digest.Digest, error) {
 	if readerFrom == nil {
-		readerFrom = ioutil.Discard.(io.ReaderFrom)
+		readerFrom = io.Discard.(io.ReaderFrom)
 	}
 	layerDigest, _, _, _, err := add.DigestCopy(readerFrom, r)
 	return layerDigest, err

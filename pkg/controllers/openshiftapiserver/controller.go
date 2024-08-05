@@ -152,6 +152,41 @@ func (c *apiServerOperatorClient) GetOperatorState() (spec *operatorv1.OperatorS
 	return
 }
 
+func (c *apiServerOperatorClient) GetOperatorStateWithQuorum(ctx context.Context) (spec *operatorv1.OperatorSpec, status *operatorv1.OperatorStatus, resourceVersion string, err error) {
+	var cm *corev1.ConfigMap
+
+	cmObj, ok := c.configCache.Get("config")
+	if !ok || cmObj == nil {
+		cm, err = c.Client.CoreV1().ConfigMaps(c.Namespace).Get(ctx, apiserverConfigMapName, metav1.GetOptions{})
+		if err != nil {
+			return
+		}
+		c.configCache.Set("config", cm, defaultExpirationTime)
+	} else {
+		cm, ok = cmObj.(*corev1.ConfigMap)
+		if !ok {
+			c.configCache.Delete("config")
+			err = fmt.Errorf("unexpected object of type %T in cache", cmObj)
+			return
+		}
+	}
+	configYAML := []byte(cm.Data["config.yaml"])
+	var configJSON []byte
+	configJSON, err = yaml.YAMLToJSON(configYAML)
+	if err != nil {
+		return
+	}
+	configJSON, err = filterManagedConfigKeys(configJSON)
+	if err != nil {
+		return
+	}
+	spec = &operatorv1.OperatorSpec{}
+	status = &operatorv1.OperatorStatus{}
+	spec.ObservedConfig.Raw = configJSON
+	resourceVersion = cm.ResourceVersion
+	return
+}
+
 // UpdateOperatorSpec updates the spec of the operator, assuming the given resource version.
 func (c *apiServerOperatorClient) UpdateOperatorSpec(ctx context.Context, oldResourceVersion string, in *operatorv1.OperatorSpec) (out *operatorv1.OperatorSpec, newResourceVersion string, err error) {
 	var cm *corev1.ConfigMap
