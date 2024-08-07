@@ -4262,6 +4262,10 @@ spec:
         - "--v={{ .KubeAPIServerVerbosity }}"
 {{- end }}
         workingDir: /var/log/kube-apiserver
+        ports:
+        - containerPort: {{ .InternalAPIPort }}
+          name: client
+          protocol: TCP
 {{- if .ApiserverLivenessProbe }}
 {{- $probe := .ApiserverLivenessProbe }}
         livenessProbe:
