@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"hash"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -30,7 +29,7 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
-	"k8s.io/cli-runtime/pkg/genericclioptions"
+	"k8s.io/cli-runtime/pkg/genericiooptions"
 	appsv1client "k8s.io/client-go/kubernetes/typed/apps/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/utils/pointer"
@@ -59,11 +58,12 @@ type extractTarget struct {
 	InjectReleaseVersion bool
 	SignMachOBinary      bool
 
-	ArchiveFormat string
-	AsArchive     bool
-	AsZip         bool
-	Readme        string
-	LinkTo        []string
+	ArchiveFormat     string
+	AsArchive         bool
+	AsZip             bool
+	Readme            string
+	LinkTo            []string
+	TargetCommandName string
 
 	Mapping extract.Mapping
 }
@@ -268,6 +268,30 @@ func (o *ExtractOptions) extractCommand(command string) error {
 		},
 		{
 			OS:      "linux",
+			Arch:    "amd64",
+			Command: "oc.rhel9",
+			Mapping: extract.Mapping{Image: "cli-artifacts", From: "usr/share/openshift/linux_amd64/oc.rhel9"},
+
+			LinkTo:               []string{"kubectl"},
+			Readme:               readmeCLIUnix,
+			InjectReleaseVersion: true,
+			ArchiveFormat:        "openshift-client-linux-amd64-rhel9-%s.tar.gz",
+			TargetCommandName:    "oc",
+		},
+		{
+			OS:      "linux",
+			Arch:    "amd64",
+			Command: "oc.rhel8",
+			Mapping: extract.Mapping{Image: "cli-artifacts", From: "usr/share/openshift/linux_amd64/oc.rhel8"},
+
+			LinkTo:               []string{"kubectl"},
+			Readme:               readmeCLIUnix,
+			InjectReleaseVersion: true,
+			ArchiveFormat:        "openshift-client-linux-amd64-rhel8-%s.tar.gz",
+			TargetCommandName:    "oc",
+		},
+		{
+			OS:      "linux",
 			Arch:    "arm64",
 			Command: "oc",
 			NewArch: true,
@@ -277,6 +301,96 @@ func (o *ExtractOptions) extractCommand(command string) error {
 			Readme:               readmeCLIUnix,
 			InjectReleaseVersion: true,
 			ArchiveFormat:        "openshift-client-linux-arm64-%s.tar.gz",
+		},
+		{
+			OS:      "linux",
+			Arch:    "arm64",
+			Command: "oc.rhel9",
+			NewArch: true,
+			Mapping: extract.Mapping{Image: "cli-artifacts", From: "usr/share/openshift/linux_arm64/oc.rhel9"},
+
+			LinkTo:               []string{"kubectl"},
+			Readme:               readmeCLIUnix,
+			InjectReleaseVersion: true,
+			ArchiveFormat:        "openshift-client-linux-arm64-rhel9-%s.tar.gz",
+			TargetCommandName:    "oc",
+		},
+		{
+			OS:      "linux",
+			Arch:    "arm64",
+			Command: "oc.rhel8",
+			NewArch: true,
+			Mapping: extract.Mapping{Image: "cli-artifacts", From: "usr/share/openshift/linux_arm64/oc.rhel8"},
+
+			LinkTo:               []string{"kubectl"},
+			Readme:               readmeCLIUnix,
+			InjectReleaseVersion: true,
+			ArchiveFormat:        "openshift-client-linux-arm64-rhel8-%s.tar.gz",
+			TargetCommandName:    "oc",
+		},
+		{
+			OS:      "linux",
+			Arch:    "ppc64le",
+			Command: "oc",
+			NewArch: true,
+			Mapping: extract.Mapping{Image: "cli-artifacts", From: "usr/share/openshift/linux_ppc64le/oc"},
+
+			LinkTo:               []string{"kubectl"},
+			Readme:               readmeCLIUnix,
+			InjectReleaseVersion: true,
+			ArchiveFormat:        "openshift-client-linux-ppc64le-%s.tar.gz",
+		},
+		{
+			OS:      "linux",
+			Arch:    "ppc64le",
+			Command: "oc.rhel9",
+			NewArch: true,
+			Mapping: extract.Mapping{Image: "cli-artifacts", From: "usr/share/openshift/linux_ppc64le/oc.rhel9"},
+
+			LinkTo:               []string{"kubectl"},
+			Readme:               readmeCLIUnix,
+			InjectReleaseVersion: true,
+			ArchiveFormat:        "openshift-client-linux-ppc64le-rhel9-%s.tar.gz",
+			TargetCommandName:    "oc",
+		},
+		{
+			OS:      "linux",
+			Arch:    "ppc64le",
+			Command: "oc.rhel8",
+			NewArch: true,
+			Mapping: extract.Mapping{Image: "cli-artifacts", From: "usr/share/openshift/linux_ppc64le/oc.rhel8"},
+
+			LinkTo:               []string{"kubectl"},
+			Readme:               readmeCLIUnix,
+			InjectReleaseVersion: true,
+			ArchiveFormat:        "openshift-client-linux-ppc64le-rhel8-%s.tar.gz",
+			TargetCommandName:    "oc",
+		},
+		{
+			OS:      "linux",
+			Arch:    "s390x",
+			Command: "oc.rhel9",
+			NewArch: true,
+			Mapping: extract.Mapping{Image: "cli-artifacts", From: "usr/share/openshift/linux_s390x/oc.rhel9"},
+
+			LinkTo:               []string{"kubectl"},
+			Readme:               readmeCLIUnix,
+			InjectReleaseVersion: true,
+			ArchiveFormat:        "openshift-client-linux-s390x-rhel9-%s.tar.gz",
+			TargetCommandName:    "oc",
+		},
+		{
+			OS:      "linux",
+			Arch:    "s390x",
+			Command: "oc.rhel8",
+			NewArch: true,
+			Mapping: extract.Mapping{Image: "cli-artifacts", From: "usr/share/openshift/linux_s390x/oc.rhel8"},
+
+			LinkTo:               []string{"kubectl"},
+			Readme:               readmeCLIUnix,
+			InjectReleaseVersion: true,
+			ArchiveFormat:        "openshift-client-linux-s390x-rhel8-%s.tar.gz",
+			TargetCommandName:    "oc",
 		},
 		{
 			OS:      "windows",
@@ -361,6 +475,18 @@ func (o *ExtractOptions) extractCommand(command string) error {
 			ArchiveFormat:        "openshift-baremetal-install-linux-%s.tar.gz",
 		},
 		{
+			OS:       "linux",
+			Arch:     targetReleaseArch,
+			Command:  "openshift-install-fips",
+			Optional: true,
+			Mapping:  extract.Mapping{Image: "baremetal-installer", From: "usr/bin/openshift-install"},
+
+			Readme:               readmeInstallUnix,
+			InjectReleaseImage:   true,
+			InjectReleaseVersion: true,
+			ArchiveFormat:        "openshift-install-rhel-%s.tar.gz",
+		},
+		{
 			OS:      "linux",
 			Arch:    targetReleaseArch,
 			Command: "ccoctl",
@@ -369,6 +495,28 @@ func (o *ExtractOptions) extractCommand(command string) error {
 
 			Readme:        readmeCCOUnix,
 			ArchiveFormat: "ccoctl-linux-%s.tar.gz",
+		},
+		{
+			OS:      "linux",
+			Arch:    targetReleaseArch,
+			Command: "ccoctl.rhel8",
+			NewArch: true,
+			Mapping: extract.Mapping{Image: "cloud-credential-operator", From: "usr/bin/ccoctl.rhel8"},
+
+			Readme:            readmeCCOUnix,
+			ArchiveFormat:     "ccoctl-linux-rhel8-%s.tar.gz",
+			TargetCommandName: "ccoctl",
+		},
+		{
+			OS:      "linux",
+			Arch:    targetReleaseArch,
+			Command: "ccoctl.rhel9",
+			NewArch: true,
+			Mapping: extract.Mapping{Image: "cloud-credential-operator", From: "usr/bin/ccoctl.rhel9"},
+
+			Readme:            readmeCCOUnix,
+			ArchiveFormat:     "ccoctl-linux-rhel9-%s.tar.gz",
+			TargetCommandName: "ccoctl",
 		},
 	}
 
@@ -429,9 +577,9 @@ func (o *ExtractOptions) extractCommand(command string) error {
 	if len(targets) == 0 {
 		switch {
 		case len(command) > 0 && currentOS != "*":
-			return fmt.Errorf("command %q does not support the operating system %q", o.Command, currentOS)
+			return fmt.Errorf("command %q does not exist in targets or does not support the operating system %q", o.Command, currentOS)
 		case len(command) > 0:
-			return fmt.Errorf("the supported commands are 'oc' and 'openshift-install'")
+			return fmt.Errorf("the supported commands are 'oc', 'openshift-install', `openshift-baremetal-install` and 'ccoctl'")
 		default:
 			return fmt.Errorf("no available commands")
 		}
@@ -440,7 +588,7 @@ func (o *ExtractOptions) extractCommand(command string) error {
 	var hashFn = sha256.New
 	var signer *openpgp.Entity
 	if willArchive && len(o.SigningKey) > 0 {
-		key, err := ioutil.ReadFile(o.SigningKey)
+		key, err := os.ReadFile(o.SigningKey)
 		if err != nil {
 			return err
 		}
@@ -481,6 +629,7 @@ func (o *ExtractOptions) extractCommand(command string) error {
 	infoOptions.FilterOptions = o.FilterOptions
 	infoOptions.FileDir = o.FileDir
 	infoOptions.ICSPFile = o.ICSPFile
+	infoOptions.IDMSFile = o.IDMSFile
 	release, err := infoOptions.LoadReleaseInfo(o.From, false)
 	if err != nil {
 		return err
@@ -499,6 +648,7 @@ func (o *ExtractOptions) extractCommand(command string) error {
 	}
 	exactReleaseImage := refExact.String()
 
+	targetArchCommands := make(map[string]struct{})
 	// resolve target image references to their pull specs
 	missing := sets.NewString()
 	var validTargets []extractTarget
@@ -513,9 +663,23 @@ func (o *ExtractOptions) extractCommand(command string) error {
 				continue
 			}
 		}
+
+		if target.Arch == targetReleaseArch {
+			targetArchCommands[target.Command] = struct{}{}
+		}
+
 		if target.OS == "linux" && target.Arch == releaseArch {
-			klog.V(2).Infof("Skipping duplicate %s", target.ArchiveFormat)
-			continue
+			if _, ok := targetArchCommands[target.Command]; ok {
+				// Some target commands have release-arch types that defines extracting
+				// the command in whatever release architecture type is set(e.g. linux/amd64)
+				// But there is also another target type for these commands specifically set to
+				// each architecture type(linux/amd64, linux/arm64) and it is expected that
+				// one of these arch types collide with release-arch type. Thus,
+				// to prevent duplicate extraction, we have to skip the one colliding with release-arch type.
+				// However, we need to skip per command name because some command may not have release-arch type.
+				klog.V(2).Infof("Skipping duplicate %s", target.ArchiveFormat)
+				continue
+			}
 		}
 		spec, err := findImageSpec(release.References, target.Mapping.Image, o.From)
 		if err != nil && !target.NewArch {
@@ -529,6 +693,11 @@ func (o *ExtractOptions) extractCommand(command string) error {
 		}
 		target.Mapping.Image = spec
 		target.Mapping.ImageRef = imagesource.TypedImageReference{Ref: ref, Type: imagesource.DestinationRegistry}
+		// if the name of the extracted binary is set to different from the
+		// actual command name, we set it to new target command name.
+		if target.TargetCommandName != "" {
+			target.Command = target.TargetCommandName
+		}
 		if target.AsArchive {
 			willArchive = true
 			target.Mapping.Name = fmt.Sprintf(target.ArchiveFormat, releaseName)
@@ -554,11 +723,12 @@ func (o *ExtractOptions) extractCommand(command string) error {
 	}
 
 	// will extract in parallel
-	opts := extract.NewExtractOptions(genericclioptions.IOStreams{Out: o.Out, ErrOut: o.ErrOut})
+	opts := extract.NewExtractOptions(genericiooptions.IOStreams{Out: o.Out, ErrOut: o.ErrOut})
 	opts.ParallelOptions = o.ParallelOptions
 	opts.SecurityOptions = o.SecurityOptions
 	opts.FilterOptions = o.FilterOptions
 	opts.ICSPFile = o.ICSPFile
+	opts.IDMSFile = o.IDMSFile
 	opts.OnlyFiles = true
 
 	// create the mapping lookup of the valid targets
@@ -742,6 +912,22 @@ func (o *ExtractOptions) extractCommand(command string) error {
 		if (target.InjectReleaseVersion || target.InjectReleaseImage) && target.SignMachOBinary {
 			if err = codesign.ResignMacho(layer.Mapping.To, target.AsArchive, target.Command, target.LinkTo); err != nil {
 				klog.Infof("Unable to resign macho binaries:  %v", err)
+			} else {
+				if target.AsArchive {
+					// Since we rewrite tarball after signing mach-o files in darwin/arm64,
+					// we should reflect the modified hash sum of this tarball to prevent mismatches.
+					h := hashFn()
+					archived, err := os.Open(layer.Mapping.To)
+					if err != nil {
+						return false, err
+					}
+					if _, err = io.Copy(h, archived); err != nil {
+						archived.Close()
+						return false, err
+					}
+					hash = h
+					archived.Close()
+				}
 			}
 		}
 
@@ -780,7 +966,7 @@ func (o *ExtractOptions) extractCommand(command string) error {
 			return err
 		}
 		filename := "release.txt"
-		if err := ioutil.WriteFile(filepath.Join(dir, filename), buf.Bytes(), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(dir, filename), buf.Bytes(), 0644); err != nil {
 			return err
 		}
 		hash := hashFn()
@@ -807,7 +993,7 @@ func (o *ExtractOptions) extractCommand(command string) error {
 		// write the content manifest
 		data := []byte(strings.Join(lines, "\n"))
 		filename := "sha256sum.txt"
-		if err := ioutil.WriteFile(filepath.Join(dir, filename), data, 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(dir, filename), data, 0644); err != nil {
 			return fmt.Errorf("unable to write checksum file: %v", err)
 		}
 		// sign the content manifest
@@ -816,7 +1002,7 @@ func (o *ExtractOptions) extractCommand(command string) error {
 			if err := openpgp.ArmoredDetachSign(buf, signer, bytes.NewBuffer(data), nil); err != nil {
 				return fmt.Errorf("unable to sign the sha256sum.txt file: %v", err)
 			}
-			if err := ioutil.WriteFile(filepath.Join(dir, filename+".asc"), buf.Bytes(), 0644); err != nil {
+			if err := os.WriteFile(filepath.Join(dir, filename+".asc"), buf.Bytes(), 0644); err != nil {
 				return fmt.Errorf("unable to write signed manifest: %v", err)
 			}
 		}
@@ -827,6 +1013,13 @@ func (o *ExtractOptions) extractCommand(command string) error {
 		var missing []string
 		for _, target := range targetsByName {
 			if target.NewArch {
+				continue
+			}
+			if command == "" && (strings.Contains(target.Mapping.From, "rhel9") || strings.Contains(target.Mapping.From, "rhel8")) {
+				// if user explicitly wants to extract oc.rhel9(or installer.rhel9) via --command=oc.rhel9 and
+				// if release does not have this binary, we can safely return error.
+				// On the other hand, if user wants to extract all the tooling in older versions via --tools flag,
+				// we shouldn't print any error indicating that oc.rhel9 does not exist in this release payload.
 				continue
 			}
 			missing = append(missing, target.Mapping.From)
@@ -953,6 +1146,7 @@ func copyAndReplace(errorOutput io.Writer, w io.Writer, r io.Reader, bufferSize 
 		copy(buf[:writeTo], buf[writeTo:end])
 		offset = end - writeTo
 	}
+
 }
 
 func findClusterIncludeConfigFromInstallConfig(ctx context.Context, installConfigPath string) (manifestInclusionConfiguration, error) {
