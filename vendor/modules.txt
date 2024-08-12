@@ -646,8 +646,8 @@ github.com/openshift/oc/pkg/helpers/image/credentialprovider
 github.com/openshift/oc/pkg/helpers/image/dockerlayer
 github.com/openshift/oc/pkg/helpers/image/dockerlayer/add
 github.com/openshift/oc/pkg/version
-# github.com/openshift/openshift-controller-manager v0.0.0-alpha.0.0.20240716164413-f0536caff579
-## explicit; go 1.21
+# github.com/openshift/openshift-controller-manager v0.0.0-alpha.0
+## explicit
 github.com/openshift/openshift-controller-manager/pkg/build/metrics/prometheus
 # github.com/peterbourgon/diskv v2.0.1+incompatible
 ## explicit
@@ -1268,7 +1268,7 @@ k8s.io/cli-runtime/pkg/genericclioptions
 k8s.io/cli-runtime/pkg/genericiooptions
 k8s.io/cli-runtime/pkg/printers
 k8s.io/cli-runtime/pkg/resource
-# k8s.io/client-go v1.5.2 => k8s.io/client-go v0.29.7
+# k8s.io/client-go v0.29.7 => k8s.io/client-go v0.29.7
 ## explicit; go 1.21
 k8s.io/client-go/applyconfigurations/admissionregistration/v1
 k8s.io/client-go/applyconfigurations/admissionregistration/v1alpha1
@@ -1619,6 +1619,7 @@ k8s.io/component-base/tracing/api/v1
 k8s.io/component-base/version
 # k8s.io/klog v1.0.0
 ## explicit; go 1.12
+k8s.io/klog
 # k8s.io/klog/v2 v2.120.1 => k8s.io/klog/v2 v2.120.1
 ## explicit; go 1.18
 k8s.io/klog/v2

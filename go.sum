@@ -474,8 +474,8 @@ github.com/openshift/oc v0.0.0-alpha.0.0.20240802093816-e8fb3c0574da h1:xAYJD/CJ
 github.com/openshift/oc v0.0.0-alpha.0.0.20240802093816-e8fb3c0574da/go.mod h1:dwElcRpd0rYVzcMWfFpTy3HvUA/uXeO72XEtvB7NL0I=
 github.com/openshift/onsi-ginkgo v1.2.1-0.20190125161613-53ca7dc85f60 h1:46MgjsyEHOqDlDCP0MD/pfnpRHCoIMybwJ5HWITY2SE=
 github.com/openshift/onsi-ginkgo v1.2.1-0.20190125161613-53ca7dc85f60/go.mod h1:azqkkH4Vpp9A579CC26hicol/wViXag9rOwElif6v9E=
-github.com/openshift/openshift-controller-manager v0.0.0-alpha.0.0.20240716164413-f0536caff579 h1:mwz8UlXO5f+SB099BEnHA38iMTXT1Fzviog4oDlc2Ok=
-github.com/openshift/openshift-controller-manager v0.0.0-alpha.0.0.20240716164413-f0536caff579/go.mod h1:IUADW1rTWRED1ltJ4qB3KQNPjreJvIkWO8aRsZV71iU=
+github.com/openshift/openshift-controller-manager v0.0.0-alpha.0 h1:fifHi3i6tUREtUNYgEtYBTUJ6+q4wmu3Yksu8fIXYDU=
+github.com/openshift/openshift-controller-manager v0.0.0-alpha.0/go.mod h1:QhLUjdFiyj5Nwp66kkwynzIYWQesVLxXlAaKb40mhrg=
 github.com/peterbourgon/diskv v2.0.1+incompatible h1:UBdAOUP5p4RWqPBg048CAvpKN+vxiaj6gdUUzhl4XmI=
 github.com/peterbourgon/diskv v2.0.1+incompatible/go.mod h1:uqqh8zWWbv1HBMNONnaR/tNboyR3/BZd58JJSHlUSCU=
 github.com/pkg/errors v0.8.0/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=

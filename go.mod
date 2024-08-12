@@ -18,7 +18,7 @@ require (
 	github.com/openshift/cluster-openshift-controller-manager-operator v0.0.0-alpha.0.0.20240621133439-bcc371ccbc9c
 	github.com/openshift/library-go v0.0.0-20240711192904-190fec8c3f09
 	github.com/openshift/oc v0.0.0-alpha.0.0.20240802093816-e8fb3c0574da
-	github.com/openshift/openshift-controller-manager v0.0.0-alpha.0.0.20240716164413-f0536caff579
+	github.com/openshift/openshift-controller-manager v0.0.0-alpha.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.17.0
 	github.com/sirupsen/logrus v1.9.3
@@ -28,7 +28,7 @@ require (
 	k8s.io/apimachinery v0.29.7
 	k8s.io/apiserver v0.29.7
 	k8s.io/cli-runtime v0.29.7
-	k8s.io/client-go v1.5.2
+	k8s.io/client-go v0.29.7
 	k8s.io/component-base v0.29.7
 	k8s.io/klog/v2 v2.120.1
 	sigs.k8s.io/controller-runtime v0.15.0
