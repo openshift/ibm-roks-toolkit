@@ -20,7 +20,7 @@ import (
 	dockerarchive "github.com/docker/docker/pkg/archive"
 	digest "github.com/opencontainers/go-digest"
 
-	"k8s.io/cli-runtime/pkg/genericclioptions"
+	"k8s.io/cli-runtime/pkg/genericiooptions"
 	"k8s.io/klog/v2"
 	kcmdutil "k8s.io/kubectl/pkg/cmd/util"
 	"k8s.io/kubectl/pkg/util/templates"
@@ -139,7 +139,7 @@ type ExtractOptions struct {
 	ICSPFile string
 	IDMSFile string
 
-	genericclioptions.IOStreams
+	genericiooptions.IOStreams
 
 	// ImageMetadataCallback is invoked once per image retrieved, and may be called in parallel if
 	// MaxPerRegistry is set higher than 1.
@@ -153,7 +153,7 @@ type ExtractOptions struct {
 	AllLayers bool
 }
 
-func NewExtractOptions(streams genericclioptions.IOStreams) *ExtractOptions {
+func NewExtractOptions(streams genericiooptions.IOStreams) *ExtractOptions {
 	return &ExtractOptions{
 		Paths: []string{},
 
@@ -163,7 +163,7 @@ func NewExtractOptions(streams genericclioptions.IOStreams) *ExtractOptions {
 }
 
 // New creates a new command
-func NewExtract(streams genericclioptions.IOStreams) *cobra.Command {
+func NewExtract(streams genericiooptions.IOStreams) *cobra.Command {
 	o := NewExtractOptions(streams)
 
 	cmd := &cobra.Command{
@@ -407,6 +407,8 @@ func (o *ExtractOptions) Run() error {
 						if err != nil {
 							return err
 						}
+					} else {
+						return fmt.Errorf("failed to retrieve manifests from image %s: %v", from, err)
 					}
 				}
 
@@ -696,7 +698,7 @@ func (n *copyFromPattern) Alter(hdr *tar.Header) (bool, error) {
 			return false, nil
 		}
 		matchName = hdr.Name
-		if i := strings.Index(matchName, "/"); i != -1 {
+		if i := strings.Index(matchName, string(filepath.Separator)); i != -1 {
 			matchName = matchName[:i]
 		}
 	}
@@ -721,19 +723,19 @@ func changeTarEntryName(hdr *tar.Header, name string) bool {
 }
 
 func changeTarEntryParent(hdr *tar.Header, from string) bool {
-	if !strings.HasPrefix(hdr.Name, from) {
-		klog.V(5).Infof("Exclude %s due to missing prefix %s", hdr.Name, from)
+	if !strings.HasPrefix(filepath.ToSlash(hdr.Name), from) {
+		klog.V(5).Infof("Exclude %s due to missing prefix %s", filepath.ToSlash(hdr.Name), from)
 		return false
 	}
 	if len(hdr.Linkname) > 0 {
-		if strings.HasPrefix(hdr.Linkname, from) {
-			hdr.Linkname = strings.TrimPrefix(hdr.Linkname, from)
+		if strings.HasPrefix(filepath.ToSlash(hdr.Linkname), from) {
+			hdr.Linkname = filepath.FromSlash(strings.TrimPrefix(filepath.ToSlash(hdr.Linkname), from))
 			klog.V(5).Infof("Updated link to %s", hdr.Linkname)
 		} else {
 			klog.V(4).Infof("Name %s won't correctly point to %s outside of %s", hdr.Name, hdr.Linkname, from)
 		}
 	}
-	hdr.Name = strings.TrimPrefix(hdr.Name, from)
+	hdr.Name = filepath.FromSlash(strings.TrimPrefix(filepath.ToSlash(hdr.Name), from))
 	klog.V(5).Infof("Updated name %s", hdr.Name)
 	return true
 }
