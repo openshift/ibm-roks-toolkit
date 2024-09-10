@@ -37,7 +37,7 @@ func setupConfigMapObserver(cfg *cpoperator.ControlPlaneOperatorConfig) error {
 	if err != nil {
 		return err
 	}
-	if err := c.Watch(&source.Informer{Informer: configMaps.Informer()}, controllers.NamedResourceHandler(RouterCAConfigMap, ServiceCAConfigMap)); err != nil {
+	if err := c.Watch(&source.Informer{Informer: configMaps.Informer(), Handler: controllers.NamedResourceHandler(RouterCAConfigMap, ServiceCAConfigMap)}); err != nil {
 		return err
 	}
 	return nil

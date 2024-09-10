@@ -16,6 +16,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
 	configclient "github.com/openshift/client-go/config/clientset/versioned"
@@ -84,7 +85,9 @@ func (c *ControlPlaneOperatorConfig) Manager() ctrl.Manager {
 			LeaderElection:          true,
 			LeaderElectionNamespace: c.TargetNamespace(),
 			LeaderElectionID:        "control-plane-operator",
-			Namespace:               c.TargetNamespace(),
+			Cache: cache.Options{
+				DefaultNamespaces: map[string]cache.Config{c.TargetNamespace(): {}},
+			},
 		})
 		if err != nil {
 			c.Fatal(err, "failed to create controller manager")

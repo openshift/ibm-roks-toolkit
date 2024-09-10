@@ -55,7 +55,7 @@ func Setup(cfg *cpoperator.ControlPlaneOperatorConfig) error {
 	if err != nil {
 		return err
 	}
-	if err := c.Watch(&source.Informer{Informer: infrastructures.Informer()}, &handler.EnqueueRequestForObject{}); err != nil {
+	if err := c.Watch(&source.Informer{Informer: infrastructures.Informer(), Handler: &handler.EnqueueRequestForObject{}}); err != nil {
 		return err
 	}
 	return nil
