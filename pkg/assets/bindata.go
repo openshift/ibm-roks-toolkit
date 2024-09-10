@@ -244,7 +244,7 @@ func clusterBootstrap00000_routeControllerNsYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapApiUsageYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-apiserver-operator/blob/release-4.16/bindata/assets/alerts/api-usage.yaml
+var _clusterBootstrapApiUsageYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-apiserver-operator/blob/release-4.17/bindata/assets/alerts/api-usage.yaml
 # The ROKS toolkit processes this file as template and the substitution variables must
 # be escaped.
 # See https://github.com/openshift/ibm-roks-toolkit/pull/457#discussion_r841881070
@@ -266,7 +266,7 @@ spec:
               a successful upgrade to the next cluster version with Kubernetes {{ ` + "`" + `{{ $labels.removed_release }}` + "`" + ` }}.
               Refer to ` + "`" + `oc get apirequestcounts {{ ` + "`" + `{{ $labels.resource }}.{{ $labels.version }}.{{ $labels.group }}` + "`" + ` }} -o yaml` + "`" + ` to identify the workload.
           expr: >-
-            group by (group,version,resource,removed_release) (apiserver_requested_deprecated_apis{removed_release="1.30"})
+            group by (group,version,resource,removed_release) (apiserver_requested_deprecated_apis{removed_release="1.31"})
             * on (group,version,resource) group_left ()
             sum by (group,version,resource) (
             rate(apiserver_request_total{system_client!="kube-controller-manager",system_client!="cluster-policy-controller"}[4h])
@@ -284,7 +284,7 @@ spec:
               a successful upgrade to the next EUS cluster version with Kubernetes {{ ` + "`" + `{{ $labels.removed_release }}` + "`" + ` }}.
               Refer to ` + "`" + `oc get apirequestcounts {{ ` + "`" + `{{ $labels.resource }}.{{ $labels.version }}.{{ $labels.group }}` + "`" + ` }} -o yaml` + "`" + ` to identify the workload.
           expr: >-
-            group by (group,version,resource,removed_release) (apiserver_requested_deprecated_apis{removed_release=~"1.3[01]"})
+            group by (group,version,resource,removed_release) (apiserver_requested_deprecated_apis{removed_release=~"1.31"})
             * on (group,version,resource) group_left ()
             sum by (group,version,resource) (
             rate(apiserver_request_total{system_client!="kube-controller-manager",system_client!="cluster-policy-controller"}[4h])
@@ -310,7 +310,7 @@ func clusterBootstrapApiUsageYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapApiserverApirequestcountsCrdYaml = []byte(`# Source: https://github.com/openshift/api/blob/release-4.16/apiserver/v1/zz_generated.crd-manifests/kube-apiserver_apirequestcounts.crd.yaml
+var _clusterBootstrapApiserverApirequestcountsCrdYaml = []byte(`# Source: https://github.com/openshift/api/blob/release-4.17/apiserver/v1/zz_generated.crd-manifests/kube-apiserver_apirequestcounts.crd.yaml
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -819,7 +819,7 @@ var _clusterBootstrapClusterNetwork01CrdYaml = []byte(`---
 # This is the advanced network configuration CRD
 # Only necessary if you need to tweak certain settings.
 # See https://github.com/openshift/cluster-network-operator#configuring
-# Source: https://github.com/openshift/cluster-network-operator/blob/release-4.16/manifests/0000_70_network_01_networks.crd.yaml
+# Source: https://github.com/openshift/cluster-network-operator/blob/release-4.17/manifests/0000_70_network_01_networks-Default.crd.yaml
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -828,6 +828,7 @@ metadata:
     api.openshift.io/merged-by-featuregates: "true"
     include.release.openshift.io/ibm-cloud-managed: "true"
     include.release.openshift.io/self-managed-high-availability: "true"
+    release.openshift.io/feature-set: Default
   name: networks.operator.openshift.io
 spec:
   group: operator.openshift.io
@@ -912,6 +913,7 @@ spec:
                                         type: string
                                     type: object
                                   type: array
+                                  x-kubernetes-list-type: atomic
                                 dns:
                                   description: DNS configures DNS for the interface
                                   properties:
@@ -925,12 +927,14 @@ spec:
                                       items:
                                         type: string
                                       type: array
+                                      x-kubernetes-list-type: atomic
                                     search:
                                       description: Search configures priority ordered
                                         search domains for short hostname lookups
                                       items:
                                         type: string
                                       type: array
+                                      x-kubernetes-list-type: atomic
                                   type: object
                                 routes:
                                   description: Routes configures IP routes for the
@@ -950,6 +954,7 @@ spec:
                                         type: string
                                     type: object
                                   type: array
+                                  x-kubernetes-list-type: atomic
                               type: object
                             type:
                               description: Type is the type of IPAM module will be
@@ -977,8 +982,13 @@ spec:
                       description: type is the type of network The supported values
                         are NetworkTypeRaw, NetworkTypeSimpleMacvlan
                       type: string
+                  required:
+                  - name
                   type: object
                 type: array
+                x-kubernetes-list-map-keys:
+                - name
+                x-kubernetes-list-type: map
               clusterNetwork:
                 description: clusterNetwork is the IP address pool to use for pod
                   IPs. Some network providers, e.g. OpenShift SDN, support multiple
@@ -999,6 +1009,7 @@ spec:
                       type: integer
                   type: object
                 type: array
+                x-kubernetes-list-type: atomic
               defaultNetwork:
                 description: defaultNetwork is the "default" network that all pods
                   will receive
@@ -1101,23 +1112,15 @@ spec:
                                 maxLength: 18
                                 type: string
                                 x-kubernetes-validations:
-                                - message: CIDR format must contain exactly one '/'
-                                  rule: self.indexOf('/') == self.lastIndexOf('/')
+                                - message: Subnet must be in valid IPV4 CIDR format
+                                  rule: isCIDR(self) && cidr(self).ip().family() ==
+                                    4
                                 - message: subnet must be in the range /0 to /29 inclusive
-                                  rule: '[int(self.split(''/'')[1])].all(x, x <= 29
-                                    && x >= 0)'
-                                - message: a valid IPv4 address must contain 4 octets
-                                  rule: self.split('/')[0].split('.').size() == 4
-                                - message: first IP address octet must not contain
-                                    leading zeros, must be greater than 0 and less
-                                    or equal to 255
-                                  rule: '[self.findAll(''[0-9]+'')[0]].all(x, x !=
-                                    ''0'' && int(x) <= 255 && !x.startsWith(''0''))'
-                                - message: IP address octets must not contain leading
-                                    zeros, and must be less or equal to 255
-                                  rule: '[self.findAll(''[0-9]+'')[1], self.findAll(''[0-9]+'')[2],
-                                    self.findAll(''[0-9]+'')[3]].all(x, int(x) <=
-                                    255 && (x == ''0'' || !x.startsWith(''0'')))'
+                                  rule: isCIDR(self) && cidr(self).prefixLength()
+                                    <= 29
+                                - message: first IP address octet must not be 0
+                                  rule: isCIDR(self) && int(self.split('.')[0]) >
+                                    0
                             type: object
                           ipv6:
                             description: ipv6 allows users to configure IP settings
@@ -1143,80 +1146,13 @@ spec:
                                   Note that IPV6 dual addresses are not permitted
                                 type: string
                                 x-kubernetes-validations:
-                                - message: CIDR format must contain exactly one '/'
-                                  rule: self.indexOf('/') == self.lastIndexOf('/')
+                                - message: Subnet must be in valid IPV6 CIDR format
+                                  rule: isCIDR(self) && cidr(self).ip().family() ==
+                                    6
                                 - message: subnet must be in the range /0 to /125
                                     inclusive
-                                  rule: self.split('/').size() == 2 && [int(self.split('/')[1])].all(x,
-                                    x <= 125 && x >= 0)
-                                - message: IPv6 addresses must contain at most one
-                                    '::' and may only be shortened once
-                                  rule: self.indexOf('::') == self.lastIndexOf('::')
-                                - message: a valid IPv6 address must contain 8 segments
-                                    unless elided (::), in which case it must contain
-                                    at most 6 non-empty segments
-                                  rule: 'self.contains(''::'') ? self.split(''/'')[0].split('':'').size()
-                                    <= 8 : self.split(''/'')[0].split('':'').size()
-                                    == 8'
-                                - message: each segment of an IPv6 address must be
-                                    a hexadecimal number between 0 and FFFF, failed
-                                    on segment 1
-                                  rule: 'self.split(''/'')[0].split('':'').size()
-                                    >=1 ? [self.split(''/'')[0].split('':'', 8)[0]].all(x,
-                                    x == '''' || (x.matches(''^[0-9A-Fa-f]{1,4}$''))
-                                    && size(x)<5 ) : true'
-                                - message: each segment of an IPv6 address must be
-                                    a hexadecimal number between 0 and FFFF, failed
-                                    on segment 2
-                                  rule: 'self.split(''/'')[0].split('':'').size()
-                                    >=2 ? [self.split(''/'')[0].split('':'', 8)[1]].all(x,
-                                    x == '''' || (x.matches(''^[0-9A-Fa-f]{1,4}$''))
-                                    && size(x)<5 ) : true'
-                                - message: each segment of an IPv6 address must be
-                                    a hexadecimal number between 0 and FFFF, failed
-                                    on segment 3
-                                  rule: 'self.split(''/'')[0].split('':'').size()
-                                    >=3 ? [self.split(''/'')[0].split('':'', 8)[2]].all(x,
-                                    x == '''' || (x.matches(''^[0-9A-Fa-f]{1,4}$''))
-                                    && size(x)<5 ) : true'
-                                - message: each segment of an IPv6 address must be
-                                    a hexadecimal number between 0 and FFFF, failed
-                                    on segment 4
-                                  rule: 'self.split(''/'')[0].split('':'').size()
-                                    >=4 ? [self.split(''/'')[0].split('':'', 8)[3]].all(x,
-                                    x == '''' || (x.matches(''^[0-9A-Fa-f]{1,4}$''))
-                                    && size(x)<5 ) : true'
-                                - message: each segment of an IPv6 address must be
-                                    a hexadecimal number between 0 and FFFF, failed
-                                    on segment 5
-                                  rule: 'self.split(''/'')[0].split('':'').size()
-                                    >=5 ? [self.split(''/'')[0].split('':'', 8)[4]].all(x,
-                                    x == '''' || (x.matches(''^[0-9A-Fa-f]{1,4}$''))
-                                    && size(x)<5 ) : true'
-                                - message: each segment of an IPv6 address must be
-                                    a hexadecimal number between 0 and FFFF, failed
-                                    on segment 6
-                                  rule: 'self.split(''/'')[0].split('':'').size()
-                                    >=6 ? [self.split(''/'')[0].split('':'', 8)[5]].all(x,
-                                    x == '''' || (x.matches(''^[0-9A-Fa-f]{1,4}$''))
-                                    && size(x)<5 ) : true'
-                                - message: each segment of an IPv6 address must be
-                                    a hexadecimal number between 0 and FFFF, failed
-                                    on segment 7
-                                  rule: 'self.split(''/'')[0].split('':'').size()
-                                    >=7 ? [self.split(''/'')[0].split('':'', 8)[6]].all(x,
-                                    x == '''' || (x.matches(''^[0-9A-Fa-f]{1,4}$''))
-                                    && size(x)<5 ) : true'
-                                - message: each segment of an IPv6 address must be
-                                    a hexadecimal number between 0 and FFFF, failed
-                                    on segment 8
-                                  rule: 'self.split(''/'')[0].split('':'').size()
-                                    >=8 ? [self.split(''/'')[0].split('':'', 8)[7]].all(x,
-                                    x == '''' || (x.matches(''^[0-9A-Fa-f]{1,4}$''))
-                                    && size(x)<5 ) : true'
-                                - message: IPv6 dual addresses are not permitted,
-                                    value should not contain ` + "`" + `.` + "`" + ` characters
-                                  rule: '!self.contains(''.'')'
+                                  rule: isCIDR(self) && cidr(self).prefixLength()
+                                    <= 125
                             type: object
                           routingViaHost:
                             default: false
@@ -1258,6 +1194,7 @@ spec:
                                   type: integer
                               type: object
                             type: array
+                            x-kubernetes-list-type: atomic
                           hybridOverlayVXLANPort:
                             description: HybridOverlayVXLANPort defines the VXLAN
                               port number to be used by the additional overlay network.
@@ -1316,14 +1253,10 @@ spec:
                             x-kubernetes-validations:
                             - message: Subnet must be in valid IPV4 CIDR format
                               rule: isCIDR(self) && cidr(self).ip().family() == 4
-                            - message: first IP address octet must not contain leading
-                                zeros, must be greater than 0 and less or equal to
-                                255
-                              rule: '[self.findAll(''[0-9]+'')[0]].all(x, x != ''0''
-                                && int(x) <= 255 && !x.startsWith(''0''))'
                             - message: subnet must be in the range /0 to /30 inclusive
-                              rule: '[int(self.split(''/'')[1])].all(x, x <= 30 &&
-                                x >= 0)'
+                              rule: isCIDR(self) && cidr(self).prefixLength() <= 30
+                            - message: first IP address octet must not be 0
+                              rule: isCIDR(self) && int(self.split('.')[0]) > 0
                           internalTransitSwitchSubnet:
                             description: internalTransitSwitchSubnet is a v4 subnet
                               in IPV4 CIDR format used internally by OVN-Kubernetes
@@ -1344,14 +1277,10 @@ spec:
                             x-kubernetes-validations:
                             - message: Subnet must be in valid IPV4 CIDR format
                               rule: isCIDR(self) && cidr(self).ip().family() == 4
-                            - message: first IP address octet must not contain leading
-                                zeros, must be greater than 0 and less or equal to
-                                255
-                              rule: '[self.findAll(''[0-9]+'')[0]].all(x, x != ''0''
-                                && int(x) <= 255 && !x.startsWith(''0''))'
                             - message: subnet must be in the range /0 to /30 inclusive
-                              rule: '[int(self.split(''/'')[1])].all(x, x <= 30 &&
-                                x >= 0)'
+                              rule: isCIDR(self) && cidr(self).prefixLength() <= 30
+                            - message: first IP address octet must not be 0
+                              rule: isCIDR(self) && int(self.split('.')[0]) > 0
                         type: object
                       ipv6:
                         description: ipv6 allows users to configure IP settings for
@@ -1376,17 +1305,7 @@ spec:
                             - message: Subnet must be in valid IPV6 CIDR format
                               rule: isCIDR(self) && cidr(self).ip().family() == 6
                             - message: subnet must be in the range /0 to /125 inclusive
-                              rule: self.split('/').size() == 2 && [int(self.split('/')[1])].all(x,
-                                x <= 125 && x >= 0)
-                            - message: a valid IPv6 address must contain 8 segments
-                                unless elided (::), in which case it must contain
-                                at most 6 non-empty segments
-                              rule: 'self.contains(''::'') ? self.split(''/'')[0].split('':'').size()
-                                <= 8 : self.split(''/'')[0].split('':'').size() ==
-                                8'
-                            - message: IPv6 dual addresses are not permitted, value
-                                should not contain ` + "`" + `.` + "`" + ` characters
-                              rule: '!self.contains(''.'')'
+                              rule: isCIDR(self) && cidr(self).prefixLength() <= 125
                           internalTransitSwitchSubnet:
                             description: internalTransitSwitchSubnet is a v4 subnet
                               in IPV4 CIDR format used internally by OVN-Kubernetes
@@ -1409,17 +1328,7 @@ spec:
                             - message: Subnet must be in valid IPV6 CIDR format
                               rule: isCIDR(self) && cidr(self).ip().family() == 6
                             - message: subnet must be in the range /0 to /125 inclusive
-                              rule: self.split('/').size() == 2 && [int(self.split('/')[1])].all(x,
-                                x <= 125 && x >= 0)
-                            - message: a valid IPv6 address must contain 8 segments
-                                unless elided (::), in which case it must contain
-                                at most 6 non-empty segments
-                              rule: 'self.contains(''::'') ? self.split(''/'')[0].split('':'').size()
-                                <= 8 : self.split(''/'')[0].split('':'').size() ==
-                                8'
-                            - message: IPv6 dual addresses are not permitted, value
-                                should not contain ` + "`" + `.` + "`" + ` characters
-                              rule: '!self.contains(''.'')'
+                              rule: isCIDR(self) && cidr(self).prefixLength() <= 125
                         type: object
                       mtu:
                         description: mtu is the MTU to use for the tunnel interface.
@@ -1536,6 +1445,7 @@ spec:
                         maxItems: 10
                         minItems: 1
                         type: array
+                        x-kubernetes-list-type: atomic
                     type: object
                   netFlow:
                     description: netFlow defines the NetFlow configuration.
@@ -1550,6 +1460,7 @@ spec:
                         maxItems: 10
                         minItems: 1
                         type: array
+                        x-kubernetes-list-type: atomic
                     type: object
                   sFlow:
                     description: sFlow defines the SFlow configuration.
@@ -1563,6 +1474,7 @@ spec:
                         maxItems: 10
                         minItems: 1
                         type: array
+                        x-kubernetes-list-type: atomic
                     type: object
                 type: object
               kubeProxyConfig:
@@ -1588,6 +1500,7 @@ spec:
                       items:
                         type: string
                       type: array
+                      x-kubernetes-list-type: atomic
                     description: Any additional arguments to pass to the kubeproxy
                       process
                     type: object
@@ -1714,7 +1627,7 @@ spec:
                 - message: networkType migration in mode other than 'Live' may not
                     be configured at the same time as mtu migration
                   rule: '!has(self.mtu) || !has(self.networkType) || self.networkType
-                    == '''' || has(self.mode) && self.mode == ''Live'''
+                    == "" || has(self.mode) && self.mode == ''Live'''
               observedConfig:
                 description: observedConfig holds a sparse config that controller
                   has observed from the cluster state.  It exists in spec because
@@ -1743,6 +1656,7 @@ spec:
                 items:
                   type: string
                 type: array
+                x-kubernetes-list-type: atomic
               unsupportedConfigOverrides:
                 description: unsupportedConfigOverrides overrides the final configuration
                   that was computed by the operator. Red Hat does not support the
@@ -1975,7 +1889,7 @@ func clusterBootstrapClusterVersionYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapCsr_approver_clusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.16/bindata/assets/kube-controller-manager/csr_approver_clusterrole.yaml
+var _clusterBootstrapCsr_approver_clusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.17/bindata/assets/kube-controller-manager/csr_approver_clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -2030,7 +1944,7 @@ func clusterBootstrapCsr_approver_clusterroleYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapCsr_approver_clusterrolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.16/bindata/assets/kube-controller-manager/csr_approver_clusterrolebinding.yaml
+var _clusterBootstrapCsr_approver_clusterrolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.17/bindata/assets/kube-controller-manager/csr_approver_clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -2062,7 +1976,7 @@ func clusterBootstrapCsr_approver_clusterrolebindingYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapDeployerClusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.16/bindata/assets/openshift-controller-manager/deployer-clusterrole.yaml
+var _clusterBootstrapDeployerClusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.17/bindata/assets/openshift-controller-manager/deployer-clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -2144,7 +2058,7 @@ func clusterBootstrapDeployerClusterroleYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapDeployerClusterrolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.16/bindata/assets/openshift-controller-manager/deployer-clusterrolebinding.yaml
+var _clusterBootstrapDeployerClusterrolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.17/bindata/assets/openshift-controller-manager/deployer-clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -2181,7 +2095,7 @@ var _clusterBootstrapEtcdOperatorConfigYaml = []byte(`---
 # This is the etcd operator CRD
 # Although this resource is in the openshift payload,
 # it doesn't get applied due to the ` + "`" + `release.openshift.io/feature-set: Default` + "`" + ` annotation
-# Source: https://github.com/openshift/api/blob/release-4.16/operator/v1/zz_generated.crd-manifests/0000_12_etcd_01_etcds-Default.crd.yaml
+# Source: https://github.com/openshift/api/blob/release-4.17/operator/v1/zz_generated.crd-manifests/0000_12_etcd_01_etcds-Default.crd.yaml
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -2476,7 +2390,7 @@ func clusterBootstrapEtcdOperatorConfigYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapIngressToRouteControllerClusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.16/bindata/assets/openshift-controller-manager/route-controller-manager-ingress-to-route-controller-clusterrole.yaml
+var _clusterBootstrapIngressToRouteControllerClusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.17/bindata/assets/openshift-controller-manager/route-controller-manager-ingress-to-route-controller-clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -2551,7 +2465,7 @@ func clusterBootstrapIngressToRouteControllerClusterroleYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapIngressToRouteControllerClusterrolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.16/bindata/assets/openshift-controller-manager/route-controller-manager-ingress-to-route-controller-clusterrolebinding.yaml
+var _clusterBootstrapIngressToRouteControllerClusterrolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.17/bindata/assets/openshift-controller-manager/route-controller-manager-ingress-to-route-controller-clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -2580,7 +2494,7 @@ func clusterBootstrapIngressToRouteControllerClusterrolebindingYaml() (*asset, e
 	return a, nil
 }
 
-var _clusterBootstrapLeaderIngressToRouteControllerRoleYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.16/bindata/assets/openshift-controller-manager/leader-ingress-to-route-controller-role.yaml
+var _clusterBootstrapLeaderIngressToRouteControllerRoleYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.17/bindata/assets/openshift-controller-manager/leader-ingress-to-route-controller-role.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -2612,7 +2526,7 @@ func clusterBootstrapLeaderIngressToRouteControllerRoleYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapLeaderIngressToRouteControllerRolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.16/bindata/assets/openshift-controller-manager/leader-ingress-to-route-controller-rolebinding.yaml
+var _clusterBootstrapLeaderIngressToRouteControllerRolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-openshift-controller-manager-operator/blob/release-4.17/bindata/assets/openshift-controller-manager/leader-ingress-to-route-controller-rolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
@@ -2643,7 +2557,7 @@ func clusterBootstrapLeaderIngressToRouteControllerRolebindingYaml() (*asset, er
 	return a, nil
 }
 
-var _clusterBootstrapNamespaceSecurityAllocationControllerClusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.16/bindata/assets/kube-controller-manager/namespace-security-allocation-controller-clusterrole.yaml
+var _clusterBootstrapNamespaceSecurityAllocationControllerClusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.17/bindata/assets/kube-controller-manager/namespace-security-allocation-controller-clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -2696,7 +2610,7 @@ func clusterBootstrapNamespaceSecurityAllocationControllerClusterroleYaml() (*as
 	return a, nil
 }
 
-var _clusterBootstrapNamespaceSecurityAllocationControllerClusterrolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.16/bindata/assets/kube-controller-manager/namespace-security-allocation-controller-clusterrolebinding.yaml
+var _clusterBootstrapNamespaceSecurityAllocationControllerClusterrolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.17/bindata/assets/kube-controller-manager/namespace-security-allocation-controller-clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -2783,7 +2697,7 @@ func clusterBootstrapOpenshiftInstallConfigmapYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapPodsecurityAdmissionLabelPrivilegedNamespacesSyncerControllerClusterroleYaml = []byte(`# SOURCE: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.16/bindata/assets/kube-controller-manager/podsecurity-admission-label-privileged-namespaces-syncer-controller-clusterrole.yaml
+var _clusterBootstrapPodsecurityAdmissionLabelPrivilegedNamespacesSyncerControllerClusterroleYaml = []byte(`# SOURCE: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.17/bindata/assets/kube-controller-manager/podsecurity-admission-label-privileged-namespaces-syncer-controller-clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -2825,7 +2739,7 @@ func clusterBootstrapPodsecurityAdmissionLabelPrivilegedNamespacesSyncerControll
 	return a, nil
 }
 
-var _clusterBootstrapPodsecurityAdmissionLabelPrivilegedNamespacesSyncerControllerClusterrolebindingYaml = []byte(`# SOURCE: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.16/bindata/assets/kube-controller-manager/podsecurity-admission-label-privileged-namespaces-syncer-controller-clusterrolebinding.yaml
+var _clusterBootstrapPodsecurityAdmissionLabelPrivilegedNamespacesSyncerControllerClusterrolebindingYaml = []byte(`# SOURCE: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.17/bindata/assets/kube-controller-manager/podsecurity-admission-label-privileged-namespaces-syncer-controller-clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -2855,7 +2769,7 @@ func clusterBootstrapPodsecurityAdmissionLabelPrivilegedNamespacesSyncerControll
 	return a, nil
 }
 
-var _clusterBootstrapPodsecurityAdmissionLabelSyncerControllerClusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.16/bindata/assets/kube-controller-manager/podsecurity-admission-label-syncer-controller-clusterrole.yaml
+var _clusterBootstrapPodsecurityAdmissionLabelSyncerControllerClusterroleYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.17/bindata/assets/kube-controller-manager/podsecurity-admission-label-syncer-controller-clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -2926,7 +2840,7 @@ func clusterBootstrapPodsecurityAdmissionLabelSyncerControllerClusterroleYaml() 
 	return a, nil
 }
 
-var _clusterBootstrapPodsecurityAdmissionLabelSyncerControllerClusterrolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.16/bindata/bootkube/manifests/00_podsecurity-admission-label-syncer-controller-clusterrolebinding.yaml
+var _clusterBootstrapPodsecurityAdmissionLabelSyncerControllerClusterrolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-controller-manager-operator/blob/release-4.17/bindata/bootkube/manifests/00_podsecurity-admission-label-syncer-controller-clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -2959,7 +2873,7 @@ func clusterBootstrapPodsecurityAdmissionLabelSyncerControllerClusterrolebinding
 	return a, nil
 }
 
-var _clusterBootstrapPodsecurityAlertYaml = []byte(`# Source: https://raw.githubusercontent.com/openshift/cluster-kube-apiserver-operator/release-4.16/bindata/assets/alerts/podsecurity-violations.yaml
+var _clusterBootstrapPodsecurityAlertYaml = []byte(`# Source: https://github.com/openshift/cluster-kube-apiserver-operator/blob/release-4.17/bindata/assets/alerts/podsecurity-violations.yaml
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
@@ -3016,7 +2930,7 @@ func clusterBootstrapPodsecurityAlertYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapTrust_distribution_roleYaml = []byte(`# Source: https://github.com/openshift/cluster-authentication-operator/blob/release-4.16/bindata/oauth-openshift/trust_distribution_role.yaml
+var _clusterBootstrapTrust_distribution_roleYaml = []byte(`# Source: https://github.com/openshift/cluster-authentication-operator/blob/release-4.17/bindata/oauth-openshift/trust_distribution_role.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -3050,7 +2964,7 @@ func clusterBootstrapTrust_distribution_roleYaml() (*asset, error) {
 	return a, nil
 }
 
-var _clusterBootstrapTrust_distribution_rolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-authentication-operator/blob/release-4.16/bindata/oauth-openshift/trust_distribution_rolebinding.yaml
+var _clusterBootstrapTrust_distribution_rolebindingYaml = []byte(`# Source: https://github.com/openshift/cluster-authentication-operator/blob/release-4.17/bindata/oauth-openshift/trust_distribution_rolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
