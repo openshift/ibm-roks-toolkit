@@ -1,4 +1,4 @@
-# Source: https://github.com/openshift/cluster-kube-apiserver-operator/blob/release-4.16/bindata/assets/alerts/api-usage.yaml
+# Source: https://github.com/openshift/cluster-kube-apiserver-operator/blob/release-4.17/bindata/assets/alerts/api-usage.yaml
 # The ROKS toolkit processes this file as template and the substitution variables must
 # be escaped.
 # See https://github.com/openshift/ibm-roks-toolkit/pull/457#discussion_r841881070
@@ -20,7 +20,7 @@ spec:
               a successful upgrade to the next cluster version with Kubernetes {{ `{{ $labels.removed_release }}` }}.
               Refer to `oc get apirequestcounts {{ `{{ $labels.resource }}.{{ $labels.version }}.{{ $labels.group }}` }} -o yaml` to identify the workload.
           expr: >-
-            group by (group,version,resource,removed_release) (apiserver_requested_deprecated_apis{removed_release="1.30"})
+            group by (group,version,resource,removed_release) (apiserver_requested_deprecated_apis{removed_release="1.31"})
             * on (group,version,resource) group_left ()
             sum by (group,version,resource) (
             rate(apiserver_request_total{system_client!="kube-controller-manager",system_client!="cluster-policy-controller"}[4h])
@@ -38,7 +38,7 @@ spec:
               a successful upgrade to the next EUS cluster version with Kubernetes {{ `{{ $labels.removed_release }}` }}.
               Refer to `oc get apirequestcounts {{ `{{ $labels.resource }}.{{ $labels.version }}.{{ $labels.group }}` }} -o yaml` to identify the workload.
           expr: >-
-            group by (group,version,resource,removed_release) (apiserver_requested_deprecated_apis{removed_release=~"1.3[01]"})
+            group by (group,version,resource,removed_release) (apiserver_requested_deprecated_apis{removed_release=~"1.31"})
             * on (group,version,resource) group_left ()
             sum by (group,version,resource) (
             rate(apiserver_request_total{system_client!="kube-controller-manager",system_client!="cluster-policy-controller"}[4h])
