@@ -20,7 +20,7 @@ func Setup(cfg *cpoperator.ControlPlaneOperatorConfig) error {
 	if err != nil {
 		return err
 	}
-	if err := c.Watch(&source.Informer{Informer: clusterOperators.Informer()}, &handler.EnqueueRequestForObject{}); err != nil {
+	if err := c.Watch(&source.Informer{Informer: clusterOperators.Informer(), Handler: &handler.EnqueueRequestForObject{}}); err != nil {
 		return err
 	}
 	return nil
