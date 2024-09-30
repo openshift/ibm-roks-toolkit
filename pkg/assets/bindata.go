@@ -3530,6 +3530,15 @@ spec:
           periodSeconds: 60
           failureThreshold: 3
           timeoutSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: {{ .KonnectivityAgentHealthPort }}
+            scheme: HTTP
+          initialDelaySeconds: 120
+          periodSeconds: 60
+          failureThreshold: 3
+          timeoutSeconds: 30
 {{- if .KonnectivityAgentDataPlaneContainerResources }}
         resources: {{ range .KonnectivityAgentDataPlaneContainerResources }}{{ range .ResourceRequest }}
           requests: {{ if .CPU }}
