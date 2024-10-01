@@ -4804,12 +4804,12 @@ apiVersion: apps/v1
 metadata:
   name: kube-controller-manager
 spec:
-  replicas: {{ .Replicas }}
+  replicas: 2
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 0
-      maxUnavailable: 1
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       app: kube-controller-manager
@@ -5045,12 +5045,12 @@ apiVersion: apps/v1
 metadata:
   name: kube-scheduler
 spec:
-  replicas: {{ .Replicas }}
+  replicas: 2
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 0
-      maxUnavailable: 1
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       app: kube-scheduler
@@ -5838,11 +5838,11 @@ apiVersion: apps/v1
 metadata:
   name: oauth-openshift
 spec:
-  replicas: {{ .Replicas }}
+  replicas: 2
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 0
+      maxSurge: 1
       maxUnavailable: 1
   selector:
     matchLabels:
@@ -6601,12 +6601,12 @@ apiVersion: apps/v1
 metadata:
   name: cluster-policy-controller
 spec:
-  replicas: {{ .Replicas }}
+  replicas: 2
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 0
-      maxUnavailable: 1
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       app: cluster-policy-controller
@@ -6806,12 +6806,12 @@ apiVersion: apps/v1
 metadata:
   name: openshift-controller-manager
 spec:
-  replicas: {{ .Replicas }}
+  replicas: 2
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 0
-      maxUnavailable: 1
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       app: openshift-controller-manager
@@ -7506,12 +7506,12 @@ apiVersion: apps/v1
 metadata:
   name: route-controller-manager
 spec:
-  replicas: {{ .Replicas }}
+  replicas: 2
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 0
-      maxUnavailable: 1
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       app: route-controller-manager
