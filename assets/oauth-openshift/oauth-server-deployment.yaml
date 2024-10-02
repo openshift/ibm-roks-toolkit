@@ -3,11 +3,11 @@ apiVersion: apps/v1
 metadata:
   name: oauth-openshift
 spec:
-  replicas: {{ .Replicas }}
+  replicas: 2
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 0
+      maxSurge: 1
       maxUnavailable: 1
   selector:
     matchLabels:
