@@ -101,15 +101,32 @@ spec:
             memory: {{ .Memory }}{{ end }}{{ end }}{{ end }}
 {{- end }}
         livenessProbe:
-          failureThreshold: 3
           httpGet:
             path: /healthz
             port: {{ .KonnectivityAgentHealthPort }}
             scheme: HTTP
-          initialDelaySeconds: 120
-          periodSeconds: 60
+          periodSeconds: 30
           successThreshold: 1
-          timeoutSeconds: 30
+          failureThreshold: 6
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: {{ .KonnectivityAgentHealthPort }}
+            scheme: HTTP
+          periodSeconds: 30
+          successThreshold: 1
+          failureThreshold: 1
+          timeoutSeconds: 5
+        startupProbe:
+          httpGet:
+            path: /healthz
+            port: {{ .KonnectivityAgentHealthPort }}
+            scheme: HTTP
+          periodSeconds: 5
+          successThreshold: 1
+          failureThreshold: 60
+          timeoutSeconds: 5
         volumeMounts:
         - mountPath: /etc/konnectivity/ca
           name: konnectivity-ca
