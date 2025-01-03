@@ -51,10 +51,28 @@ spec:
             path: /healthz
             port: {{ .KonnectivityAgentHealthPort }}
             scheme: HTTP
-          initialDelaySeconds: 120
-          periodSeconds: 60
-          failureThreshold: 3
-          timeoutSeconds: 30
+          periodSeconds: 30
+          successThreshold: 1
+          failureThreshold: 6
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: {{ .KonnectivityAgentHealthPort }}
+            scheme: HTTP
+          periodSeconds: 30
+          successThreshold: 1
+          failureThreshold: 1
+          timeoutSeconds: 5
+        startupProbe:
+          httpGet:
+            path: /healthz
+            port: {{ .KonnectivityAgentHealthPort }}
+            scheme: HTTP
+          periodSeconds: 5
+          successThreshold: 1
+          failureThreshold: 60
+          timeoutSeconds: 5
 {{- if .KonnectivityAgentDataPlaneContainerResources }}
         resources: {{ range .KonnectivityAgentDataPlaneContainerResources }}{{ range .ResourceRequest }}
           requests: {{ if .CPU }}
