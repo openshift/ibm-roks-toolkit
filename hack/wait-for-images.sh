@@ -25,8 +25,8 @@ fi
 
 CURRENT_COMMIT="$(git rev-parse "${RELEASE_BRANCH}")"
 
-# Wait up to 45 minutes, otherwise exit
-timeout=45
+# Wait up to 2 hours, otherwise exit
+timeout=120
 
 while [ $timeout -gt 0 ]; do
   # Grab the digest from the first manifest image in the manifest list, which is only amd64
