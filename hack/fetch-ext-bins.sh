@@ -13,7 +13,7 @@ if [ -n "$TRACE" ]; then
   set -x
 fi
 
-k8s_version=1.19.0
+k8s_version=1.29.0
 goarch=amd64
 goos="unknown"
 
@@ -48,8 +48,8 @@ function header_text {
 rc=0
 tmp_root=/tmp
 
-kb_root_dir=$tmp_root/kubebuilder
-kb_orig=$(pwd)
+envtest_root_dir=$tmp_root/envtest
+envtest_bin_dir=$tmp_root/controller-tools/envtest
 
 # Skip fetching and untaring the tools by setting the SKIP_FETCH_TOOLS variable
 # in your environment to any value:
@@ -57,47 +57,34 @@ kb_orig=$(pwd)
 # $ SKIP_FETCH_TOOLS=1 ./fetch_ext_bins.sh
 #
 # If you skip fetching tools, this script will use the tools already on your
-# machine, but rebuild the kubebuilder and kubebuilder-bin binaries.
+# machine.
 SKIP_FETCH_TOOLS=${SKIP_FETCH_TOOLS:-""}
 
-function prepare_staging_dir {
-  header_text "preparing staging dir"
-
-  if [ -z "$SKIP_FETCH_TOOLS" ]; then
-    rm -rf "$kb_root_dir"
-  else
-    rm -f "$kb_root_dir/kubebuilder/bin/kubebuilder"
-    rm -f "$kb_root_dir/kubebuilder/bin/kubebuilder-gen"
-    rm -f "$kb_root_dir/kubebuilder/bin/vendor.tar.gz"
-  fi
-}
-
-# fetch k8s API gen tools and make it available under kb_root_dir/bin.
+# fetch k8s API gen tools and make it available under envtest_bin_dir.
 function fetch_tools {
   if [ -n "$SKIP_FETCH_TOOLS" ]; then
     return 0
   fi
 
   header_text "fetching tools"
-  kb_tools_archive_name="kubebuilder-tools-$k8s_version-$goos-$goarch.tar.gz"
-  kb_tools_download_url="https://storage.googleapis.com/kubebuilder-tools/$kb_tools_archive_name"
+  envtest_archive_name="envtest-v$k8s_version-$goos-$goarch.tar.gz"
+  envtest_download_url="https://github.com/kubernetes-sigs/controller-tools/releases/download/envtest-v$k8s_version/$envtest_archive_name"
 
-  kb_tools_archive_path="$tmp_root/$kb_tools_archive_name"
-  if [ ! -f $kb_tools_archive_path ]; then
-    curl -fsL ${kb_tools_download_url} -o "$kb_tools_archive_path"
+  envtest_archive_path="$tmp_root/$envtest_archive_name"
+  if [ ! -f "$envtest_archive_path" ]; then
+    curl -fsL "${envtest_download_url}" -o "$envtest_archive_path"
   fi
 
-  tar -zvxf "$kb_tools_archive_path" -C "$tmp_root/"
+  tar -zvxf "$envtest_archive_path" -C "$tmp_root/"
 }
 
 function setup_envs {
   header_text "setting up env vars"
 
   # Setup env vars
-  export HOME=/tmp/kubebuilder
-  export PATH=/tmp/kubebuilder/bin:$PATH
-  export TEST_ASSET_KUBECTL=/tmp/kubebuilder/bin/kubectl
-  export TEST_ASSET_KUBE_APISERVER=/tmp/kubebuilder/bin/kube-apiserver
-  export TEST_ASSET_ETCD=/tmp/kubebuilder/bin/etcd
+  export PATH=$envtest_bin_dir:$PATH
+  export TEST_ASSET_KUBECTL=$envtest_bin_dir/kubectl
+  export TEST_ASSET_KUBE_APISERVER=$envtest_bin_dir/kube-apiserver
+  export TEST_ASSET_ETCD=$envtest_bin_dir/etcd
   export KUBEBUILDER_CONTROLPLANE_START_TIMEOUT=10m
 }
