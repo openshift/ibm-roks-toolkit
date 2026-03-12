@@ -22,7 +22,8 @@ var (
 	configClient configclient.Interface
 	testEnv      *envtest.Environment
 	doneMgr      = make(chan struct{})
-	ctx          = context.Background()
+	ctx          context.Context
+	cancel       context.CancelFunc
 )
 
 func TestClusterOperator(t *testing.T) {
@@ -32,6 +33,8 @@ func TestClusterOperator(t *testing.T) {
 }
 
 var _ = BeforeSuite(func() {
+	ctx, cancel = context.WithCancel(context.Background())
+
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{
 		CRDDirectoryPaths: []string{filepath.Join("../", "../", "../", "test-config", "clusteroperator.crd.yaml")},
@@ -71,6 +74,7 @@ var _ = BeforeSuite(func() {
 
 var _ = AfterSuite(func() {
 	By("tearing down the test environment")
+	cancel()
 	close(doneMgr)
 	Expect(testEnv.Stop()).To(Succeed())
 })
