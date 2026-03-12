@@ -48,7 +48,6 @@ function header_text {
 rc=0
 tmp_root=/tmp
 
-envtest_root_dir=$tmp_root/envtest
 envtest_bin_dir=$tmp_root/controller-tools/envtest
 
 # Skip fetching and untaring the tools by setting the SKIP_FETCH_TOOLS variable
